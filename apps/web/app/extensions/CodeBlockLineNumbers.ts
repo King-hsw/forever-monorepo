@@ -27,7 +27,14 @@ function buildDecorationSet(state: EditorState): DecorationSet {
     for (let i = 0; i < lines.length; i++) {
       decorations.push(
         Decoration.widget(nodePos + 1 + charOffset, () => createLineWidget(i + 1), {
-          side: 1,
+          // side: -1 让光标停在行号 widget 之后（可编辑一侧）。
+          // side: 1 会把光标放到 contenteditable=false 的 widget 之前，
+          // Chrome 在该位置无法正常接收输入（代码块第一行打不了字）。
+          side: -1,
+          // 稳定的 key：decorations 每次重建都会生成新的 toDOM 函数引用，
+          // 没有 key 时 WidgetType.eq 永远匹配不上，行号 DOM 会被反复
+          // 销毁重建，导致光标状态错乱。加了 key 后 ProseMirror 会复用已有 DOM。
+          key: `line-number-${i + 1}`,
         }),
       )
       charOffset += lines[i].length + 1
