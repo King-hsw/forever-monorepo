@@ -2,6 +2,6 @@
   <div>
     <NuxtRouteAnnouncer />
     <NuxtPwaAssets />
-    <NuxtWelcome />
+    <NuxtPage />
   </div>
 </template>
