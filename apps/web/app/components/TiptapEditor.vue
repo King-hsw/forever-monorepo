@@ -94,6 +94,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { Marked } from 'marked'
+import { CodeBlockLineNumbers } from '../extensions/CodeBlockLineNumbers'
 
 const props = withDefaults(
   defineProps<{
@@ -120,7 +121,7 @@ const editor = useEditor({
   content: props.modelValue,
   // 给 Markdown 扩展单独的 marked 实例，避免它把自定义 tokenizer（如 underline 的 ++text++）
   // 注册到全局 marked 上，污染页面里其他用 marked 做渲染的地方
-  extensions: [StarterKit, Markdown.configure({ marked: new Marked() })],
+  extensions: [StarterKit, CodeBlockLineNumbers, Markdown.configure({ marked: new Marked() })],
   // Nuxt 使用 SSR，禁止在服务器端渲染，仅在客户端 hydration 后渲染
   immediatelyRender: false,
   onUpdate: ({ editor }) => {
@@ -336,6 +337,16 @@ function confirmLink() {
   .tiptap pre code {
     padding: 0;
     background: none;
+  }
+
+  /* 代码块行号（CodeBlockLineNumbers 扩展注入的 widget） */
+  .tiptap pre .tiptap-line-number {
+    display: inline-block;
+    min-width: 2ch;
+    margin-right: 1ch;
+    text-align: right;
+    color: #98a1ab;
+    user-select: none;
   }
 
   .tiptap hr {

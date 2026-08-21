@@ -91,6 +91,7 @@ Note: PWA features (install prompt, offline mode) require serving the app over *
 项目内置了一个基于 [Tiptap](https://tiptap.dev) 的富文本编辑器组件，以及配套的 Markdown 渲染组件。首页（`/`）采用**左右分栏**布局：左侧用 Tiptap 编辑，右侧实时显示对应的 **Markdown 源码**和**渲染结果**。
 
 - `app/components/TiptapEditor.vue` — 富文本编辑器（自动导入）
+- `app/extensions/CodeBlockLineNumbers.ts` — Tiptap 代码块行号扩展
 - `app/components/MarkdownView.vue` — Markdown 渲染（自动导入）
 - `app/pages/index.vue` — 分栏演示页（内容自动保存到 `localStorage`）
 - 依赖：`@tiptap/vue-3`、`@tiptap/pm`、`@tiptap/starter-kit`、`@tiptap/markdown`（统一锁定 `3.30.2`）；`marked`、`marked-highlight`、`highlight.js`
@@ -115,10 +116,10 @@ const markdown = ref('') // 由编辑器自动填充
 ### 功能
 
 - StarterKit 全部基础扩展：标题、加粗、斜体、下划线、删除线、行内代码、代码块、引用、有序/无序列表、分割线、链接
-- 撤销 / 重做
+- 代码块行号：Tiptap 编辑器内（`CodeBlockLineNumbers` 扩展，纯装饰，不进入文档内容）与 Markdown 渲染结果中都会显示
 - `v-model` 双向绑定（HTML），`v-model:markdown` 同步输出 Markdown
 - `fluid` 模式撑满父容器（用于分栏布局）
-- Markdown 渲染支持 GFM + 代码块语法高亮（highlight.js）
+- Markdown 渲染支持 GFM + 代码块语法高亮（highlight.js）+ 行号显示
 - SSR 安全：`immediatelyRender: false`，仅在客户端 hydration 后渲染
 
 ### 注意

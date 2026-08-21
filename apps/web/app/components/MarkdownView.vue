@@ -37,6 +37,21 @@ hljs.registerLanguage('md', markdown)
 hljs.registerLanguage('yaml', yaml)
 hljs.registerLanguage('yml', yaml)
 
+// 语言未注册时转义 HTML，防止裸代码里的 < > & 被当作标签渲染
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+
+// 每一行包一层 <span class="line">，配合 CSS counter 显示行号
+const withLineNumbers = (value: string) =>
+  value
+    .split('\n')
+    .map((line) => `<span class="line">${line}</span>`)
+    .join('\n')
+
 // 使用独立 marked 实例：
 // 1) 避免被 Tiptap Markdown 扩展注册到全局 marked 的 tokenizer 污染
 // 2) markedHighlight 只影响本实例
@@ -47,10 +62,11 @@ md.use(
     emptyLangClass: 'hljs',
     highlight: (code, _lang, info) => {
       const name = info.trim().split(' ')[0]
-      if (name && hljs.getLanguage(name)) {
-        return hljs.highlight(code, { language: name }).value
-      }
-      return code
+      const highlighted =
+        name && hljs.getLanguage(name)
+          ? hljs.highlight(code, { language: name }).value
+          : escapeHtml(code)
+      return withLineNumbers(highlighted)
     },
   }),
 )
@@ -156,6 +172,7 @@ const html = computed(() => {
     border-radius: 8px;
     overflow-x: auto;
     line-height: 1.5;
+    counter-reset: line;
   }
 
   pre code {
@@ -163,6 +180,22 @@ const html = computed(() => {
     background: none;
     border-radius: 0;
     font-size: 0.9em;
+  }
+
+  /* 代码块行号：每行一个 .line，用 counter 递增 */
+  pre code .line {
+    display: block;
+    counter-increment: line;
+  }
+
+  pre code .line::before {
+    content: counter(line);
+    display: inline-block;
+    min-width: 3ch;
+    margin-right: 1em;
+    text-align: right;
+    color: #8b949e;
+    user-select: none;
   }
 
   hr {
