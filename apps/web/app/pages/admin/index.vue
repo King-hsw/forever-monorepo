@@ -16,9 +16,16 @@
       </div>
     </section>
 
+    <!-- 创作热力图 -->
+    <AdminHeatmap
+      class="dashboard__heatmap fade-up"
+      style="--stagger-index: 4"
+      :posts="postsStore.list"
+    />
+
     <section class="dashboard__grid">
       <!-- 最近文章 -->
-      <div class="card dashboard__panel fade-up" style="--stagger-index: 4">
+      <div class="card dashboard__panel fade-up" style="--stagger-index: 5">
         <header class="panel-head">
           <h2>最近文章</h2>
           <NuxtLink to="/admin/posts" class="panel-head__more">查看全部 →</NuxtLink>
@@ -28,7 +35,7 @@
             v-for="(post, i) in recentPosts"
             :key="post.id"
             class="recent-list__item"
-            :style="{ '--stagger-index': i + 5 }"
+            :style="{ '--stagger-index': i + 6 }"
           >
             <span class="badge" :class="`badge--${post.status}`">
               {{ post.status === 'published' ? '已发布' : '草稿' }}
@@ -46,7 +53,7 @@
       </div>
 
       <!-- 分类分布 -->
-      <div class="card dashboard__panel fade-up" style="--stagger-index: 5">
+      <div class="card dashboard__panel fade-up" style="--stagger-index: 6">
         <header class="panel-head">
           <h2>分类分布</h2>
         </header>
@@ -55,7 +62,7 @@
             v-for="(row, i) in categoryDist"
             :key="row.name"
             class="dist-list__item"
-            :style="{ '--stagger-index': i + 6 }"
+            :style="{ '--stagger-index': i + 7 }"
           >
             <span class="dist-list__name">{{ row.name }}</span>
             <span class="dist-list__count">{{ row.count }}</span>
@@ -182,6 +189,10 @@ const categoryDist = computed(() => {
   margin: 0;
   font-size: 13px;
   color: var(--c-text-muted);
+}
+
+.dashboard__heatmap {
+  margin-top: 16px;
 }
 
 .dashboard__grid {
