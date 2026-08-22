@@ -67,10 +67,12 @@ export function useTheme() {
     // 点击位置；无事件时（如代码调用）从屏幕右上角扩散
     const x = event?.clientX ?? window.innerWidth - 48
     const y = event?.clientY ?? 48
+    // 半径略微超出屏幕（+10%），保证动画结束时新主题已完全覆盖画面，
+    // 快照移除时不会出现可见的跳变
     const radius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y),
-    )
+    ) * 1.1
 
     doc.animate(
       {
@@ -80,8 +82,9 @@ export function useTheme() {
         ],
       },
       {
-        duration: 420,
-        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        duration: 450,
+        // 加速曲线：圆扩散越到后面越快，果断盖满屏幕，避免结尾拖沓、僵硬
+        easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)',
         pseudoElement: '::view-transition-new(root)',
       },
     )
