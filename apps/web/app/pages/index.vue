@@ -24,7 +24,7 @@
 
     <main class="post-list">
       <NuxtLink
-        v-for="(post, i) in filteredPosts"
+        v-for="(post, i) in pagedPosts"
         :key="post.id"
         :to="`/posts/${post.id}`"
         class="post-card"
@@ -51,6 +51,30 @@
         该分类下暂无文章
       </div>
     </main>
+
+    <!-- 分页：页码与 URL ?page= 双向同步，可直接分享/回退到某一页 -->
+    <nav v-if="totalPages > 1" class="pagination" aria-label="文章分页">
+      <button
+        type="button"
+        class="page-btn"
+        :disabled="currentPage <= 1"
+        @click="changePage(currentPage - 1)"
+      >← 上一页</button>
+      <button
+        v-for="p in totalPages"
+        :key="p"
+        type="button"
+        class="page-btn"
+        :class="{ 'page-btn--active': p === currentPage }"
+        @click="changePage(p)"
+      >{{ p }}</button>
+      <button
+        type="button"
+        class="page-btn"
+        :disabled="currentPage >= totalPages"
+        @click="changePage(currentPage + 1)"
+      >下一页 →</button>
+    </nav>
 
     <footer class="site-footer">Forever · 用心记录每一篇</footer>
   </div>
@@ -82,6 +106,30 @@ const filteredPosts = computed(() =>
     : publishedPosts.value,
 )
 
+/** 每页展示的文章数 */
+const PAGE_SIZE = 5
+
+/** 当前页码（与 URL ?page= 同步，非法值回落到第 1 页） */
+const currentPage = computed(() => {
+  const n = Number.parseInt(String(route.query.page ?? ''), 10)
+  return Number.isFinite(n) && n > 0 ? n : 1
+})
+
+/** 总页数（至少 1 页，保证空列表时也有合法页码） */
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredPosts.value.length / PAGE_SIZE)))
+
+/** 当前页应展示的文章切片 */
+const pagedPosts = computed(() =>
+  filteredPosts.value.slice((currentPage.value - 1) * PAGE_SIZE, currentPage.value * PAGE_SIZE),
+)
+
+/** 切换分类后数据变少时，页码可能越界，收敛到最后一页 */
+watch(totalPages, () => {
+  if (currentPage.value > totalPages.value) {
+    setPage(totalPages.value)
+  }
+})
+
 function categoryBySlug(slug: string) {
   return categoriesStore.list.find(c => c.slug === slug)
 }
@@ -95,8 +143,28 @@ function postTags(tagIds: string[]) {
 }
 
 function setCategory(slug: string) {
-  // 详情页的分类 chip 通过 ?category=slug 跳回这里，用 replace 保持地址栏干净
+  // 详情页的分类 chip 通过 ?category=slug 跳回这里；切换分类视为重新浏览，重置到第 1 页（去掉 page 参数）
   router.replace(slug ? { query: { category: slug } } : { query: {} })
+}
+
+/** 跳转到指定页：保留分类参数，页码为 1 时从地址栏移除 */
+function setPage(page: number) {
+  const clamped = Math.min(Math.max(1, page), totalPages.value)
+  const query: Record<string, string> = {}
+  if (activeCategory.value) {
+    query.category = activeCategory.value
+  }
+  if (clamped > 1) {
+    query.page = String(clamped)
+  }
+  router.replace({ query })
+}
+
+/** 翻页后回到列表顶部，避免停留在长列表底部 */
+function changePage(page: number) {
+  if (page === currentPage.value) return
+  setPage(page)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function formatDate(ts: number): string {
@@ -282,6 +350,50 @@ useHead({ title: 'Forever - 记录技术与思考' })
   text-align: center;
   font-size: 14.5px;
   color: #9a9aad;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 780px;
+  margin: 4px auto 0;
+  padding: 0 20px 40px;
+}
+
+.page-btn {
+  min-width: 38px;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  color: #55556a;
+  background: #fff;
+  border: 1px solid #e3e3ec;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    color: #6366f1;
+    border-color: #c3c3f7;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &--active {
+    color: #fff;
+    background: #6366f1;
+    border-color: #6366f1;
+
+    &:hover {
+      color: #fff;
+      transform: none;
+    }
+  }
 }
 
 .site-footer {
