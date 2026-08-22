@@ -2,6 +2,12 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      // 可通过环境变量 NUXT_PUBLIC_SITE_URL 覆盖
+      siteUrl: 'https://forever.example.com'
+    }
+  },
   css: ['~/assets/css/main.css'],
   modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
   pwa: {
@@ -64,7 +70,8 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#6366f1' }
       ],
       link: [
-        { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' }
+        { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
+        { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' }
       ]
     }
   }
