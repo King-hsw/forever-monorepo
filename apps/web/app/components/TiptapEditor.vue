@@ -158,7 +158,8 @@ const editor = useEditor({
   // CodeBlockLowlight 的 CodeBlockLineNumbers，同时提供高亮和外挂式行号栏
   extensions: [
     StarterKit.configure({ codeBlock: false }),
-    CodeBlockLineNumbers.configure({ lowlight }),
+    // 代码块内启用 Tab 缩进：Tab 插入缩进、Shift-Tab 反向缩进（支持多行选区）
+    CodeBlockLineNumbers.configure({ lowlight, enableTabIndentation: true, tabSize: 2 }),
     Markdown.configure({ marked: new Marked() }),
   ],
   // Nuxt 使用 SSR，禁止在服务器端渲染，仅在客户端 hydration 后渲染
