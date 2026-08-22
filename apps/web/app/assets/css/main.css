@@ -1,0 +1,169 @@
+/* ===== 基础 Reset ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* ===== 设计令牌 ===== */
+:root {
+  --c-primary: #6366f1;
+  --c-primary-hover: #4f52e8;
+  --c-primary-light: #eef0fe;
+  --c-text: #1f2329;
+  --c-text-secondary: #646a73;
+  --c-text-muted: #98a1ab;
+  --c-border: #e5e7ef;
+  --c-bg: #f6f7fb;
+  --c-danger: #ef4444;
+  --c-success: #10b981;
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 10%);
+}
+
+/* ===== 动画 ===== */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.fade-up {
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== 通用组件类 ===== */
+.card {
+  background: #fff;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: var(--c-text);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: #fff;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--c-primary-hover);
+  border-color: var(--c-primary-hover);
+}
+
+.btn--danger {
+  color: var(--c-danger);
+  border-color: currentcolor;
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--c-primary-light);
+  box-shadow: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge--published {
+  color: var(--c-success);
+  background: rgb(16 185 129 / 12%);
+}
+
+.badge--draft {
+  color: #d97706;
+  background: rgb(245 158 11 / 14%);
+}
+
+.field-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--c-text);
+  background: #fff;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-control);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field-input:focus {
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 15%);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-text-secondary);
+}
+
+.field-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--c-danger);
+}
