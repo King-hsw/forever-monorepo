@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
       `      <link>${escapeXml(link)}</link>`,
       `      <guid isPermaLink="true">${escapeXml(link)}</guid>`,
       `      <pubDate>${new Date(post.publishedAt ?? post.createdAt).toUTCString()}</pubDate>`,
-      `      <description>${escapeXml(post.summary)}</description>`,
+      `      <description>${escapeXml(post.summary ?? '')}</description>`,
       '    </item>',
     ].join('\n')
   }).join('\n')

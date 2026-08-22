@@ -350,8 +350,8 @@ const categoryCards = computed(() =>
       latestTitle:
         publishedPosts.value.find(p => p.categoryId === cat.id)?.summary ?? '暂无文章，快来写下第一篇',
     }))
-    .sort((a, b) => b.count - a.count),
-  ))
+    .sort((a, b) => b.count - a.count)
+)
 
 /** 分类卡片的糖果色轮换 */
 const catAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#7cc7f7', '#ffc94d', '#fb923c']

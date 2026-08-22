@@ -31,7 +31,7 @@
           @click="setCategory('')"
         >全部</button>
         <button
-          v-for="cat in categoriesStore.list"
+          v-for="cat in categories ?? []"
           :key="cat.id"
           type="button"
           class="filter-btn"
@@ -45,22 +45,22 @@
         <NuxtLink
           v-for="(post, i) in pagedPosts"
           :key="post.id"
-          :to="`/posts/${post.id}`"
+          :to="`/posts/${post.slug}`"
           class="row reveal"
           :style="{ '--reveal-delay': `${Math.min(i, 8) * 60}ms` }"
         >
           <span class="row__num" aria-hidden="true">{{ String(startIndex + i + 1).padStart(2, '0') }}</span>
           <span class="row__main">
             <h2 class="row__title">{{ post.title }}</h2>
-            <p class="row__excerpt">{{ post.excerpt }}</p>
+            <p class="row__excerpt">{{ post.summary }}</p>
             <span class="row__meta">
               <span class="chip">{{ categoryName(post.categoryId) }}</span>
               <span class="meta-dot">·</span>
               <time>{{ formatDate(post.createdAt) }}</time>
               <span class="meta-dot">·</span>
-              <span>{{ post.views.toLocaleString() }} 次阅读</span>
-              <span v-if="postTags(post.tagIds).length" class="row__tags">
-                <span v-for="tag in postTags(post.tagIds)" :key="tag.id"># {{ tag.name }}</span>
+              <span>{{ post.viewCount.toLocaleString() }} 次阅读</span>
+              <span v-if="post.tags.length" class="row__tags">
+                <span v-for="tag in post.tags" :key="tag.id"># {{ tag.name }}</span>
               </span>
             </span>
           </span>
@@ -105,11 +105,21 @@
 </template>
 
 <script setup lang="ts">
+import type { Category, PageResult, Post, Tag } from '~/stores/types'
+
 const route = useRoute()
 const router = useRouter()
-const postsStore = usePostsStore()
-const categoriesStore = useCategoriesStore()
-const tagsStore = useTagsStore()
+
+// 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
+const { data: pageData } = await useAsyncData('posts-articles', () =>
+  apiFetch<PageResult<Post>>('/api/v1/articles', { query: { page: 1, size: 1000 } }),
+)
+const { data: categories } = await useAsyncData('home-categories', () =>
+  apiFetch<Category[]>('/api/v1/categories'),
+)
+const { data: tags } = await useAsyncData('home-tags', () =>
+  apiFetch<Tag[]>('/api/v1/tags'),
+)
 
 /** 当前选中的分类 slug（与 URL query 双向同步） */
 const activeCategory = computed(() =>
@@ -117,10 +127,9 @@ const activeCategory = computed(() =>
 )
 
 /** 已发布文章，按发布时间倒序 */
+const sortKey = (p: Post) => p.publishedAt ?? p.createdAt
 const publishedPosts = computed(() =>
-  postsStore.list
-    .filter(p => p.status === 'published')
-    .sort((a, b) => b.createdAt - a.createdAt),
+  [...(pageData.value?.list ?? [])].sort((a, b) => (sortKey(a) < sortKey(b) ? 1 : -1)),
 )
 
 /** 按分类过滤后的列表 */
@@ -160,15 +169,15 @@ watch(totalPages, () => {
 })
 
 function categoryBySlug(slug: string) {
-  return categoriesStore.list.find(c => c.slug === slug)
+  return categories.value?.find(c => c.slug === slug)
 }
 
-function categoryName(categoryId: string | null): string {
-  return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
+function categoryName(categoryId: number | null): string {
+  return categories.value?.find(c => c.id === categoryId)?.name ?? '未分类'
 }
 
-function postTags(tagIds: string[]) {
-  return tagsStore.list.filter(t => tagIds.includes(t.id))
+function postTagsOf(post: Post) {
+  return post.tags
 }
 
 function setCategory(slug: string) {
@@ -236,7 +245,8 @@ onMounted(() => {
   onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 })
 
-function formatDate(ts: number): string {
+function formatDate(value: string | number): string {
+  const ts = value
   return new Date(ts).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
