@@ -365,13 +365,72 @@ function confirmLink() {
     border-radius: 4px;
   }
 
-  /* 代码块（NodeView 渲染为 行号栏 + pre 的组合，见 CodeBlockLineNumbers.ts） */
+  /* 代码块（NodeView 渲染为 行号栏 + pre + 悬浮工具条的组合，见 CodeBlockLineNumbers.ts） */
   .tiptap .tiptap-code-block {
+    position: relative;
     display: flex;
     margin: 0.8em 0;
     font-size: 0.9em;
     background: #f6f6f9;
     border-radius: 6px;
+  }
+
+  /* 代码块右上角悬浮工具条：默认半透明，hover/focus 时完全显示 */
+  .tiptap .tiptap-code-block__toolbar {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.35;
+    transition: opacity 0.15s ease;
+  }
+
+  .tiptap .tiptap-code-block:hover .tiptap-code-block__toolbar,
+  .tiptap .tiptap-code-block:focus-within .tiptap-code-block__toolbar {
+    opacity: 1;
+  }
+
+  .tiptap .tiptap-code-block__language-select {
+    max-width: 130px;
+    padding: 2px 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #444;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--tt-border);
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+      background: #fff;
+      border-color: #b9b9cc;
+      outline: none;
+    }
+  }
+
+  .tiptap .tiptap-code-block__copy-button {
+    padding: 3px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #444;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--tt-border);
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background: #fff;
+      border-color: #b9b9cc;
+    }
+
+    &.is-copied {
+      color: #16a34a;
+      border-color: #86dfa5;
+    }
   }
 
   .tiptap .tiptap-code-block__gutter {
@@ -395,6 +454,8 @@ function confirmLink() {
     margin: 0;
     padding: 12px 14px;
     overflow-x: auto;
+    /* 右侧留白稍大一点，避免第一行被悬浮工具条遮住 */
+    padding-right: 110px;
   }
 
   .tiptap pre {
