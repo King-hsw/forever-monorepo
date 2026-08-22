@@ -76,7 +76,7 @@
       >下一页 →</button>
     </nav>
 
-    <footer class="site-footer">Forever · 用心记录每一篇</footer>
+    <footer class="site-footer">Forever · 用心记录每一篇 · <NuxtLink class="rss-link" to="/rss.xml" target="_blank">RSS 订阅</NuxtLink></footer>
   </div>
 </template>
 
@@ -401,6 +401,18 @@ useHead({ title: 'Forever - 记录技术与思考' })
   text-align: center;
   font-size: 13px;
   color: #b0b0c0;
+}
+
+.site-footer .rss-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed currentColor;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.site-footer .rss-link:hover {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
 }
 
 @keyframes fade-up {

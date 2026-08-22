@@ -4,9 +4,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   runtimeConfig: {
     public: {
-      // 可通过环境变量 NUXT_PUBLIC_SITE_URL 覆盖
-      siteUrl: 'https://forever.example.com'
-    }
+      // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
+      siteUrl: 'https://forever.example.com',
+    },
   },
   css: ['~/assets/css/main.css'],
   modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
@@ -71,7 +71,8 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
-        { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' }
+        { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
+        { rel: 'alternate', type: 'application/rss+xml', title: 'Forever', href: '/rss.xml' }
       ]
     }
   }
