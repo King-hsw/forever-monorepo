@@ -79,6 +79,14 @@ export const usePostsStore = defineStore('admin-posts', () => {
     persist()
   }
 
+/** 详情页访问时累加阅读数 */
+  function incrementViews(id: string) {
+    const post = list.value.find(p => p.id === id)
+    if (!post) return
+    post.views += 1
+    persist()
+  }
+
   function remove(id: string) {
     list.value = list.value.filter(p => p.id !== id)
     persist()
@@ -117,5 +125,5 @@ export const usePostsStore = defineStore('admin-posts', () => {
     if (changed) persist()
   }
 
-  return { list, getById, create, update, remove, toggleStatus, detachCategory, detachTag }
+  return { list, getById, create, update, remove, toggleStatus, incrementViews, detachCategory, detachTag }
 })
