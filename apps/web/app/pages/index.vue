@@ -1,214 +1,315 @@
 <template>
-  <main class="page">
-    <header class="page__header">
-      <h1 class="page__title">Tiptap × Markdown</h1>
-      <div class="page__actions">
-        <button type="button" @click="content = defaultContent">恢复示例内容</button>
-        <button type="button" @click="content = ''">清空</button>
-      </div>
+  <div class="blog-home">
+    <header class="hero">
+      <h1 class="hero__brand">Forever</h1>
+      <p class="hero__tagline">记录技术与思考</p>
     </header>
 
-    <div class="page__panes">
-      <!-- 左：Tiptap 富文本编辑 -->
-      <section class="pane pane--editor">
-        <TiptapEditor v-model="content" v-model:markdown="markdown" fluid />
-      </section>
+    <nav class="filters">
+      <button
+        type="button"
+        class="filter-btn"
+        :class="{ 'filter-btn--active': !activeCategory }"
+        @click="setCategory('')"
+      >全部</button>
+      <button
+        v-for="cat in categoriesStore.list"
+        :key="cat.id"
+        type="button"
+        class="filter-btn"
+        :class="{ 'filter-btn--active': activeCategory === cat.slug }"
+        @click="setCategory(cat.slug)"
+      >{{ cat.name }}</button>
+    </nav>
 
-      <!-- 右：Markdown 源码 + 渲染 -->
-      <section class="pane pane--markdown">
-        <div class="pane__section">
-          <div class="pane__label">Markdown 源码</div>
-          <div class="pane__body">
-            <pre v-if="markdown" class="md-source">{{ markdown }}</pre>
-            <p v-else class="md-empty">（暂无内容）</p>
+    <main class="post-list">
+      <NuxtLink
+        v-for="(post, i) in filteredPosts"
+        :key="post.id"
+        :to="`/posts/${post.id}`"
+        class="post-card"
+        :style="{ animationDelay: `${Math.min(i, 8) * 60}ms` }"
+      >
+        <div class="post-card__main">
+          <h2 class="post-card__title">{{ post.title }}</h2>
+          <p class="post-card__excerpt">{{ post.excerpt }}</p>
+          <div class="post-card__meta">
+            <span class="post-card__category">{{ categoryName(post.categoryId) }}</span>
+            <span class="meta-dot">·</span>
+            <time>{{ formatDate(post.createdAt) }}</time>
+            <span class="meta-dot">·</span>
+            <span>{{ post.views.toLocaleString() }} 次阅读</span>
+            <span v-if="postTags(post.tagIds).length" class="post-card__tags">
+              <span v-for="tag in postTags(post.tagIds)" :key="tag.id" class="tag-chip"># {{ tag.name }}</span>
+            </span>
           </div>
         </div>
-        <div class="pane__section">
-          <div class="pane__label">渲染</div>
-          <div class="pane__body pane__body--preview">
-            <MarkdownView :source="markdown" />
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
+        <span class="post-card__arrow">→</span>
+      </NuxtLink>
+
+      <div v-if="!filteredPosts.length" class="empty">
+        该分类下暂无文章
+      </div>
+    </main>
+
+    <footer class="site-footer">Forever · 用心记录每一篇</footer>
+  </div>
 </template>
 
 <script setup lang="ts">
-const STORAGE_KEY = 'forever-tiptap-content'
+const route = useRoute()
+const router = useRouter()
+const postsStore = usePostsStore()
+const categoriesStore = useCategoriesStore()
+const tagsStore = useTagsStore()
 
-const defaultContent = `
-<p>欢迎使用 <strong>Tiptap</strong> 编辑器！🎉</p>
-<p>这是一个支持 <strong>加粗</strong>、<em>斜体</em>、<u>下划线</u>、<s>删除线</s> 和 <code>行内代码</code> 的富文本编辑器，还能插入 <a href="https://tiptap.dev">链接</a>。</p>
-<h2>标题二</h2>
-<blockquote>引用一段文字：好的工具应该让你专注于内容本身。</blockquote>
-<p>无序列表：</p>
-<ul>
-  <li>拖拽、撤销、重做</li>
-  <li>键盘快捷键</li>
-  <li>基于 ProseMirror</li>
-</ul>
-<p>有序列表：</p>
-<ol>
-  <li>第一步</li>
-  <li>第二步</li>
-  <li>第三步</li>
-</ol>
-<pre><code class="language-js">const editor = useEditor({
-  extensions: [StarterKit, Markdown],
-})</code></pre>
-<hr />
-<p>光标放在这里，继续编辑吧 ✍️</p>
-`.trim()
+/** 当前选中的分类 slug（与 URL query 双向同步） */
+const activeCategory = computed(() =>
+  typeof route.query.category === 'string' ? route.query.category : '',
+)
 
-const content = ref(defaultContent)
-const markdown = ref('')
+/** 已发布文章，按发布时间倒序 */
+const publishedPosts = computed(() =>
+  postsStore.list
+    .filter(p => p.status === 'published')
+    .sort((a, b) => b.createdAt - a.createdAt),
+)
 
-// 客户端挂载后恢复本地保存的内容
-onMounted(() => {
-  content.value = localStorage.getItem(STORAGE_KEY) ?? defaultContent
-})
+/** 按分类过滤后的列表 */
+const filteredPosts = computed(() =>
+  activeCategory.value
+    ? publishedPosts.value.filter(p => categoryBySlug(activeCategory.value)?.id === p.categoryId)
+    : publishedPosts.value,
+)
 
-// 内容变化时保存到本地
-watch(content, (value) => {
-  localStorage.setItem(STORAGE_KEY, value)
-})
+function categoryBySlug(slug: string) {
+  return categoriesStore.list.find(c => c.slug === slug)
+}
+
+function categoryName(categoryId: string | null): string {
+  return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
+}
+
+function postTags(tagIds: string[]) {
+  return tagsStore.list.filter(t => tagIds.includes(t.id))
+}
+
+function setCategory(slug: string) {
+  // 详情页的分类 chip 通过 ?category=slug 跳回这里，用 replace 保持地址栏干净
+  router.replace(slug ? { query: { category: slug } } : { query: {} })
+}
+
+function formatDate(ts: number): string {
+  return new Date(ts).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+useHead({ title: 'Forever - 记录技术与思考' })
 </script>
 
 <style scoped>
-.page {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
+.blog-home {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #f6f6fa;
 }
 
-.page__header {
+.hero {
+  padding: 56px 20px 8px;
+  text-align: center;
+  animation: fade-up 0.4s ease both;
+}
+
+.hero__brand {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 700;
+  color: #1a1a26;
+  letter-spacing: 0.01em;
+}
+
+.hero__tagline {
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  color: #8a8a99;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 780px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+  animation: fade-up 0.4s ease 0.05s both;
+}
+
+.filter-btn {
+  padding: 6px 16px;
+  font-size: 13.5px;
+  color: #55556a;
+  background: #fff;
+  border: 1px solid #e3e3ec;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #6366f1;
+    border-color: #c3c3f7;
+    transform: translateY(-1px);
+  }
+
+  &--active {
+    color: #fff;
+    background: #6366f1;
+    border-color: #6366f1;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.post-list {
+  display: grid;
+  gap: 16px;
+  max-width: 780px;
+  margin: 24px auto 0;
+  padding: 0 20px 40px;
+}
+
+.post-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 20px;
-  border-bottom: 1px solid #e5e5ec;
-}
-
-.page__title {
-  margin: 0;
-  font-size: 17px;
-}
-
-.page__actions {
-  display: flex;
-  gap: 12px;
-}
-
-.page__actions button {
-  padding: 6px 14px;
-  font-size: 13px;
-  border: 1px solid #d9d9e3;
-  border-radius: 6px;
+  padding: 22px 26px;
   background: #fff;
-  cursor: pointer;
+  border: 1px solid #ececf2;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
+  text-decoration: none;
+  animation: fade-up 0.4s ease both;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 
   &:hover {
-    background: #f4f4f8;
+    border-color: #c3c3f7;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 4%), 0 10px 24px rgb(0 0 0 / 8%);
+
+    .post-card__arrow {
+      color: #6366f1;
+      transform: translateX(4px);
+    }
   }
 }
 
-.page__panes {
+.post-card__main {
   flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  padding: 16px 20px 20px;
+  min-width: 0;
 }
 
-.pane {
-  min-height: 0;
-  background: #fff;
-  border: 1px solid #d9d9e3;
-  border-radius: 8px;
+.post-card__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1a1a26;
+}
+
+.post-card__excerpt {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #71718a;
+
+  /* 最多两行，超出省略 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.pane--editor {
+.post-card__meta {
   display: flex;
-}
-
-/* 编辑器嵌在 pane 内，去掉自身边框避免嵌套边框 */
-.pane--editor :deep(.tiptap-editor) {
-  border: none;
-}
-
-.pane--markdown {
-  display: flex;
-  flex-direction: column;
-}
-
-.pane__section {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.pane__section + .pane__section {
-  border-top: 1px solid #d9d9e3;
-}
-
-.pane__label {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  font-size: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12.5px;
   color: #8a8a99;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: #fafafc;
-  border-bottom: 1px solid #ececf2;
 }
 
-.pane__body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+.post-card__category {
+  padding: 2px 10px;
+  color: #6366f1;
+  background: #eef0fe;
+  border-radius: 999px;
 }
 
-.md-source {
-  margin: 0;
-  padding: 12px 16px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+.meta-dot {
+  color: #c5c5d2;
+}
+
+.post-card__tags {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.tag-chip {
+  color: #9a9aad;
+
+  &:hover {
+    color: #6366f1;
+  }
+}
+
+.post-card__arrow {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #c5c5d2;
+  transition: all 0.2s ease;
+}
+
+.empty {
+  padding: 60px 20px;
+  text-align: center;
+  font-size: 14.5px;
+  color: #9a9aad;
+}
+
+.site-footer {
+  padding: 24px 20px 32px;
+  text-align: center;
   font-size: 13px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: #444;
+  color: #b0b0c0;
 }
 
-.md-empty {
-  margin: 0;
-  padding: 12px 16px;
-  color: #bbb;
-  font-size: 13px;
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* 窄屏：上下堆叠，整页滚动 */
-@media (max-width: 900px) {
-  .page {
-    height: auto;
-    min-height: 100vh;
-  }
-
-  .page__panes {
-    grid-template-columns: 1fr;
-  }
-
-  .pane--editor {
-    height: 50vh;
-  }
-
-  .pane--markdown {
-    height: 80vh;
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .filters,
+  .post-card,
+  .post-card__arrow {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 }
 </style>
