@@ -1,7 +1,15 @@
 <template>
   <div class="blog-home">
+    <!-- ===== 顶部滚动进度条 ===== -->
+    <div
+      class="scroll-progress"
+      :class="{ 'scroll-progress--on': isScrolled }"
+      :style="{ transform: `scaleX(${progress})` }"
+      aria-hidden="true"
+    />
+
     <!-- ===== Header：吸顶导航，滚动后变为玻璃拟态 ===== -->
-    <header ref="headerEl" class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
+    <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
       <div class="site-header__inner">
         <a class="brand" href="#" @click.prevent="scrollToTop">
           <span class="brand__mark">F</span>
@@ -15,9 +23,8 @@
       </div>
     </header>
 
-    <!-- ===== Hero：视差背景 + 渐变标题 ===== -->
+    <!-- ===== Hero：视差背景 + 逐字浮现的渐变标题 ===== -->
     <section ref="heroEl" class="hero">
-      <!-- 视差装饰层：不同速度的渐变光斑 + 点阵网格 -->
       <div class="hero__bg" aria-hidden="true">
         <div ref="orbA" class="hero__orb hero__orb--a" />
         <div ref="orbB" class="hero__orb hero__orb--b" />
@@ -31,7 +38,21 @@
           欢迎来到我的数字花园
         </p>
         <h1 class="hero__title">
-          记录<span class="hero__title-gradient">技术与思考</span>
+          <span class="hero__word">
+            <span
+              v-for="(ch, i) in TITLE_A"
+              :key="`a${i}`"
+              class="hero__char"
+              :style="{ '--d': `${120 + i * 70}ms` }"
+            >{{ ch }}</span>
+          </span><span class="hero__word hero__word--grad">
+            <span
+              v-for="(ch, i) in TITLE_B"
+              :key="`b${i}`"
+              class="hero__char hero__char--grad"
+              :style="{ '--d': `${260 + i * 70}ms`, '--gi': i }"
+            >{{ ch }}</span>
+          </span>
         </h1>
         <p class="hero__tagline">
           在这里沉淀代码之外的灵感，<br class="hero__tagline-br">
@@ -71,9 +92,23 @@
       </button>
     </section>
 
+    <!-- ===== 标签跑马灯：无缝循环滚动 ===== -->
+    <div v-if="marqueeTags.length" class="marquee" aria-hidden="true">
+      <div class="marquee__track" :style="{ '--marquee-duration': `${Math.max(18, marqueeTags.length * 3)}s` }">
+        <span v-for="(tag, i) in marqueeLoop" :key="i" class="marquee__item"># {{ tag }}</span>
+      </div>
+    </div>
+
     <main>
+      <!-- ===== 栏目标题 ===== -->
+      <div id="posts" class="section-head">
+        <h2 class="section-head__cn">最新文章</h2>
+        <span class="section-head__en">Latest Posts</span>
+        <i class="section-head__line" />
+      </div>
+
       <!-- ===== 分类筛选 ===== -->
-      <nav id="posts" class="filters" aria-label="分类筛选">
+      <nav class="filters" aria-label="分类筛选">
         <button
           type="button"
           class="filter-btn"
@@ -90,33 +125,60 @@
         >{{ cat.name }}</button>
       </nav>
 
-      <!-- ===== 文章列表：滚动渐显 ===== -->
-      <section class="post-list">
+      <!-- ===== 头条文章：第 1 页时放大展示最新一篇 ===== -->
+      <section class="feed">
         <NuxtLink
-          v-for="(post, i) in pagedPosts"
+          v-if="featuredPost"
+          :to="`/posts/${featuredPost.id}`"
+          class="featured reveal"
+        >
+          <div class="featured__glow" aria-hidden="true" />
+          <span class="featured__badge">最新发布</span>
+          <h2 class="featured__title">{{ featuredPost.title }}</h2>
+          <p class="featured__excerpt">{{ featuredPost.excerpt }}</p>
+          <div class="featured__foot">
+            <div class="featured__meta">
+              <span class="chip">{{ categoryName(featuredPost.categoryId) }}</span>
+              <span class="meta-dot">·</span>
+              <time>{{ formatDate(featuredPost.createdAt) }}</time>
+              <span class="meta-dot">·</span>
+              <span>{{ featuredPost.views.toLocaleString() }} 次阅读</span>
+            </div>
+            <span class="featured__cta">
+              阅读全文
+              <span class="featured__cta-circle">→</span>
+            </span>
+          </div>
+        </NuxtLink>
+
+        <!-- ===== 目录式文章列表：描边序号 + 分隔线，杂志目录质感 ===== -->
+        <NuxtLink
+          v-for="(post, i) in listPosts"
           :key="post.id"
           :to="`/posts/${post.id}`"
-          class="post-card reveal"
-          :style="{ '--reveal-delay': `${Math.min(i % PAGE_SIZE, 5) * 70}ms` }"
+          class="row reveal"
+          :style="{ '--reveal-delay': `${Math.min(i, 5) * 80}ms` }"
         >
-          <div class="post-card__main">
-            <h2 class="post-card__title">{{ post.title }}</h2>
-            <p class="post-card__excerpt">{{ post.excerpt }}</p>
-            <div class="post-card__meta">
-              <span class="post-card__category">{{ categoryName(post.categoryId) }}</span>
+          <span class="row__num" aria-hidden="true">{{ String(i + (featuredPost ? 2 : 1)).padStart(2, '0') }}</span>
+          <span class="row__main">
+            <h2 class="row__title">{{ post.title }}</h2>
+            <p class="row__excerpt">{{ post.excerpt }}</p>
+            <span class="row__meta">
+              <span class="chip">{{ categoryName(post.categoryId) }}</span>
               <span class="meta-dot">·</span>
               <time>{{ formatDate(post.createdAt) }}</time>
               <span class="meta-dot">·</span>
               <span>{{ post.views.toLocaleString() }} 次阅读</span>
-              <span v-if="postTags(post.tagIds).length" class="post-card__tags">
-                <span v-for="tag in postTags(post.tagIds)" :key="tag.id" class="tag-chip"># {{ tag.name }}</span>
+              <span v-if="postTags(post.tagIds).length" class="row__tags">
+                <span v-for="tag in postTags(post.tagIds)" :key="tag.id"># {{ tag.name }}</span>
               </span>
-            </div>
-          </div>
-          <span class="post-card__arrow">→</span>
+            </span>
+          </span>
+          <span class="row__arrow" aria-hidden="true">→</span>
         </NuxtLink>
 
         <div v-if="!filteredPosts.length" class="empty">
+          <span class="empty__icon">✧</span>
           该分类下暂无文章
         </div>
       </section>
@@ -206,7 +268,7 @@ const filteredPosts = computed(() =>
     : publishedPosts.value,
 )
 
-/** 每页展示的文章数 */
+/** 每页展示的文章数（第 1 页含 1 篇头条） */
 const PAGE_SIZE = 5
 
 /** 当前页码（与 URL ?page= 同步，非法值回落到第 1 页） */
@@ -218,10 +280,25 @@ const currentPage = computed(() => {
 /** 总页数（至少 1 页，保证空列表时也有合法页码） */
 const totalPages = computed(() => Math.max(1, Math.ceil(filteredPosts.value.length / PAGE_SIZE)))
 
-/** 当前页应展示的文章切片 */
-const pagedPosts = computed(() =>
-  filteredPosts.value.slice((currentPage.value - 1) * PAGE_SIZE, currentPage.value * PAGE_SIZE),
+/** 第 1 页且列表非空时，把最新一篇放大为头条 */
+const featuredPost = computed(() =>
+  currentPage.value === 1 ? filteredPosts.value[0] ?? null : null,
 )
+
+/** 除头条外的当前页文章切片 */
+const listPosts = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  const slice = filteredPosts.value.slice(start, start + PAGE_SIZE)
+  return featuredPost.value ? slice.slice(1) : slice
+})
+
+/** 跑马灯标签：去重后取前 12 个 */
+const marqueeTags = computed(() =>
+  [...new Set(tagsStore.list.map(t => t.name))].slice(0, 12),
+)
+
+/** 无缝循环需要重复一份轨道内容 */
+const marqueeLoop = computed(() => [...marqueeTags.value, ...marqueeTags.value])
 
 /** 切换分类后数据变少时，页码可能越界，收敛到最后一页 */
 watch(totalPages, () => {
@@ -277,16 +354,18 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// ===== Header 滚动态 & 回到顶部按钮 =====
+// ===== Header 滚动态 / 回到顶部 / 阅读进度 =====
 
-const headerEl = ref<HTMLElement | null>(null)
 const isScrolled = ref(false)
 const showBackTop = ref(false)
+const progress = ref(0)
 
 function onScrollChrome() {
   const y = window.scrollY
   isScrolled.value = y > 24
   showBackTop.value = y > 600
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  progress.value = max > 0 ? Math.min(1, y / max) : 0
 }
 
 // ===== Hero 视差效果 =====
@@ -359,32 +438,6 @@ function onPointerMove(e: PointerEvent) {
   targetMY = (e.clientY / window.innerHeight) * 2 - 1
 }
 
-function setupParallax() {
-  if (!heroEl.value || prefersReducedMotion()) return
-
-  onScrollChrome()
-  targetScroll = currentScroll = window.scrollY
-
-  window.addEventListener('scroll', () => {
-    targetScroll = window.scrollY
-    onScrollChrome()
-  }, { passive: true })
-
-  window.addEventListener('pointermove', onPointerMove, { passive: true })
-
-  // 滚出视口后停掉 rAF，节省性能；滚回来再恢复
-  io = new IntersectionObserver(([entry]) => {
-    const wasVisible = heroVisible
-    heroVisible = entry.isIntersecting
-    if (heroVisible && !wasVisible) {
-      rafId = requestAnimationFrame(tick)
-    }
-  }, { rootMargin: '80px' })
-  io.observe(heroEl.value)
-
-  rafId = requestAnimationFrame(tick)
-}
-
 // ===== 列表滚动渐显（IntersectionObserver）=====
 
 let revealObserver: IntersectionObserver | null = null
@@ -409,10 +462,33 @@ function observeReveals() {
   })
 }
 
-watch(pagedPosts, () => nextTick(observeReveals))
+watch(listPosts, () => nextTick(observeReveals))
 
 onMounted(() => {
-  setupParallax()
+  onScrollChrome()
+  // 滚动监听始终注册：进度条/Header 态不依赖动效偏好
+  window.addEventListener('scroll', () => {
+    targetScroll = window.scrollY
+    onScrollChrome()
+  }, { passive: true })
+
+  if (!prefersReducedMotion() && heroEl.value) {
+    targetScroll = currentScroll = window.scrollY
+    window.addEventListener('pointermove', onPointerMove, { passive: true })
+
+    // 滚出视口后停掉 rAF，节省性能；滚回来再恢复
+    io = new IntersectionObserver(([entry]) => {
+      const wasVisible = heroVisible
+      heroVisible = entry.isIntersecting
+      if (heroVisible && !wasVisible) {
+        rafId = requestAnimationFrame(tick)
+      }
+    }, { rootMargin: '80px' })
+    io.observe(heroEl.value)
+
+    rafId = requestAnimationFrame(tick)
+  }
+
   setupReveal()
   observeReveals()
 })
@@ -432,6 +508,10 @@ function formatDate(ts: number): string {
   })
 }
 
+/** Hero 标题拆字（确定性数据，SSR 安全） */
+const TITLE_A = ['记', '录']
+const TITLE_B = ['技', '术', '与', '思', '考']
+
 useHead({ title: 'Forever - 记录技术与思考' })
 </script>
 
@@ -441,6 +521,29 @@ useHead({ title: 'Forever - 记录技术与思考' })
   min-height: 100dvh;
   background: var(--c-bg-soft);
   overflow-x: clip;
+}
+
+::selection {
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+}
+
+/* ===== 滚动进度条 ===== */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: 3px;
+  background: linear-gradient(90deg, var(--c-primary), #a855f7, #ec4899);
+  transform-origin: left;
+  transform: scaleX(0);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.scroll-progress--on {
+  opacity: 1;
 }
 
 /* ===== Header ===== */
@@ -626,29 +729,50 @@ html.dark .hero__grid {
   animation: pulse 2.2s ease-in-out infinite;
 }
 
+/* 标题：逐字从遮罩内升起；渐变字通过 background-size + 偏移拼成连续渐变 */
 .hero__title {
   margin: 26px 0 0;
-  font-size: clamp(38px, 7.5vw, 68px);
+  font-size: clamp(40px, 8vw, 76px);
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--c-text);
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
 }
 
-.hero__title-gradient {
-  background: linear-gradient(120deg, var(--c-primary) 10%, #a855f7 50%, #ec4899 90%);
+.hero__word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em; /* 避免降部字母被遮罩裁掉 */
+  margin-bottom: -0.08em;
+}
+
+.hero__char {
+  display: inline-block;
+  transform: translateY(115%);
+  animation: char-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+}
+
+.hero__char--grad {
+  background-image: linear-gradient(105deg, var(--c-primary) 0%, #a855f7 50%, #ec4899 100%);
+  background-size: 500% 100%;
+  background-position: calc(var(--gi, 0) * 25%) 0;
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
+@keyframes char-rise {
+  from { transform: translateY(115%); }
+  to { transform: translateY(0); }
+}
+
 .hero__tagline {
-  margin: 20px 0 0;
+  margin: 22px 0 0;
   font-size: clamp(15px, 2vw, 17.5px);
   line-height: 1.8;
   color: var(--c-text-secondary);
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
 }
 
 .hero__stats {
@@ -657,7 +781,7 @@ html.dark .hero__grid {
   justify-content: center;
   gap: 22px;
   margin-top: 30px;
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
 }
 
 .hero__stat {
@@ -690,7 +814,7 @@ html.dark .hero__grid {
   justify-content: center;
   gap: 14px;
   margin-top: 36px;
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both;
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.82s both;
 }
 
 .hero__cta {
@@ -748,7 +872,7 @@ html.dark .hero__grid {
   transform: translateX(-50%);
   opacity: 0.65;
   transition: opacity 0.2s ease;
-  animation: fade-up 0.6s ease 0.5s both;
+  animation: fade-up 0.6s ease 1s both;
 }
 
 .hero__scroll-hint:hover {
@@ -784,16 +908,89 @@ html.dark .hero__grid {
   55% { box-shadow: 0 0 0 6px transparent; }
 }
 
+/* ===== 标签跑马灯 ===== */
+.marquee {
+  overflow: hidden;
+  padding: 18px 0;
+  background: var(--c-bg-card);
+  border-top: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--c-border);
+  /* 两端淡出，衔接更柔和 */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  gap: 44px;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 30s) linear infinite;
+}
+
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+
+.marquee__item {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--c-text-muted);
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.marquee__item:hover {
+  color: var(--c-primary);
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ===== 栏目标题 ===== */
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  max-width: 800px;
+  margin: 48px auto 0;
+  padding: 0 20px;
+  scroll-margin-top: 84px;
+}
+
+.section-head__cn {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--c-text);
+}
+
+.section-head__en {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.section-head__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--c-border), transparent);
+}
+
 /* ===== 分类筛选 ===== */
 .filters {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  max-width: 780px;
-  margin: 8px auto 0;
+  max-width: 800px;
+  margin: 20px auto 0;
   padding: 0 20px;
 }
 
@@ -824,45 +1021,16 @@ html.dark .hero__grid {
   }
 }
 
-/* ===== 文章列表 ===== */
-.post-list {
+/* ===== 信息流 ===== */
+.feed {
   display: grid;
-  gap: 16px;
-  max-width: 780px;
-  margin: 24px auto 0;
+  gap: 0;
+  max-width: 800px;
+  margin: 26px auto 0;
   padding: 0 20px 40px;
 }
 
-.post-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 22px 26px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-  text-decoration: none;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card-hover);
-
-    .post-card__arrow {
-      color: var(--c-primary);
-      transform: translateX(5px);
-    }
-
-    .post-card__title {
-      color: var(--c-primary);
-    }
-  }
-}
-
-/* 滚动渐显：进入视口后上浮 + 淡入，带每张卡片的错峰延迟 */
+/* 渐显通用类 */
 .reveal {
   opacity: 0;
   transform: translateY(26px);
@@ -870,6 +1038,7 @@ html.dark .hero__grid {
     opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
     transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
     border-color 0.25s ease,
+    background-color 0.25s ease,
     box-shadow 0.25s ease;
 }
 
@@ -878,55 +1047,16 @@ html.dark .hero__grid {
   transform: translateY(0);
 }
 
-/* 用户偏好减少动效：直接显示 */
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
     transform: none;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }
 }
 
-.post-card__main {
-  flex: 1;
-  min-width: 0;
-}
-
-.post-card__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--c-text);
-  transition: color 0.2s ease;
-}
-
-.post-card__excerpt {
-  margin: 8px 0 0;
-  font-size: 14px;
-  line-height: 1.65;
-  color: #71718a;
-
-  /* 最多两行，超出省略 */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.post-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-}
-
-.post-card__category {
+.chip {
   padding: 2px 10px;
+  font-size: 12px;
   color: var(--c-primary);
   background: var(--c-primary-light);
   border-radius: 999px;
@@ -936,31 +1066,260 @@ html.dark .hero__grid {
   color: #c5c5d2;
 }
 
-.post-card__tags {
+/* ---- 头条大卡 ---- */
+.featured {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  margin-bottom: 34px;
+  padding: 34px 36px 30px;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+}
+
+/* 卡内的氛围光斑，hover 时苏醒 */
+.featured__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(420px 220px at 88% -10%, rgb(168 85 247 / 14%), transparent 70%),
+    radial-gradient(380px 240px at 0% 110%, rgb(99 102 241 / 14%), transparent 70%);
+  opacity: 0.5;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.featured:hover {
+  border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+
+  .featured__glow {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  .featured__cta-circle {
+    background: var(--c-primary);
+    color: var(--c-on-primary);
+    transform: rotate(0deg);
+  }
+
+  .featured__title {
+    background-size: 200% 100%;
+    background-position: 100% 0;
+  }
+}
+
+.featured__badge {
+  position: relative;
+  display: inline-block;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--c-on-primary);
+  background: linear-gradient(135deg, var(--c-primary), #a855f7);
+  border-radius: 999px;
+}
+
+.featured__title {
+  position: relative;
+  margin: 18px 0 0;
+  font-size: clamp(23px, 3.4vw, 30px);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--c-text);
+  transition: background-size 0.45s ease, background-position 0.45s ease;
+  /* hover 时文字被主色「扫过」填满 */
+  background-image: linear-gradient(90deg, var(--c-primary), var(--c-primary));
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.featured__excerpt {
+  position: relative;
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #71718a;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.featured__foot {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.featured__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+
+.featured__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
+.featured__cta-circle {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  color: inherit;
+  background: var(--c-primary-light);
+  border-radius: 50%;
+  transform: rotate(-45deg);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ---- 目录式列表行 ---- */
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 22px;
+  padding: 24px 10px;
+  border-bottom: 1px solid var(--c-border);
+  text-decoration: none;
+  transition: background-color 0.25s ease, padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &:hover {
+    background: color-mix(in srgb, var(--c-primary-light) 45%, transparent);
+    padding-left: 20px;
+
+    .row__num {
+      -webkit-text-stroke-color: var(--c-primary);
+      transform: scale(1.06);
+    }
+
+    .row__title {
+      color: var(--c-primary);
+    }
+
+    .row__arrow {
+      opacity: 1;
+      transform: translateX(0);
+      color: var(--c-primary);
+    }
+  }
+
+  &:last-of-type {
+    border-bottom-color: transparent;
+  }
+}
+
+/* 描边空心序号，hover 时点亮 */
+.row__num {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.3px #c9c9d8;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s ease;
+}
+
+@supports not (-webkit-text-stroke: 1px black) {
+  .row__num {
+    color: #c9c9d8;
+  }
+}
+
+.row__main {
+  min-width: 0;
+}
+
+.row__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--c-text);
+  transition: color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.row__excerpt {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #8a8aa0;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.row__tags {
   display: inline-flex;
   gap: 8px;
 }
 
-.tag-chip {
-  color: #9a9aad;
-
-  &:hover {
-    color: var(--c-primary);
-  }
-}
-
-.post-card__arrow {
-  flex-shrink: 0;
+.row__arrow {
   font-size: 18px;
-  color: #c5c5d2;
-  transition: all 0.25s ease;
+  color: var(--c-primary);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.25s ease;
 }
 
 .empty {
-  padding: 60px 20px;
+  padding: 64px 20px;
   text-align: center;
   font-size: 14.5px;
   color: #9a9aad;
+}
+
+.empty__icon {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 28px;
+  opacity: 0.6;
 }
 
 /* ===== 分页 ===== */
@@ -969,7 +1328,7 @@ html.dark .hero__grid {
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  max-width: 780px;
+  max-width: 800px;
   margin: 4px auto 0;
   padding: 0 20px 40px;
 }
@@ -1021,7 +1380,7 @@ html.dark .hero__grid {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  max-width: 780px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 32px 20px;
 }
@@ -1070,7 +1429,7 @@ html.dark .hero__grid {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  max-width: 780px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 16px 20px 26px;
   font-size: 12.5px;
@@ -1099,7 +1458,7 @@ html.dark .hero__grid {
   border-radius: 50%;
   cursor: pointer;
   box-shadow: var(--shadow-card-hover);
-  transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .back-top:hover {
@@ -1123,7 +1482,7 @@ html.dark .hero__grid {
 /* ===== 减少动效 ===== */
 @media (prefers-reduced-motion: reduce) {
   .hero__eyebrow,
-  .hero__title,
+  .hero__char,
   .hero__tagline,
   .hero__stats,
   .hero__actions,
@@ -1133,10 +1492,18 @@ html.dark .hero__grid {
     animation: none !important;
   }
 
+  .hero__char {
+    transform: none;
+  }
+
   .hero__orb,
   .hero__grid,
   .hero__content {
     transform: none !important;
+  }
+
+  .marquee__track {
+    animation: none !important;
   }
 }
 </style>
