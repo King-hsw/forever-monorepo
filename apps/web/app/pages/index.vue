@@ -242,6 +242,25 @@
         </div>
       </section>
 
+      <!-- 分镜 04：创作足迹 —— 一年间的发文热力图 -->
+      <section id="heatmap" class="scene scene--tinted">
+        <div class="scene__inner">
+          <aside class="scene__aside">
+            <div class="scene__sticky reveal">
+              <span class="scene__no" aria-hidden="true">04</span>
+              <h2 class="scene__title">创作足迹</h2>
+              <p class="scene__desc">一年里的每一天都被折进这一格格小方块，颜色越深，那天写下的文字越多。</p>
+            </div>
+          </aside>
+
+          <div class="scene__body">
+            <div class="heatmap-panel reveal">
+              <PostHeatmap :posts="publishedPosts" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- 终幕：订阅，全屏居中像纪录片的结尾镜头 -->
       <section id="subscribe" class="finale">
         <div class="cta-banner reveal">
@@ -376,6 +395,7 @@ const sections = [
   { id: 'latest', label: '最新文章' },
   { id: 'categories', label: '探索分类' },
   { id: 'tags', label: '标签云' },
+  { id: 'heatmap', label: '创作足迹' },
   { id: 'subscribe', label: '订阅更新' },
 ]
 
@@ -1176,6 +1196,15 @@ html.dark .scene__no {
   .finale {
     min-height: 60vh;
   }
+}
+
+/* ---- 创作足迹热力图面板 ---- */
+.heatmap-panel {
+  padding: 26px 28px;
+  background: var(--c-bg-card);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
 }
 
 .chip {
