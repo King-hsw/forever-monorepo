@@ -4,7 +4,7 @@
     <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
       <div class="site-header__inner">
         <NuxtLink to="/" class="brand">
-          <span class="brand__mark">F</span>
+          <span class="brand__mark" aria-hidden="true" />
           <span class="brand__name">Forever</span>
         </NuxtLink>
         <nav class="site-nav">
@@ -68,7 +68,7 @@
         </NuxtLink>
 
         <div v-if="!filteredPosts.length" class="empty">
-          <span class="empty__icon">✧</span>
+          <span class="empty__icon">(˘•ω•˘)</span>
           该分类下暂无文章
         </div>
       </section>
@@ -288,16 +288,41 @@ useHead({ title: '全部文章 - Forever' })
 }
 
 .brand__mark {
+  position: relative;
   display: grid;
   place-items: center;
   width: 32px;
   height: 32px;
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--c-on-primary);
-  background: linear-gradient(135deg, var(--c-primary), #a855f7);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgb(99 102 241 / 35%);
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgb(244 114 182 / 35%);
+}
+
+.brand__mark::before {
+  content: '';
+  position: absolute;
+  top: 38%;
+  left: 28%;
+  width: 3.5px;
+  height: 5px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 11px 0 0 #fff;
+}
+
+.brand__mark::after {
+  content: '';
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  width: 10px;
+  height: 6px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 0 0 12px 12px;
+  transform: translateX(-50%);
 }
 
 .brand__name {
@@ -380,9 +405,9 @@ useHead({ title: '全部文章 - Forever' })
 .filter-btn {
   padding: 6px 16px;
   font-size: 13.5px;
-  color: #55556a;
+  color: var(--c-text-secondary);
   background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
+  border: 1.5px solid var(--c-border);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -443,7 +468,7 @@ useHead({ title: '全部文章 - Forever' })
   transition: background-color 0.25s ease, padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 
   &:hover {
-    background: color-mix(in srgb, var(--c-primary-light) 45%, transparent);
+    background: color-mix(in srgb, var(--c-primary-light) 60%, transparent);
     padding-left: 20px;
 
     .row__num {
@@ -467,14 +492,22 @@ useHead({ title: '全部文章 - Forever' })
   font-weight: 800;
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 1.3px #c9c9d8;
+  -webkit-text-stroke: 1.3px #e8d0e2;
   font-variant-numeric: tabular-nums;
-  transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s ease;
+  transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s var(--ease-bounce);
+}
+
+html.dark .row__num {
+  -webkit-text-stroke-color: #5a4a66;
 }
 
 @supports not (-webkit-text-stroke: 1px black) {
   .row__num {
-    color: #c9c9d8;
+    color: #e8d0e2;
+  }
+
+  html.dark .row__num {
+    color: #5a4a66;
   }
 }
 
@@ -500,7 +533,7 @@ useHead({ title: '全部文章 - Forever' })
   margin: 6px 0 0;
   font-size: 13.5px;
   line-height: 1.6;
-  color: #8a8aa0;
+  color: var(--c-text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 1;
   line-clamp: 1;
@@ -532,7 +565,8 @@ useHead({ title: '全部文章 - Forever' })
 }
 
 .meta-dot {
-  color: #c5c5d2;
+  color: var(--c-text-muted);
+  opacity: 0.6;
 }
 
 .row__arrow {
@@ -547,14 +581,14 @@ useHead({ title: '全部文章 - Forever' })
   padding: 64px 20px;
   text-align: center;
   font-size: 14.5px;
-  color: #9a9aad;
+  color: var(--c-text-muted);
 }
 
 .empty__icon {
   display: block;
   margin-bottom: 10px;
-  font-size: 28px;
-  opacity: 0.6;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
 }
 
 /* ===== 分页 ===== */
@@ -570,9 +604,9 @@ useHead({ title: '全部文章 - Forever' })
   min-width: 38px;
   padding: 7px 14px;
   font-size: 13.5px;
-  color: #55556a;
+  color: var(--c-text-secondary);
   background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
+  border: 1.5px solid var(--c-border);
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -606,7 +640,7 @@ useHead({ title: '全部文章 - Forever' })
   justify-content: center;
   padding: 24px 20px 32px;
   font-size: 12.5px;
-  color: #b0b0c0;
+  color: var(--c-text-muted);
   border-top: 1px solid var(--c-border);
   background: var(--c-bg-card);
 }

@@ -12,7 +12,7 @@
     <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
       <div class="site-header__inner">
         <a class="brand" href="#" @click.prevent="scrollToTop">
-          <span class="brand__mark">F</span>
+          <span class="brand__mark" aria-hidden="true" />
           <span class="brand__name">Forever</span>
         </a>
         <nav class="site-nav">
@@ -157,7 +157,7 @@
           </NuxtLink>
 
           <div v-if="!publishedPosts.length" class="empty">
-            <span class="empty__icon">✧</span>
+            <span class="empty__icon">(˘•ω•˘)</span>
             还没有发布文章
           </div>
         </div>
@@ -202,11 +202,11 @@
 
         <div class="tag-cloud reveal">
           <NuxtLink
-            v-for="tag in tagCloud"
+            v-for="(tag, i) in tagCloud"
             :key="tag.id"
             to="/posts"
             class="tag-cloud__item"
-            :style="{ fontSize: `${tag.size}px` }"
+            :style="{ fontSize: `${tag.size}px`, '--tk': tagAccents[i % tagAccents.length] }"
           >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
         </div>
       </section>
@@ -229,7 +229,7 @@
     <footer class="site-footer">
       <div class="site-footer__inner">
         <div class="site-footer__brand">
-          <span class="brand__mark">F</span>
+          <span class="brand__mark" aria-hidden="true" />
           <div>
             <p class="site-footer__name">Forever</p>
             <p class="site-footer__slogan">用心记录每一篇</p>
@@ -295,8 +295,11 @@ const categoryCards = computed(() =>
     .sort((a, b) => b.count - a.count),
 )
 
-/** 分类卡片的点缀色轮换 */
-const catAccents = ['#6366f1', '#a855f7', '#ec4899', '#0ea5e9', '#10b981', '#f59e0b']
+/** 分类卡片的糖果色轮换 */
+const catAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#7cc7f7', '#ffc94d', '#fb923c']
+
+/** 标签贴纸的糖果色轮换 */
+const tagAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#ffc94d', '#7cc7f7']
 
 /** 标签云：按使用次数排序，字号随次数在 13~21px 间浮动 */
 const tagCloud = computed(() => {
@@ -508,7 +511,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
   inset: 0 0 auto;
   z-index: 60;
   height: 3px;
-  background: linear-gradient(90deg, var(--c-primary), #a855f7, #ec4899);
+  background: linear-gradient(90deg, var(--c-primary), var(--k-grape), var(--k-mint));
   transform-origin: left;
   transform: scaleX(0);
   opacity: 0;
@@ -554,16 +557,42 @@ useHead({ title: 'Forever - 记录技术与思考' })
 }
 
 .brand__mark {
+  position: relative;
   display: grid;
   place-items: center;
   width: 32px;
   height: 32px;
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--c-on-primary);
-  background: linear-gradient(135deg, var(--c-primary), #a855f7);
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgb(99 102 241 / 35%);
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 12px; /* 圆润的小方块，像一颗软糖 */
+  box-shadow: 0 4px 12px rgb(244 114 182 / 35%);
+}
+
+/* 笑脸：两颗眼睛 + 微笑嘴 */
+.brand__mark::before {
+  content: '';
+  position: absolute;
+  top: 38%;
+  left: 28%;
+  width: 3.5px;
+  height: 5px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 11px 0 0 #fff; /* 第二只眼睛 */
+}
+
+.brand__mark::after {
+  content: '';
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  width: 10px;
+  height: 6px;
+  border: 2px solid #fff;
+  border-top: none;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 0 0 12px 12px;
+  transform: translateX(-50%);
 }
 
 .brand__name {
@@ -636,7 +665,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
   left: -8%;
   width: 480px;
   height: 480px;
-  background: radial-gradient(circle, rgb(99 102 241 / 32%), transparent 68%);
+  background: radial-gradient(circle, rgb(255 177 208 / 45%), transparent 68%); /* 草莓粉 */
 }
 
 .hero__orb--b {
@@ -644,7 +673,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
   right: -10%;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgb(168 85 247 / 26%), transparent 68%);
+  background: radial-gradient(circle, rgb(196 181 253 / 40%), transparent 68%); /* 香芋紫 */
 }
 
 .hero__orb--c {
@@ -652,18 +681,18 @@ useHead({ title: 'Forever - 记录技术与思考' })
   left: 28%;
   width: 360px;
   height: 360px;
-  background: radial-gradient(circle, rgb(236 72 153 / 18%), transparent 70%);
+  background: radial-gradient(circle, rgb(160 231 218 / 38%), transparent 70%); /* 薄荷绿 */
 }
 
-html.dark .hero__orb--a { background: radial-gradient(circle, rgb(99 102 241 / 24%), transparent 68%); }
-html.dark .hero__orb--b { background: radial-gradient(circle, rgb(168 85 247 / 20%), transparent 68%); }
-html.dark .hero__orb--c { background: radial-gradient(circle, rgb(236 72 153 / 14%), transparent 70%); }
+html.dark .hero__orb--a { background: radial-gradient(circle, rgb(244 114 182 / 16%), transparent 68%); }
+html.dark .hero__orb--b { background: radial-gradient(circle, rgb(167 139 250 / 15%), transparent 68%); }
+html.dark .hero__orb--c { background: radial-gradient(circle, rgb(95 212 196 / 13%), transparent 70%); }
 
 /* 点阵网格，随滚动缓慢漂移，向下淡出 */
 .hero__grid {
   position: absolute;
   inset: -60px 0;
-  background-image: radial-gradient(rgb(99 102 241 / 16%) 1px, transparent 1px);
+  background-image: radial-gradient(rgb(244 114 182 / 15%) 1px, transparent 1px);
   background-size: 28px 28px;
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 62%, transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 62%, transparent);
@@ -671,7 +700,7 @@ html.dark .hero__orb--c { background: radial-gradient(circle, rgb(236 72 153 / 1
 }
 
 html.dark .hero__grid {
-  background-image: radial-gradient(rgb(129 140 248 / 14%) 1px, transparent 1px);
+  background-image: radial-gradient(rgb(255 157 198 / 12%) 1px, transparent 1px);
 }
 
 .hero__content {
@@ -728,7 +757,7 @@ html.dark .hero__grid {
 }
 
 .hero__char--grad {
-  background-image: linear-gradient(105deg, var(--c-primary) 0%, #a855f7 50%, #ec4899 100%);
+  background-image: linear-gradient(105deg, #f472b6 0%, #a78bfa 50%, #5fd4c4 100%); /* 草莓粉 → 香芋紫 → 薄荷绿 */
   background-size: 500% 100%;
   background-position: calc(var(--gi, 0) * 25%) 0;
   background-clip: text;
@@ -798,19 +827,23 @@ html.dark .hero__grid {
   padding: 12px 28px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--c-on-primary);
-  background: linear-gradient(135deg, var(--c-primary), var(--c-primary-hover));
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border: none;
-  border-radius: 999px;
+  border-radius: 999px; /* 小软糖胶囊 */
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 6px 20px rgb(99 102 241 / 35%);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 18px rgb(244 114 182 / 32%), inset 0 -3px 0 rgb(0 0 0 / 8%); /* 底部厚度像果冻 */
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .hero__cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgb(99 102 241 / 45%);
+  transform: translateY(-3px) scale(1.04); /* 弹起 */
+  box-shadow: 0 10px 26px rgb(244 114 182 / 42%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+}
+
+.hero__cta:active {
+  transform: translateY(0) scale(0.95); /* 按下压扁 */
 }
 
 .hero__cta-arrow {
@@ -974,7 +1007,8 @@ html.dark .hero__grid {
 }
 
 .meta-dot {
-  color: #c5c5d2;
+  color: var(--c-text-muted);
+  opacity: 0.6;
 }
 
 /* 渐显通用类 */
@@ -1020,8 +1054,8 @@ html.dark .hero__grid {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(420px 220px at 88% -10%, rgb(168 85 247 / 14%), transparent 70%),
-    radial-gradient(380px 240px at 0% 110%, rgb(99 102 241 / 14%), transparent 70%);
+    radial-gradient(420px 220px at 88% -10%, rgb(196 181 253 / 18%), transparent 70%),
+    radial-gradient(380px 240px at 0% 110%, rgb(255 177 208 / 20%), transparent 70%);
   opacity: 0.5;
   transition: opacity 0.4s ease, transform 0.4s ease;
   pointer-events: none;
@@ -1051,9 +1085,11 @@ html.dark .hero__grid {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--c-on-primary);
-  background: linear-gradient(135deg, var(--c-primary), #a855f7);
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
+  transform: rotate(-3deg); /* 像随手贴上的贴纸 */
+  box-shadow: 0 3px 8px rgb(244 114 182 / 30%);
 }
 
 .featured__title {
@@ -1077,7 +1113,7 @@ html.dark .hero__grid {
   margin: 12px 0 0;
   font-size: 14.5px;
   line-height: 1.7;
-  color: #71718a;
+  color: var(--c-text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -1138,7 +1174,7 @@ html.dark .hero__grid {
   transition: background-color 0.25s ease, padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 
   &:hover {
-    background: color-mix(in srgb, var(--c-primary-light) 45%, transparent);
+    background: color-mix(in srgb, var(--c-primary-light) 60%, transparent);
     padding-left: 20px;
 
     .row__num {
@@ -1163,15 +1199,23 @@ html.dark .hero__grid {
   font-weight: 800;
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 1.3px #c9c9d8;
+  -webkit-text-stroke: 1.3px #e8d0e2; /* 淡粉描边 */
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s ease;
+  transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s var(--ease-bounce);
+}
+
+html.dark .row__num {
+  -webkit-text-stroke-color: #5a4a66;
 }
 
 @supports not (-webkit-text-stroke: 1px black) {
   .row__num {
-    color: #c9c9d8;
+    color: #e8d0e2;
+  }
+
+  html.dark .row__num {
+    color: #5a4a66;
   }
 }
 
@@ -1197,7 +1241,7 @@ html.dark .hero__grid {
   margin: 5px 0 0;
   font-size: 13.5px;
   line-height: 1.6;
-  color: #8a8aa0;
+  color: var(--c-text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 1;
   line-clamp: 1;
@@ -1227,14 +1271,14 @@ html.dark .hero__grid {
   padding: 56px 20px;
   text-align: center;
   font-size: 14.5px;
-  color: #9a9aad;
+  color: var(--c-text-muted);
 }
 
 .empty__icon {
   display: block;
   margin-bottom: 10px;
-  font-size: 28px;
-  opacity: 0.6;
+  letter-spacing: 0.05em; /* 颜文字更可爱 */
+  opacity: 0.7;
 }
 
 /* 「查看全部」链接 */
@@ -1255,10 +1299,11 @@ html.dark .hero__grid {
 }
 
 .more-link:hover {
-  color: var(--c-on-primary);
-  background: var(--c-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgb(99 102 241 / 30%);
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-color: transparent;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 20px rgb(244 114 182 / 32%);
 
   .more-link__arrow {
     transform: translateX(4px);
@@ -1371,36 +1416,47 @@ html.dark .hero__grid {
   transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---- 标签云 ---- */
+/* ---- 标签云：像一板彩色贴纸 ---- */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 12px 18px;
-  padding: 26px 28px;
+  align-items: center;
+  gap: 12px 12px;
+  padding: 28px 30px;
   background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 16px;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--radius-card);
 }
 
 .tag-cloud__item {
+  --tk: var(--c-primary);
+  padding: 7px 15px;
   font-weight: 650;
   line-height: 1;
-  color: var(--c-text-secondary);
+  color: color-mix(in srgb, var(--tk) 75%, var(--c-text));
+  background: color-mix(in srgb, var(--tk) 13%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--tk) 30%, transparent);
+  border-radius: 999px;
   text-decoration: none;
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 
   sup {
-    margin-left: 2px;
+    margin-left: 3px;
     font-size: 0.6em;
-    color: var(--c-text-muted);
+    opacity: 0.65;
   }
 
   &:hover {
-    color: var(--c-primary);
-    transform: translateY(-2px) rotate(-2deg);
+    background: color-mix(in srgb, var(--tk) 22%, transparent);
+    transform: translateY(-3px) rotate(-2deg); /* 贴纸被轻轻掎起 */
+    box-shadow: 0 6px 14px color-mix(in srgb, var(--tk) 25%, transparent);
   }
 }
+
+/* 贴纸般的轻微歪斜，交替方向避免呆板 */
+.tag-cloud__item:nth-child(3n) { rotate: 1.2deg; }
+.tag-cloud__item:nth-child(3n + 1) { rotate: -1.5deg; }
+.tag-cloud__item:nth-child(4n) { rotate: -0.8deg; }
 
 /* ---- CTA 横幅 ---- */
 .cta-banner {
@@ -1408,8 +1464,30 @@ html.dark .hero__grid {
   overflow: hidden;
   padding: 44px 32px;
   text-align: center;
-  background: linear-gradient(135deg, var(--c-primary), #7c3aed 55%, #ec4899);
-  border-radius: 20px;
+  /* 草莓牛奶 → 香芋 → 薄荷的糖果渐变 */
+  background: linear-gradient(135deg, #f472b6, #b195f7 55%, #6fd4c3);
+  border-radius: 26px;
+  box-shadow: 0 12px 34px rgb(244 114 182 / 25%);
+}
+
+.cta-banner::before {
+  content: '✿';
+  position: absolute;
+  top: 16px;
+  left: 22px;
+  font-size: 22px;
+  color: rgb(255 255 255 / 45%);
+  transform: rotate(-12deg);
+}
+
+.cta-banner::after {
+  content: '✦';
+  position: absolute;
+  right: 26px;
+  bottom: 18px;
+  font-size: 20px;
+  color: rgb(255 255 255 / 40%);
+  transform: rotate(10deg);
 }
 
 .cta-banner__glow {
@@ -1536,15 +1614,15 @@ html.dark .hero__grid {
   margin: 0 auto;
   padding: 16px 20px 26px;
   font-size: 12.5px;
-  color: #b0b0c0;
+  color: var(--c-text-muted);
   border-top: 1px solid var(--c-border);
 }
 
 .site-footer__heart span {
-  color: #ec4899;
+  color: var(--c-primary);
 }
 
-/* ===== 回到顶部 ===== */
+/* ===== 回到顶部：小软糖 ===== */
 .back-top {
   position: fixed;
   right: 24px;
@@ -1552,23 +1630,25 @@ html.dark .hero__grid {
   z-index: 40;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   font-size: 18px;
-  color: var(--c-primary);
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: var(--shadow-card-hover);
-  transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 8px 20px rgb(244 114 182 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .back-top:hover {
-  color: var(--c-on-primary);
-  background: var(--c-primary);
-  border-color: var(--c-primary);
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 12px 26px rgb(244 114 182 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+}
+
+.back-top:active {
+  transform: scale(0.92);
 }
 
 .totop-enter-active,
