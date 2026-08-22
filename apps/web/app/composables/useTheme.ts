@@ -47,7 +47,7 @@ export function useTheme() {
       }
     }).startViewTransition
 
-    if (!startViewTransition || reducedMotion) {
+    if (!startViewTransition || reducedMotion || document.hidden) {
       apply(next)
       return
     }
@@ -56,8 +56,13 @@ export function useTheme() {
       apply(next)
     })
 
-    // 等新视图就绪后，用 clip-path 圆形揭示动画展开新主题
-    await transition.ready
+    // 等新视图就绪后，用 clip-path 圆形揭示动画展开新主题；
+    // 过渡被跳过（如连续快速点击）时 ready 会 reject，直接返回即可
+    try {
+      await transition.ready
+    } catch {
+      return
+    }
 
     // 点击位置；无事件时（如代码调用）从屏幕右上角扩散
     const x = event?.clientX ?? window.innerWidth - 48
@@ -75,8 +80,8 @@ export function useTheme() {
         ],
       },
       {
-        duration: 550,
-        easing: 'cubic-bezier(0.33, 0, 0.2, 1)',
+        duration: 420,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
         pseudoElement: '::view-transition-new(root)',
       },
     )

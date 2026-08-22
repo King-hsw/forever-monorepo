@@ -84,17 +84,10 @@ html.dark {
   mix-blend-mode: normal;
 }
 
-/* 新主题在上层，通过 clip-path 圆形揭示 */
+/* 新主题快照在上层，通过 clip-path 圆形揭示 */
 ::view-transition-new(root) {
   z-index: 1;
-}
-
-html.dark::view-transition-old(root) {
-  z-index: 999;
-}
-
-html.dark::view-transition-new(root) {
-  z-index: 1;
+  will-change: clip-path;
 }
 
 @media (prefers-reduced-motion: reduce) {
