@@ -16,7 +16,8 @@
           <span class="brand__name">Forever</span>
         </a>
         <nav class="site-nav">
-          <a class="site-nav__link" href="#posts" @click.prevent="scrollToPosts">文章</a>
+          <a class="site-nav__link" href="#latest" @click.prevent="scrollToId('latest')">文章</a>
+          <NuxtLink class="site-nav__link" to="/posts">全部文章</NuxtLink>
           <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
         </nav>
         <div class="site-header__theme"><ThemeToggle /></div>
@@ -77,7 +78,7 @@
         </div>
 
         <div class="hero__actions">
-          <button type="button" class="hero__cta" @click="scrollToPosts">
+          <button type="button" class="hero__cta" @click="scrollToId('latest')">
             开始阅读
             <span class="hero__cta-arrow">↓</span>
           </button>
@@ -85,7 +86,7 @@
         </div>
       </div>
 
-      <button type="button" class="hero__scroll-hint" aria-label="滚动查看文章" @click="scrollToPosts">
+      <button type="button" class="hero__scroll-hint" aria-label="滚动查看内容" @click="scrollToId('latest')">
         <span class="hero__scroll-mouse">
           <span class="hero__scroll-wheel" />
         </span>
@@ -100,112 +101,128 @@
     </div>
 
     <main>
-      <!-- ===== 栏目标题 ===== -->
-      <div id="posts" class="section-head">
-        <h2 class="section-head__cn">最新文章</h2>
-        <span class="section-head__en">Latest Posts</span>
-        <i class="section-head__line" />
-      </div>
+      <!-- ===== 最新文章：头条大卡 + 目录式条目，只展示一部分 ===== -->
+      <section id="latest" class="section">
+        <div class="section__head">
+          <h2 class="section__cn">最新文章</h2>
+          <span class="section__en">Latest Posts</span>
+          <i class="section__line" />
+        </div>
 
-      <!-- ===== 分类筛选 ===== -->
-      <nav class="filters" aria-label="分类筛选">
-        <button
-          type="button"
-          class="filter-btn"
-          :class="{ 'filter-btn--active': !activeCategory }"
-          @click="setCategory('')"
-        >全部</button>
-        <button
-          v-for="cat in categoriesStore.list"
-          :key="cat.id"
-          type="button"
-          class="filter-btn"
-          :class="{ 'filter-btn--active': activeCategory === cat.slug }"
-          @click="setCategory(cat.slug)"
-        >{{ cat.name }}</button>
-      </nav>
-
-      <!-- ===== 头条文章：第 1 页时放大展示最新一篇 ===== -->
-      <section class="feed">
-        <NuxtLink
-          v-if="featuredPost"
-          :to="`/posts/${featuredPost.id}`"
-          class="featured reveal"
-        >
-          <div class="featured__glow" aria-hidden="true" />
-          <span class="featured__badge">最新发布</span>
-          <h2 class="featured__title">{{ featuredPost.title }}</h2>
-          <p class="featured__excerpt">{{ featuredPost.excerpt }}</p>
-          <div class="featured__foot">
-            <div class="featured__meta">
-              <span class="chip">{{ categoryName(featuredPost.categoryId) }}</span>
-              <span class="meta-dot">·</span>
-              <time>{{ formatDate(featuredPost.createdAt) }}</time>
-              <span class="meta-dot">·</span>
-              <span>{{ featuredPost.views.toLocaleString() }} 次阅读</span>
+        <div class="feed">
+          <NuxtLink
+            v-if="featuredPost"
+            :to="`/posts/${featuredPost.id}`"
+            class="featured reveal"
+          >
+            <div class="featured__glow" aria-hidden="true" />
+            <span class="featured__badge">最新发布</span>
+            <h3 class="featured__title">{{ featuredPost.title }}</h3>
+            <p class="featured__excerpt">{{ featuredPost.excerpt }}</p>
+            <div class="featured__foot">
+              <div class="featured__meta">
+                <span class="chip">{{ categoryName(featuredPost.categoryId) }}</span>
+                <span class="meta-dot">·</span>
+                <time>{{ formatDate(featuredPost.createdAt) }}</time>
+                <span class="meta-dot">·</span>
+                <span>{{ featuredPost.views.toLocaleString() }} 次阅读</span>
+              </div>
+              <span class="featured__cta">
+                阅读全文
+                <span class="featured__cta-circle">→</span>
+              </span>
             </div>
-            <span class="featured__cta">
-              阅读全文
-              <span class="featured__cta-circle">→</span>
-            </span>
-          </div>
-        </NuxtLink>
+          </NuxtLink>
 
-        <!-- ===== 目录式文章列表：描边序号 + 分隔线，杂志目录质感 ===== -->
-        <NuxtLink
-          v-for="(post, i) in listPosts"
-          :key="post.id"
-          :to="`/posts/${post.id}`"
-          class="row reveal"
-          :style="{ '--reveal-delay': `${Math.min(i, 5) * 80}ms` }"
-        >
-          <span class="row__num" aria-hidden="true">{{ String(i + (featuredPost ? 2 : 1)).padStart(2, '0') }}</span>
-          <span class="row__main">
-            <h2 class="row__title">{{ post.title }}</h2>
-            <p class="row__excerpt">{{ post.excerpt }}</p>
-            <span class="row__meta">
-              <span class="chip">{{ categoryName(post.categoryId) }}</span>
-              <span class="meta-dot">·</span>
-              <time>{{ formatDate(post.createdAt) }}</time>
-              <span class="meta-dot">·</span>
-              <span>{{ post.views.toLocaleString() }} 次阅读</span>
-              <span v-if="postTags(post.tagIds).length" class="row__tags">
-                <span v-for="tag in postTags(post.tagIds)" :key="tag.id"># {{ tag.name }}</span>
+          <NuxtLink
+            v-for="(post, i) in homeRows"
+            :key="post.id"
+            :to="`/posts/${post.id}`"
+            class="row reveal"
+            :style="{ '--reveal-delay': `${Math.min(i + 1, 5) * 80}ms` }"
+          >
+            <span class="row__num" aria-hidden="true">{{ String(i + 2).padStart(2, '0') }}</span>
+            <span class="row__main">
+              <h3 class="row__title">{{ post.title }}</h3>
+              <p class="row__excerpt">{{ post.excerpt }}</p>
+              <span class="row__meta">
+                <span class="chip">{{ categoryName(post.categoryId) }}</span>
+                <span class="meta-dot">·</span>
+                <time>{{ formatDate(post.createdAt) }}</time>
+                <span class="meta-dot">·</span>
+                <span>{{ post.views.toLocaleString() }} 次阅读</span>
               </span>
             </span>
-          </span>
-          <span class="row__arrow" aria-hidden="true">→</span>
-        </NuxtLink>
+            <span class="row__arrow" aria-hidden="true">→</span>
+          </NuxtLink>
 
-        <div v-if="!filteredPosts.length" class="empty">
-          <span class="empty__icon">✧</span>
-          该分类下暂无文章
+          <div v-if="!publishedPosts.length" class="empty">
+            <span class="empty__icon">✧</span>
+            还没有发布文章
+          </div>
+        </div>
+
+        <NuxtLink v-if="totalPosts > homeCount" to="/posts" class="more-link reveal">
+          查看全部 {{ totalPosts }} 篇文章
+          <span class="more-link__arrow">→</span>
+        </NuxtLink>
+      </section>
+
+      <!-- ===== 探索分类：彩色卡片墙 ===== -->
+      <section v-if="categoryCards.length" class="section">
+        <div class="section__head">
+          <h2 class="section__cn">探索分类</h2>
+          <span class="section__en">Categories</span>
+          <i class="section__line" />
+        </div>
+
+        <div class="cat-grid">
+          <NuxtLink
+            v-for="(cat, i) in categoryCards"
+            :key="cat.id"
+            :to="`/posts?category=${cat.slug}`"
+            class="cat-card reveal"
+            :style="{ '--accent': catAccents[i % catAccents.length], '--reveal-delay': `${Math.min(i, 5) * 70}ms` }"
+          >
+            <span class="cat-card__count">{{ cat.count }} 篇</span>
+            <h3 class="cat-card__name">{{ cat.name }}</h3>
+            <p class="cat-card__desc">{{ cat.latestTitle }}</p>
+            <span class="cat-card__go" aria-hidden="true">→</span>
+          </NuxtLink>
         </div>
       </section>
 
-      <!-- 分页：页码与 URL ?page= 双向同步，可直接分享/回退到某一页 -->
-      <nav v-if="totalPages > 1" class="pagination" aria-label="文章分页">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage <= 1"
-          @click="changePage(currentPage - 1)"
-        >← 上一页</button>
-        <button
-          v-for="p in totalPages"
-          :key="p"
-          type="button"
-          class="page-btn"
-          :class="{ 'page-btn--active': p === currentPage }"
-          @click="changePage(p)"
-        >{{ p }}</button>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage >= totalPages"
-          @click="changePage(currentPage + 1)"
-        >下一页 →</button>
-      </nav>
+      <!-- ===== 标签云 ===== -->
+      <section v-if="tagCloud.length" class="section">
+        <div class="section__head">
+          <h2 class="section__cn">标签云</h2>
+          <span class="section__en">Tags</span>
+          <i class="section__line" />
+        </div>
+
+        <div class="tag-cloud reveal">
+          <NuxtLink
+            v-for="tag in tagCloud"
+            :key="tag.id"
+            to="/posts"
+            class="tag-cloud__item"
+            :style="{ fontSize: `${tag.size}px` }"
+          >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
+        </div>
+      </section>
+
+      <!-- ===== 订阅 CTA 横幅 ===== -->
+      <section class="section section--last">
+        <div class="cta-banner reveal">
+          <div class="cta-banner__glow" aria-hidden="true" />
+          <h2 class="cta-banner__title">不错过任何一篇更新</h2>
+          <p class="cta-banner__text">订阅 RSS，新文章第一时间送达你的阅读器。</p>
+          <div class="cta-banner__actions">
+            <a class="cta-banner__btn" href="/rss.xml" target="_blank">订阅 RSS</a>
+            <NuxtLink class="cta-banner__btn cta-banner__btn--ghost" to="/posts">浏览全部文章</NuxtLink>
+          </div>
+        </div>
+      </section>
     </main>
 
     <!-- ===== Footer ===== -->
@@ -219,7 +236,8 @@
           </div>
         </div>
         <nav class="site-footer__links">
-          <a href="#posts" @click.prevent="scrollToPosts">文章</a>
+          <a href="#latest" @click.prevent="scrollToId('latest')">最新文章</a>
+          <NuxtLink to="/posts">全部文章</NuxtLink>
           <NuxtLink to="/rss.xml" target="_blank">RSS</NuxtLink>
         </nav>
       </div>
@@ -243,16 +261,9 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
-const router = useRouter()
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
 const tagsStore = useTagsStore()
-
-/** 当前选中的分类 slug（与 URL query 双向同步） */
-const activeCategory = computed(() =>
-  typeof route.query.category === 'string' ? route.query.category : '',
-)
 
 /** 已发布文章，按发布时间倒序 */
 const publishedPosts = computed(() =>
@@ -261,35 +272,49 @@ const publishedPosts = computed(() =>
     .sort((a, b) => b.createdAt - a.createdAt),
 )
 
-/** 按分类过滤后的列表 */
-const filteredPosts = computed(() =>
-  activeCategory.value
-    ? publishedPosts.value.filter(p => categoryBySlug(activeCategory.value)?.id === p.categoryId)
-    : publishedPosts.value,
+const totalPosts = computed(() => publishedPosts.value.length)
+
+/** 首页展示的文章数量（头条 1 篇 + 列表 3 篇） */
+const homeCount = 4
+
+/** 头条：最新一篇 */
+const featuredPost = computed(() => publishedPosts.value[0] ?? null)
+
+/** 头条之后的目录式条目 */
+const homeRows = computed(() => publishedPosts.value.slice(1, homeCount))
+
+/** 分类卡片：带文章数与该分类下最新一篇的标题 */
+const categoryCards = computed(() =>
+  categoriesStore.list
+    .map(cat => ({
+      ...cat,
+      count: publishedPosts.value.filter(p => p.categoryId === cat.id).length,
+      latestTitle:
+        publishedPosts.value.find(p => p.categoryId === cat.id)?.excerpt ?? '暂无文章，快来写下第一篇',
+    }))
+    .sort((a, b) => b.count - a.count),
 )
 
-/** 每页展示的文章数（第 1 页含 1 篇头条） */
-const PAGE_SIZE = 5
+/** 分类卡片的点缀色轮换 */
+const catAccents = ['#6366f1', '#a855f7', '#ec4899', '#0ea5e9', '#10b981', '#f59e0b']
 
-/** 当前页码（与 URL ?page= 同步，非法值回落到第 1 页） */
-const currentPage = computed(() => {
-  const n = Number.parseInt(String(route.query.page ?? ''), 10)
-  return Number.isFinite(n) && n > 0 ? n : 1
-})
-
-/** 总页数（至少 1 页，保证空列表时也有合法页码） */
-const totalPages = computed(() => Math.max(1, Math.ceil(filteredPosts.value.length / PAGE_SIZE)))
-
-/** 第 1 页且列表非空时，把最新一篇放大为头条 */
-const featuredPost = computed(() =>
-  currentPage.value === 1 ? filteredPosts.value[0] ?? null : null,
-)
-
-/** 除头条外的当前页文章切片 */
-const listPosts = computed(() => {
-  const start = (currentPage.value - 1) * PAGE_SIZE
-  const slice = filteredPosts.value.slice(start, start + PAGE_SIZE)
-  return featuredPost.value ? slice.slice(1) : slice
+/** 标签云：按使用次数排序，字号随次数在 13~21px 间浮动 */
+const tagCloud = computed(() => {
+  const countByName = new Map<string, number>()
+  for (const post of publishedPosts.value) {
+    for (const t of tagsStore.list.filter(t => post.tagIds.includes(t.id))) {
+      countByName.set(t.name, (countByName.get(t.name) ?? 0) + 1)
+    }
+  }
+  const max = Math.max(1, ...countByName.values())
+  return tagsStore.list
+    .map(tag => ({ id: tag.id, name: tag.name, count: countByName.get(tag.name) ?? 0 }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 16)
+    .map(tag => ({
+      ...tag,
+      size: Math.round(13 + (tag.count / max) * 8),
+    }))
 })
 
 /** 跑马灯标签：去重后取前 12 个 */
@@ -300,54 +325,10 @@ const marqueeTags = computed(() =>
 /** 无缝循环需要重复一份轨道内容 */
 const marqueeLoop = computed(() => [...marqueeTags.value, ...marqueeTags.value])
 
-/** 切换分类后数据变少时，页码可能越界，收敛到最后一页 */
-watch(totalPages, () => {
-  if (currentPage.value > totalPages.value) {
-    setPage(totalPages.value)
-  }
-})
-
-function categoryBySlug(slug: string) {
-  return categoriesStore.list.find(c => c.slug === slug)
-}
-
-function categoryName(categoryId: string | null): string {
-  return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
-}
-
-function postTags(tagIds: string[]) {
-  return tagsStore.list.filter(t => tagIds.includes(t.id))
-}
-
-function setCategory(slug: string) {
-  // 详情页的分类 chip 通过 ?category=slug 跳回这里；切换分类视为重新浏览，重置到第 1 页（去掉 page 参数）
-  router.replace(slug ? { query: { category: slug } } : { query: {} })
-}
-
-/** 跳转到指定页：保留分类参数，页码为 1 时从地址栏移除 */
-function setPage(page: number) {
-  const clamped = Math.min(Math.max(1, page), totalPages.value)
-  const query: Record<string, string> = {}
-  if (activeCategory.value) {
-    query.category = activeCategory.value
-  }
-  if (clamped > 1) {
-    query.page = String(clamped)
-  }
-  router.replace({ query })
-}
-
-/** 翻页后回到列表顶部，避免停留在长列表底部 */
-function changePage(page: number) {
-  if (page === currentPage.value) return
-  setPage(page)
-  scrollToPosts()
-}
-
 // ===== 平滑滚动辅助 =====
 
-function scrollToPosts() {
-  document.getElementById('posts')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function scrollToTop() {
@@ -438,31 +419,9 @@ function onPointerMove(e: PointerEvent) {
   targetMY = (e.clientY / window.innerHeight) * 2 - 1
 }
 
-// ===== 列表滚动渐显（IntersectionObserver）=====
+// ===== 滚动渐显（IntersectionObserver）=====
 
 let revealObserver: IntersectionObserver | null = null
-
-function setupReveal() {
-  if (prefersReducedMotion()) return
-  revealObserver = new IntersectionObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('reveal--visible')
-        revealObserver?.unobserve(entry.target)
-      }
-    }
-  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 })
-}
-
-/** 翻页/切分类后，对新渲染出的卡片重新应用渐显 */
-function observeReveals() {
-  if (!revealObserver) return
-  document.querySelectorAll<HTMLElement>('.reveal:not(.reveal--visible)').forEach((el) => {
-    revealObserver!.observe(el)
-  })
-}
-
-watch(listPosts, () => nextTick(observeReveals))
 
 onMounted(() => {
   onScrollChrome()
@@ -489,8 +448,19 @@ onMounted(() => {
     rafId = requestAnimationFrame(tick)
   }
 
-  setupReveal()
-  observeReveals()
+  if (!prefersReducedMotion()) {
+    revealObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal--visible')
+          revealObserver?.unobserve(entry.target)
+        }
+      }
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 })
+    document.querySelectorAll<HTMLElement>('.reveal').forEach((el) => {
+      revealObserver!.observe(el)
+    })
+  }
 })
 
 onBeforeUnmount(() => {
@@ -499,6 +469,10 @@ onBeforeUnmount(() => {
   revealObserver?.disconnect()
   window.removeEventListener('pointermove', onPointerMove)
 })
+
+function categoryName(categoryId: string | null): string {
+  return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
+}
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString('zh-CN', {
@@ -624,8 +598,8 @@ useHead({ title: 'Forever - 记录技术与思考' })
   align-items: center;
 }
 
-@media (max-width: 560px) {
-  .site-nav {
+@media (max-width: 640px) {
+  .site-nav__link:not(:first-child) {
     display: none;
   }
 }
@@ -950,18 +924,26 @@ html.dark .hero__grid {
   to { transform: translateX(-50%); }
 }
 
-/* ===== 栏目标题 ===== */
-.section-head {
+/* ===== 版块通用 ===== */
+.section {
+  max-width: 800px;
+  margin: 72px auto 0;
+  padding: 0 20px;
+  scroll-margin-top: 76px;
+}
+
+.section--last {
+  margin-bottom: 72px;
+}
+
+.section__head {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  max-width: 800px;
-  margin: 48px auto 0;
-  padding: 0 20px;
-  scroll-margin-top: 84px;
+  margin-bottom: 24px;
 }
 
-.section-head__cn {
+.section__cn {
   margin: 0;
   font-size: 24px;
   font-weight: 800;
@@ -969,7 +951,7 @@ html.dark .hero__grid {
   color: var(--c-text);
 }
 
-.section-head__en {
+.section__en {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -977,57 +959,22 @@ html.dark .hero__grid {
   color: var(--c-text-muted);
 }
 
-.section-head__line {
+.section__line {
   flex: 1;
   height: 1px;
   background: linear-gradient(to right, var(--c-border), transparent);
 }
 
-/* ===== 分类筛选 ===== */
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  max-width: 800px;
-  margin: 20px auto 0;
-  padding: 0 20px;
-}
-
-.filter-btn {
-  padding: 6px 16px;
-  font-size: 13.5px;
-  color: #55556a;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
+.chip {
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
   border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: var(--c-primary);
-    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    transform: translateY(-1px);
-  }
-
-  &--active {
-    color: var(--c-on-primary);
-    background: var(--c-primary);
-    border-color: var(--c-primary);
-
-    &:hover {
-      color: var(--c-on-primary);
-    }
-  }
 }
 
-/* ===== 信息流 ===== */
-.feed {
-  display: grid;
-  gap: 0;
-  max-width: 800px;
-  margin: 26px auto 0;
-  padding: 0 20px 40px;
+.meta-dot {
+  color: #c5c5d2;
 }
 
 /* 渐显通用类 */
@@ -1054,24 +1001,12 @@ html.dark .hero__grid {
   }
 }
 
-.chip {
-  padding: 2px 10px;
-  font-size: 12px;
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-  border-radius: 999px;
-}
-
-.meta-dot {
-  color: #c5c5d2;
-}
-
 /* ---- 头条大卡 ---- */
 .featured {
   position: relative;
   display: block;
   overflow: hidden;
-  margin-bottom: 34px;
+  margin-bottom: 30px;
   padding: 34px 36px 30px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
@@ -1107,11 +1042,6 @@ html.dark .hero__grid {
     color: var(--c-on-primary);
     transform: rotate(0deg);
   }
-
-  .featured__title {
-    background-size: 200% 100%;
-    background-position: 100% 0;
-  }
 }
 
 .featured__badge {
@@ -1134,11 +1064,6 @@ html.dark .hero__grid {
   line-height: 1.3;
   letter-spacing: -0.015em;
   color: var(--c-text);
-  transition: background-size 0.45s ease, background-position 0.45s ease;
-  /* hover 时文字被主色「扫过」填满 */
-  background-image: linear-gradient(90deg, var(--c-primary), var(--c-primary));
-  background-size: 0% 2px;
-  background-repeat: no-repeat;
 
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1207,7 +1132,7 @@ html.dark .hero__grid {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 22px;
-  padding: 24px 10px;
+  padding: 22px 10px;
   border-bottom: 1px solid var(--c-border);
   text-decoration: none;
   transition: background-color 0.25s ease, padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -1228,18 +1153,13 @@ html.dark .hero__grid {
     .row__arrow {
       opacity: 1;
       transform: translateX(0);
-      color: var(--c-primary);
     }
-  }
-
-  &:last-of-type {
-    border-bottom-color: transparent;
   }
 }
 
 /* 描边空心序号，hover 时点亮 */
 .row__num {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 800;
   line-height: 1;
   color: transparent;
@@ -1261,7 +1181,7 @@ html.dark .hero__grid {
 
 .row__title {
   margin: 0;
-  font-size: 17px;
+  font-size: 16.5px;
   font-weight: 650;
   line-height: 1.4;
   color: var(--c-text);
@@ -1274,7 +1194,7 @@ html.dark .hero__grid {
 }
 
 .row__excerpt {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   font-size: 13.5px;
   line-height: 1.6;
   color: #8a8aa0;
@@ -1290,14 +1210,9 @@ html.dark .hero__grid {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 9px;
   font-size: 12px;
   color: var(--c-text-muted);
-}
-
-.row__tags {
-  display: inline-flex;
-  gap: 8px;
 }
 
 .row__arrow {
@@ -1305,11 +1220,11 @@ html.dark .hero__grid {
   color: var(--c-primary);
   opacity: 0;
   transform: translateX(-8px);
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .empty {
-  padding: 64px 20px;
+  padding: 56px 20px;
   text-align: center;
   font-size: 14.5px;
   color: #9a9aad;
@@ -1322,54 +1237,242 @@ html.dark .hero__grid {
   opacity: 0.6;
 }
 
-/* ===== 分页 ===== */
-.pagination {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+/* 「查看全部」链接 */
+.more-link {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-  max-width: 800px;
-  margin: 4px auto 0;
-  padding: 0 20px 40px;
+  margin-top: 24px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: var(--c-bg-card);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-.page-btn {
-  min-width: 38px;
-  padding: 7px 14px;
-  font-size: 13.5px;
-  color: #55556a;
+.more-link:hover {
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgb(99 102 241 / 30%);
+
+  .more-link__arrow {
+    transform: translateX(4px);
+  }
+}
+
+.more-link__arrow {
+  transition: transform 0.2s ease;
+}
+
+/* ---- 分类卡片墙 ---- */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.cat-card {
+  --accent: var(--c-primary);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 22px 22px 46px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  border-radius: 16px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
-  &:hover:not(:disabled) {
-    color: var(--c-primary);
-    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    transform: translateY(-1px);
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: var(--accent);
+    opacity: 0.75;
   }
 
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
+  &::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 130px;
+    height: 130px;
+    background: var(--accent);
+    filter: blur(52px);
+    opacity: 0.12;
+    transition: opacity 0.3s ease, transform 0.3s ease;
   }
 
-  &--active {
-    color: var(--c-on-primary);
-    background: var(--c-primary);
-    border-color: var(--c-primary);
+  &:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: var(--shadow-card-hover);
 
-    &:hover {
-      color: var(--c-on-primary);
-      transform: none;
+    &::after {
+      opacity: 0.28;
+      transform: scale(1.25);
+    }
+
+    .cat-card__go {
+      opacity: 1;
+      transform: translateX(0);
+      color: var(--accent);
+    }
+
+    .cat-card__name {
+      color: var(--accent);
     }
   }
 }
 
+.cat-card__count {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.cat-card__name {
+  margin: 10px 0 0;
+  font-size: 19px;
+  font-weight: 750;
+  color: var(--c-text);
+  transition: color 0.2s ease;
+}
+
+.cat-card__desc {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cat-card__go {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  font-size: 17px;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- 标签云 ---- */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px 18px;
+  padding: 26px 28px;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+}
+
+.tag-cloud__item {
+  font-weight: 650;
+  line-height: 1;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+
+  sup {
+    margin-left: 2px;
+    font-size: 0.6em;
+    color: var(--c-text-muted);
+  }
+
+  &:hover {
+    color: var(--c-primary);
+    transform: translateY(-2px) rotate(-2deg);
+  }
+}
+
+/* ---- CTA 横幅 ---- */
+.cta-banner {
+  position: relative;
+  overflow: hidden;
+  padding: 44px 32px;
+  text-align: center;
+  background: linear-gradient(135deg, var(--c-primary), #7c3aed 55%, #ec4899);
+  border-radius: 20px;
+}
+
+.cta-banner__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(300px 160px at 15% 20%, rgb(255 255 255 / 18%), transparent 70%),
+    radial-gradient(260px 180px at 85% 90%, rgb(255 255 255 / 12%), transparent 70%);
+  pointer-events: none;
+}
+
+.cta-banner__title {
+  position: relative;
+  margin: 0;
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.cta-banner__text {
+  position: relative;
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  color: rgb(255 255 255 / 82%);
+}
+
+.cta-banner__actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.cta-banner__btn {
+  padding: 11px 26px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-primary);
+  background: #fff;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgb(0 0 0 / 26%);
+  }
+}
+
+.cta-banner__btn--ghost {
+  color: #fff;
+  background: rgb(255 255 255 / 14%);
+  border: 1px solid rgb(255 255 255 / 45%);
+  backdrop-filter: blur(4px);
+}
+
 /* ===== Footer ===== */
 .site-footer {
-  margin-top: 24px;
+  margin-top: 48px;
   background: var(--c-bg-card);
   border-top: 1px solid var(--c-border);
 }

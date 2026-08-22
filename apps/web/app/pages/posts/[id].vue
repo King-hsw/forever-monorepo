@@ -17,7 +17,7 @@
         <header class="article-head">
           <NuxtLink
             v-if="category"
-            :to="`/?category=${category.slug}`"
+            :to="`/posts?category=${category.slug}`"
             class="category-chip"
           >{{ category.name }}</NuxtLink>
           <span v-else class="category-chip category-chip--none">未分类</span>
