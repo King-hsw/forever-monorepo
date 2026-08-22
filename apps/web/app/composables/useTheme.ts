@@ -52,6 +52,24 @@ export function useTheme() {
       return
     }
 
+    // 在任何 await 之前同步读取点击位置：
+    // - 鼠标点击：直接用光标视口坐标
+    // - 键盘触发（Enter/空格）的 click 没有 clientX/Y（值为 0），改用按钮中心作为圆心
+    const target = event?.currentTarget as HTMLElement | null
+    let x: number
+    let y: number
+    if (event && (event.clientX !== 0 || event.clientY !== 0)) {
+      x = event.clientX
+      y = event.clientY
+    } else if (target) {
+      const rect = target.getBoundingClientRect()
+      x = rect.left + rect.width / 2
+      y = rect.top + rect.height / 2
+    } else {
+      x = window.innerWidth - 48
+      y = 48
+    }
+
     const transition = startViewTransition.call(document, () => {
       apply(next)
     })
@@ -64,30 +82,31 @@ export function useTheme() {
       return
     }
 
-    // 点击位置；无事件时（如代码调用）从屏幕右上角扩散
-    const x = event?.clientX ?? window.innerWidth - 48
-    const y = event?.clientY ?? 48
-    // 半径略微超出屏幕（+10%），保证动画结束时新主题已完全覆盖画面，
-    // 快照移除时不会出现可见的跳变
+    // 点击位置已在上文同步捕获；半径略微超出屏幕（+10%），
+    // 保证动画结束时新主题已完全覆盖画面，快照移除时不会出现可见的跳变
     const radius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y),
     ) * 1.1
 
-    doc.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${radius}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration: 450,
-        // 加速曲线：圆扩散越到后面越快，果断盖满屏幕，避免结尾拖沓、僵硬
-        easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)',
-        pseudoElement: '::view-transition-new(root)',
-      },
-    )
+    try {
+      doc.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${radius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 450,
+          // 加速曲线：圆扩散越到后面越快，果断盖满屏幕，避免结尾拖沓、僵硬
+          easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)',
+          pseudoElement: '::view-transition-new(root)',
+        },
+      )
+    } catch {
+      // 个别浏览器不支持对伪元素执行动画：新快照已在上层，直接呈现即可
+    }
   }
 
   // 客户端挂载后同步一次真实状态（内联脚本可能已设置 dark）
