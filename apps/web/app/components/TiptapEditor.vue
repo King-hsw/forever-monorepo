@@ -69,11 +69,17 @@
         <button type="button" title="插入/移除链接" :class="{ 'is-active': editor.isActive('link') }" @click="toggleLink">
           链接
         </button>
+        <button type="button" title="插入图片" :disabled="uploading" @click="pickImage">
+          {{ uploading ? '上传中…' : '图片' }}
+        </button>
       </div>
     </div>
 
     <!-- 编辑区域 -->
     <EditorContent :editor="editor" class="tiptap-editor__content" />
+
+    <!-- 隐藏的图片选择输入框 -->
+    <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden @change="onImagePicked">
 
     <!-- 链接输入弹窗 -->
     <dialog v-if="showLinkDialog" open class="tiptap-editor__dialog" @close="showLinkDialog = false">
@@ -93,12 +99,14 @@
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
+import Image from '@tiptap/extension-image'
 import { Marked } from 'marked'
 import { createLowlight } from 'lowlight'
 import type { LanguageFn } from 'highlight.js'
 import { codeLanguages } from '../utils/codeLanguages'
 import 'highlight.js/styles/github.css'
 import { CodeBlockLineNumbers } from '../extensions/CodeBlockLineNumbers'
+import { fileToImageSrc, isSupportedImage } from '../utils/imageUpload'
 
 const props = withDefaults(
   defineProps<{
@@ -133,6 +141,8 @@ const editor = useEditor({
   // CodeBlockLowlight 的 CodeBlockLineNumbers，同时提供高亮和外挂式行号栏
   extensions: [
     StarterKit.configure({ codeBlock: false }),
+    // 图片：本项目无后端，上传后以 data URL 内嵌，必须开启 allowBase64 才能解析回显
+    Image.configure({ allowBase64: true }),
     // 代码块内启用 Tab 缩进：Tab 插入缩进、Shift-Tab 反向缩进（支持多行选区）
     CodeBlockLineNumbers.configure({ lowlight, enableTabIndentation: true, tabSize: 2 }),
     Markdown.configure({ marked: new Marked() }),
@@ -143,7 +153,79 @@ const editor = useEditor({
     emit('update:modelValue', editor.getHTML())
     emit('update:markdown', editor.getMarkdown())
   },
+  // 拦截粘贴 / 拖拽的图片文件，走本地上传逻辑而不是默认行为
+  editorProps: {
+    handlePaste: (_view, event) => {
+      const files = event.clipboardData?.files
+      if (!files?.length || !Array.from(files).some(isSupportedImage)) {
+        return false
+      }
+      void insertImageFiles(files)
+      return true
+    },
+    handleDrop: (view, event) => {
+      const files = event.dataTransfer?.files
+      if (!files?.length || !Array.from(files).some(isSupportedImage)) {
+        return false
+      }
+      event.preventDefault()
+      // 计算落点位置，图片插入到鼠标松开的地方；多张时逐个往后排
+      const dropPos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
+      void insertImageFiles(files, dropPos)
+      return true
+    },
+  },
 })
+
+/** 上传状态（工具栏按钮据此禁用并显示提示） */
+const uploading = ref(false)
+const imageInputRef = ref<HTMLInputElement | null>(null)
+
+function pickImage() {
+  imageInputRef.value?.click()
+}
+
+function onImagePicked(event: Event) {
+  const input = event.target as HTMLInputElement
+  if (input.files?.length) {
+    void insertImageFiles(input.files)
+  }
+  // 允许下次选择同一文件仍触发 change
+  input.value = ''
+}
+
+/** 压缩并逐张插入图片；pos 为空时插入到当前光标处 */
+async function insertImageFiles(files: FileList | File[], pos?: number) {
+  const ed = editor.value
+  if (!ed || uploading.value) {
+    return
+  }
+  const images = Array.from(files).filter(isSupportedImage)
+  if (!images.length) {
+    return
+  }
+
+  uploading.value = true
+  try {
+    let insertPos = pos
+    for (const file of images) {
+      const src = await fileToImageSrc(file)
+      const chain = ed.chain().focus()
+      if (insertPos === undefined) {
+        chain.setImage({ src })
+      }
+      else {
+        // 图片节点在文档中占 1 个位置，连续插入依次后移保持顺序
+        chain.insertContentAt(insertPos, { type: 'image', attrs: { src } })
+        insertPos += 1
+      }
+      chain.run()
+    }
+  }
+  finally {
+    uploading.value = false
+  }
+}
 
 // 外部更新（v-model）时同步到编辑器
 watch(
@@ -456,6 +538,19 @@ function confirmLink() {
   .tiptap a {
     color: var(--tt-accent);
     text-decoration: underline;
+  }
+
+  .tiptap img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0.8em auto;
+    border-radius: 6px;
+  }
+
+  /* 图片节点被选中时的描边 */
+  .tiptap img.ProseMirror-selectednode {
+    outline: 2px solid var(--tt-accent);
   }
 
   /* 选中高亮 */

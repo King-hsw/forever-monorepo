@@ -12,6 +12,7 @@
   "dependencies": {
     "@pinia/nuxt": "^1.0.2",
     "@tiptap/extension-code-block-lowlight": "3.30.2",
+    "@tiptap/extension-image": "3.30.2",
     "@tiptap/markdown": "3.30.2",
     "@tiptap/pm": "3.30.2",
     "@tiptap/starter-kit": "3.30.2",
