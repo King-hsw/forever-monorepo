@@ -2,9 +2,9 @@
   <button
     type="button"
     class="theme-toggle"
-    :class="{ 'theme-toggle--dark': isDark }"
-    :aria-label="isDark ? '切换到浅色模式' : '切换到深色模式'"
-    :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
+    :class="{ 'theme-toggle--dark': shownDark }"
+    :aria-label="shownDark ? '切换到浅色模式' : '切换到深色模式'"
+    :title="shownDark ? '切换到浅色模式' : '切换到深色模式'"
     @click="toggle($event)"
   >
     <span class="theme-toggle__icon" aria-hidden="true">
@@ -21,6 +21,14 @@
 
 <script setup lang="ts">
 const { isDark, toggle } = useTheme()
+
+// 水合完成前固定渲染浅色态，避免与 SSR 输出不一致导致 hydration mismatch
+const mounted = ref(false)
+onMounted(() => {
+  mounted.value = true
+})
+
+const shownDark = computed(() => mounted.value && isDark.value)
 </script>
 
 <style scoped>
