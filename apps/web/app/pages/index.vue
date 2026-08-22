@@ -101,118 +101,149 @@
     </div>
 
     <main>
-      <!-- ===== 最新文章：头条大卡 + 目录式条目，只展示一部分 ===== -->
-      <section id="latest" class="section">
-        <div class="section__head">
-          <h2 class="section__cn">最新文章</h2>
-          <span class="section__en">Latest Posts</span>
-          <i class="section__line" />
-        </div>
+      <!-- 章节导航：固定在右侧，随时告知用户身处故事哪个位置，可点击跳转 -->
+      <nav class="chapter-nav" aria-label="页面章节">
+        <button
+          v-for="sec in sections"
+          :key="sec.id"
+          type="button"
+          class="chapter-nav__item"
+          :class="{ 'chapter-nav__item--active': activeSection === sec.id }"
+          :aria-current="activeSection === sec.id ? 'true' : undefined"
+          @click="scrollToId(sec.id)"
+        >
+          <span class="chapter-nav__label">{{ sec.label }}</span>
+          <span class="chapter-nav__dot" />
+        </button>
+      </nav>
 
-        <div class="feed">
-          <NuxtLink
-            v-if="featuredPost"
-            :to="`/posts/${featuredPost.id}`"
-            class="featured reveal"
-          >
-            <div class="featured__glow" aria-hidden="true" />
-            <span class="featured__badge">最新发布</span>
-            <h3 class="featured__title">{{ featuredPost.title }}</h3>
-            <p class="featured__excerpt">{{ featuredPost.excerpt }}</p>
-            <div class="featured__foot">
-              <div class="featured__meta">
-                <span class="chip">{{ categoryName(featuredPost.categoryId) }}</span>
-                <span class="meta-dot">·</span>
-                <time>{{ formatDate(featuredPost.createdAt) }}</time>
-                <span class="meta-dot">·</span>
-                <span>{{ featuredPost.views.toLocaleString() }} 次阅读</span>
-              </div>
-              <span class="featured__cta">
-                阅读全文
-                <span class="featured__cta-circle">→</span>
-              </span>
+      <!-- 分镜 01：最新文章 —— 左侧章节牌 sticky 固定，内容随滚动揭示 -->
+      <section id="latest" class="scene">
+        <div class="scene__inner">
+          <aside class="scene__aside">
+            <div class="scene__sticky reveal">
+              <span class="scene__no" aria-hidden="true">01</span>
+              <h2 class="scene__title">最新文章</h2>
+              <p class="scene__desc">刚刚写下的文字，还热乎着。</p>
+              <NuxtLink v-if="totalPosts > homeCount" to="/posts" class="more-link">
+                查看全部 {{ totalPosts }} 篇
+                <span class="more-link__arrow">→</span>
+              </NuxtLink>
             </div>
-          </NuxtLink>
+          </aside>
 
-          <NuxtLink
-            v-for="(post, i) in homeRows"
-            :key="post.id"
-            :to="`/posts/${post.id}`"
-            class="row reveal"
-            :style="{ '--reveal-delay': `${Math.min(i + 1, 5) * 80}ms` }"
-          >
-            <span class="row__num" aria-hidden="true">{{ String(i + 2).padStart(2, '0') }}</span>
-            <span class="row__main">
-              <h3 class="row__title">{{ post.title }}</h3>
-              <p class="row__excerpt">{{ post.excerpt }}</p>
-              <span class="row__meta">
-                <span class="chip">{{ categoryName(post.categoryId) }}</span>
-                <span class="meta-dot">·</span>
-                <time>{{ formatDate(post.createdAt) }}</time>
-                <span class="meta-dot">·</span>
-                <span>{{ post.views.toLocaleString() }} 次阅读</span>
+          <div class="scene__body">
+            <NuxtLink
+              v-if="featuredPost"
+              :to="`/posts/${featuredPost.id}`"
+              class="featured reveal"
+            >
+              <div class="featured__glow" aria-hidden="true" />
+              <span class="featured__badge">最新发布</span>
+              <h3 class="featured__title">{{ featuredPost.title }}</h3>
+              <p class="featured__excerpt">{{ featuredPost.excerpt }}</p>
+              <div class="featured__foot">
+                <div class="featured__meta">
+                  <span class="chip">{{ categoryName(featuredPost.categoryId) }}</span>
+                  <span class="meta-dot">·</span>
+                  <time>{{ formatDate(featuredPost.createdAt) }}</time>
+                  <span class="meta-dot">·</span>
+                  <span>{{ featuredPost.views.toLocaleString() }} 次阅读</span>
+                </div>
+                <span class="featured__cta">
+                  阅读全文
+                  <span class="featured__cta-circle">→</span>
+                </span>
+              </div>
+            </NuxtLink>
+
+            <NuxtLink
+              v-for="(post, i) in homeRows"
+              :key="post.id"
+              :to="`/posts/${post.id}`"
+              class="row reveal"
+              :style="{ '--reveal-delay': `${Math.min(i + 1, 5) * 80}ms` }"
+            >
+              <span class="row__num" aria-hidden="true">{{ String(i + 2).padStart(2, '0') }}</span>
+              <span class="row__main">
+                <h3 class="row__title">{{ post.title }}</h3>
+                <p class="row__excerpt">{{ post.excerpt }}</p>
+                <span class="row__meta">
+                  <span class="chip">{{ categoryName(post.categoryId) }}</span>
+                  <span class="meta-dot">·</span>
+                  <time>{{ formatDate(post.createdAt) }}</time>
+                  <span class="meta-dot">·</span>
+                  <span>{{ post.views.toLocaleString() }} 次阅读</span>
+                </span>
               </span>
-            </span>
-            <span class="row__arrow" aria-hidden="true">→</span>
-          </NuxtLink>
+              <span class="row__arrow" aria-hidden="true">→</span>
+            </NuxtLink>
 
-          <div v-if="!publishedPosts.length" class="empty">
-            <span class="empty__icon">(˘•ω•˘)</span>
-            还没有发布文章
+            <div v-if="!publishedPosts.length" class="empty">
+              <span class="empty__icon">(˘•ω•˘)</span>
+              还没有发布文章
+            </div>
           </div>
         </div>
-
-        <NuxtLink v-if="totalPosts > homeCount" to="/posts" class="more-link reveal">
-          查看全部 {{ totalPosts }} 篇文章
-          <span class="more-link__arrow">→</span>
-        </NuxtLink>
       </section>
 
-      <!-- ===== 探索分类：彩色卡片墙 ===== -->
-      <section v-if="categoryCards.length" class="section">
-        <div class="section__head">
-          <h2 class="section__cn">探索分类</h2>
-          <span class="section__en">Categories</span>
-          <i class="section__line" />
-        </div>
+      <!-- 分镜 02：探索分类 —— 交替底色区分场景，像翻到下一页 -->
+      <section v-if="categoryCards.length" id="categories" class="scene scene--tinted">
+        <div class="scene__inner">
+          <aside class="scene__aside">
+            <div class="scene__sticky reveal">
+              <span class="scene__no" aria-hidden="true">02</span>
+              <h2 class="scene__title">探索分类</h2>
+              <p class="scene__desc">按主题逛逛，每个抽屉里都收着不一样的宝贝。</p>
+            </div>
+          </aside>
 
-        <div class="cat-grid">
-          <NuxtLink
-            v-for="(cat, i) in categoryCards"
-            :key="cat.id"
-            :to="`/posts?category=${cat.slug}`"
-            class="cat-card reveal"
-            :style="{ '--accent': catAccents[i % catAccents.length], '--reveal-delay': `${Math.min(i, 5) * 70}ms` }"
-          >
-            <span class="cat-card__count">{{ cat.count }} 篇</span>
-            <h3 class="cat-card__name">{{ cat.name }}</h3>
-            <p class="cat-card__desc">{{ cat.latestTitle }}</p>
-            <span class="cat-card__go" aria-hidden="true">→</span>
-          </NuxtLink>
-        </div>
-      </section>
-
-      <!-- ===== 标签云 ===== -->
-      <section v-if="tagCloud.length" class="section">
-        <div class="section__head">
-          <h2 class="section__cn">标签云</h2>
-          <span class="section__en">Tags</span>
-          <i class="section__line" />
-        </div>
-
-        <div class="tag-cloud reveal">
-          <NuxtLink
-            v-for="(tag, i) in tagCloud"
-            :key="tag.id"
-            to="/posts"
-            class="tag-cloud__item"
-            :style="{ fontSize: `${tag.size}px`, '--tk': tagAccents[i % tagAccents.length] }"
-          >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
+          <div class="scene__body">
+            <div class="cat-grid">
+              <NuxtLink
+                v-for="(cat, i) in categoryCards"
+                :key="cat.id"
+                :to="`/posts?category=${cat.slug}`"
+                class="cat-card reveal"
+                :style="{ '--accent': catAccents[i % catAccents.length], '--reveal-delay': `${Math.min(i, 5) * 70}ms` }"
+              >
+                <span class="cat-card__count">{{ cat.count }} 篇</span>
+                <h3 class="cat-card__name">{{ cat.name }}</h3>
+                <p class="cat-card__desc">{{ cat.latestTitle }}</p>
+                <span class="cat-card__go" aria-hidden="true">→</span>
+              </NuxtLink>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ===== 订阅 CTA 横幅 ===== -->
-      <section class="section section--last">
+      <!-- 分镜 03：标签云 -->
+      <section v-if="tagCloud.length" id="tags" class="scene">
+        <div class="scene__inner">
+          <aside class="scene__aside">
+            <div class="scene__sticky reveal">
+              <span class="scene__no" aria-hidden="true">03</span>
+              <h2 class="scene__title">标签云</h2>
+              <p class="scene__desc">一枚枚小贴纸，标记出每篇文章的心情。</p>
+            </div>
+          </aside>
+
+          <div class="scene__body">
+            <div class="tag-cloud reveal">
+              <NuxtLink
+                v-for="(tag, i) in tagCloud"
+                :key="tag.id"
+                to="/posts"
+                class="tag-cloud__item"
+                :style="{ fontSize: `${tag.size}px`, '--tk': tagAccents[i % tagAccents.length] }"
+              >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 终幕：订阅，全屏居中像纪录片的结尾镜头 -->
+      <section id="subscribe" class="finale">
         <div class="cta-banner reveal">
           <div class="cta-banner__glow" aria-hidden="true" />
           <h2 class="cta-banner__title">不错过任何一篇更新</h2>
@@ -337,6 +368,19 @@ function scrollToId(id: string) {
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+// ===== 章节导航：追踪当前所处分镜 =====
+
+/** 首页分镜章节（顺序即叙事顺序） */
+const sections = [
+  { id: 'latest', label: '最新文章' },
+  { id: 'categories', label: '探索分类' },
+  { id: 'tags', label: '标签云' },
+  { id: 'subscribe', label: '订阅更新' },
+]
+
+const activeSection = ref('latest')
+let sectionIO: IntersectionObserver | null = null
 
 // ===== Header 滚动态 / 回到顶部 / 阅读进度 =====
 
@@ -464,12 +508,26 @@ onMounted(() => {
       revealObserver!.observe(el)
     })
   }
+
+  // 章节追踪：当分镜进入视口中段时点亮对应导航点（与动效偏好无关，始终可用）
+  sectionIO = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        activeSection.value = entry.target.id
+      }
+    }
+  }, { rootMargin: '-40% 0px -55% 0px' })
+  for (const sec of sections) {
+    const el = document.getElementById(sec.id)
+    if (el) sectionIO.observe(el)
+  }
 })
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   io?.disconnect()
   revealObserver?.disconnect()
+  sectionIO?.disconnect()
   window.removeEventListener('pointermove', onPointerMove)
 })
 
@@ -957,45 +1015,167 @@ html.dark .hero__grid {
   to { transform: translateX(-50%); }
 }
 
-/* ===== 版块通用 ===== */
-.section {
-  max-width: 800px;
-  margin: 72px auto 0;
-  padding: 0 20px;
-  scroll-margin-top: 76px;
+/* ===== 滚动叙事分镜 ===== */
+.scene {
+  scroll-margin-top: 56px;
+  padding: 100px 0;
 }
 
-.section--last {
-  margin-bottom: 72px;
+/* 交替底色区分相邻场景，像翻到下一页 */
+.scene--tinted {
+  background: color-mix(in srgb, var(--c-primary-light) 40%, transparent);
+  border-top: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--c-border);
 }
 
-.section__head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 24px;
+.scene__inner {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 56px;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-.section__cn {
-  margin: 0;
-  font-size: 24px;
+/* 章节牌：滚动时固定在视口左侧，像纪录片的章节字幕 */
+.scene__sticky {
+  position: sticky;
+  top: 110px;
+}
+
+.scene__no {
+  display: block;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px #f0b9d6; /* 描边空心章节号 */
+}
+
+html.dark .scene__no {
+  -webkit-text-stroke-color: #5a4a66;
+}
+
+@supports not (-webkit-text-stroke: 1px black) {
+  .scene__no { color: #f0b9d6; }
+  html.dark .scene__no { color: #5a4a66; }
+}
+
+.scene__title {
+  margin: 16px 0 0;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--c-text);
 }
 
-.section__en {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--c-text-muted);
+.scene__desc {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--c-text-secondary);
 }
 
-.section__line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(to right, var(--c-border), transparent);
+/* ===== 终幕：结尾镜头全屏居中 ===== */
+.finale {
+  display: grid;
+  place-items: center;
+  min-height: 78vh;
+  padding: 80px 24px;
+}
+
+.finale .cta-banner {
+  width: min(680px, 100%);
+}
+
+/* ===== 章节导航：固定右侧，始终告知用户身处故事何处，可点击跳转 ===== */
+.chapter-nav {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 18px;
+  transform: translateY(-50%);
+}
+
+.chapter-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.chapter-nav__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-text-secondary);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+/* hover / 键盘聚焦 / 当前章节时露出标签 */
+.chapter-nav__item:hover .chapter-nav__label,
+.chapter-nav__item:focus-visible .chapter-nav__label,
+.chapter-nav__item--active .chapter-nav__label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.chapter-nav__item:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 3px;
+  border-radius: 999px;
+}
+
+.chapter-nav__dot {
+  width: 10px;
+  height: 10px;
+  background: var(--c-border);
+  border-radius: 50%;
+  transition: all var(--dur-soft) var(--ease-bounce);
+}
+
+.chapter-nav__item:hover .chapter-nav__dot {
+  background: color-mix(in srgb, var(--c-primary) 55%, transparent);
+}
+
+.chapter-nav__item--active .chapter-nav__dot {
+  background: var(--c-primary);
+  box-shadow: 0 0 0 4px var(--c-primary-light);
+  transform: scale(1.3);
+}
+
+@media (max-width: 900px) {
+  /* 窄屏降级为静态分段布局：章节牌不再 sticky，导航点隐藏 */
+  .chapter-nav {
+    display: none;
+  }
+
+  .scene {
+    padding: 64px 0;
+  }
+
+  .scene__inner {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .scene__sticky {
+    position: static;
+  }
+
+  .finale {
+    min-height: 60vh;
+  }
 }
 
 .chip {
