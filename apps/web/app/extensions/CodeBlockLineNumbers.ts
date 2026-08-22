@@ -1,76 +1,70 @@
-import { EditorState, Plugin, PluginKey } from '@tiptap/pm/state'
-import { Decoration, DecorationSet } from '@tiptap/pm/view'
-import { Extension } from '@tiptap/vue-3'
-
-const pluginKey = new PluginKey<DecorationSet>('codeBlockLineNumbers')
-
-function createLineWidget(line: number): HTMLElement {
-  const span = document.createElement('span')
-  span.className = 'tiptap-line-number'
-  span.textContent = String(line)
-  span.contentEditable = 'false'
-  return span
-}
-
-// 给每个 codeBlock 的每一行行首插入一个行号 widget
-function buildDecorationSet(state: EditorState): DecorationSet {
-  const decorations: Decoration[] = []
-
-  // 回调签名为 (node, pos)，pos 是节点起始位置（相对 doc）
-  state.doc.descendants((node, nodePos) => {
-    if (node.type.name !== 'codeBlock') {
-      return true
-    }
-
-    const lines = node.textContent.split('\n')
-    let charOffset = 0
-    for (let i = 0; i < lines.length; i++) {
-      decorations.push(
-        Decoration.widget(nodePos + 1 + charOffset, () => createLineWidget(i + 1), {
-          // side: -1 让光标停在行号 widget 之后（可编辑一侧）。
-          // side: 1 会把光标放到 contenteditable=false 的 widget 之前，
-          // Chrome 在该位置无法正常接收输入（代码块第一行打不了字）。
-          side: -1,
-          // 稳定的 key：decorations 每次重建都会生成新的 toDOM 函数引用，
-          // 没有 key 时 WidgetType.eq 永远匹配不上，行号 DOM 会被反复
-          // 销毁重建，导致光标状态错乱。加了 key 后 ProseMirror 会复用已有 DOM。
-          key: `line-number-${i + 1}`,
-        }),
-      )
-      charOffset += lines[i].length + 1
-    }
-
-    // 代码块里只有文本，无需继续向下遍历
-    return false
-  })
-
-  return DecorationSet.create(state.doc, decorations)
-}
-
-const lineNumbersPlugin = new Plugin<DecorationSet>({
-  key: pluginKey,
-  state: {
-    init: (_config, state) => buildDecorationSet(state),
-    // 注意：prosemirror-state 1.4+ 的签名是 (tr, value, oldState, newState)
-    apply: (transaction, decorations, _oldState, state) => {
-      if (!transaction.docChanged) {
-        return decorations
-      }
-      return buildDecorationSet(state)
-    },
-  },
-  props: {
-    decorations: (state) => pluginKey.getState(state),
-  },
-})
+import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
 
 /**
- * 代码块行号扩展：在 Tiptap 编辑器的代码块行首显示行号（纯装饰，不进入文档内容）
+ * 带行号的语法高亮代码块。
+ *
+ * 在 CodeBlockLowlight 基础上通过自定义 NodeView 渲染：行号栏（gutter）挂在
+ * <code> 内容区**外部**，与可编辑内容完全隔离。之前尝试过把行号作为
+ * Decoration.widget 插进内容流，但 contenteditable=false 的行号和低亮扩展的
+ * 高亮装饰器冲突：高亮首次生效时文本节点被替换重建，浏览器选区塌陷后落在
+ * 行号旁边，光标会被错误地同步到代码块开头。外挂式行号栏彻底规避了这个问题，
+ * 这也是 Tiptap 官方 Line Numbers 扩展采用的架构。
  */
-export const CodeBlockLineNumbers = Extension.create({
-  name: 'codeBlockLineNumbers',
+export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
+  addNodeView() {
+    return ({ node }) => {
+      const wrapper = document.createElement('div')
+      wrapper.className = 'tiptap-code-block'
 
-  addProseMirrorPlugins() {
-    return [lineNumbersPlugin]
+      // 行号栏（不可编辑，也不在内容区内）
+      const gutter = document.createElement('div')
+      gutter.className = 'tiptap-code-block__gutter'
+      gutter.setAttribute('contenteditable', 'false')
+
+      const pre = document.createElement('pre')
+      const code = document.createElement('code')
+      if (node.attrs.language) {
+        code.classList.add(`language-${node.attrs.language}`)
+      }
+      pre.appendChild(code)
+
+      wrapper.appendChild(gutter)
+      wrapper.appendChild(pre)
+
+      // 根据内容行数渲染行号
+      const renderGutter = () => {
+        const lineCount = Math.max(1, node.textContent.split('\n').length)
+        while (gutter.childElementCount < lineCount) {
+          const num = document.createElement('span')
+          num.textContent = String(gutter.childElementCount + 1)
+          gutter.appendChild(num)
+        }
+        while (gutter.childElementCount > lineCount) {
+          gutter.lastElementChild?.remove()
+        }
+      }
+      renderGutter()
+
+      // 内容区内的编辑不经过 NodeView.update，用 MutationObserver 跟踪行数变化
+      const observer = new MutationObserver(renderGutter)
+      observer.observe(code, { childList: true, subtree: true, characterData: true })
+
+      return {
+        dom: wrapper,
+        contentDOM: code,
+        update(updatedNode) {
+          if (updatedNode.type.name !== node.type.name) {
+            return false
+          }
+          node = updatedNode
+          code.className = node.attrs.language ? `language-${node.attrs.language}` : ''
+          renderGutter()
+          return true
+        },
+        destroy() {
+          observer.disconnect()
+        },
+      }
+    }
   },
 })

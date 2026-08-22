@@ -94,6 +94,18 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { Marked } from 'marked'
+import { createLowlight } from 'lowlight'
+import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import bash from 'highlight.js/lib/languages/bash'
+import shell from 'highlight.js/lib/languages/shell'
+import json from 'highlight.js/lib/languages/json'
+import css from 'highlight.js/lib/languages/css'
+import xml from 'highlight.js/lib/languages/xml'
+import python from 'highlight.js/lib/languages/python'
+import markdown from 'highlight.js/lib/languages/markdown'
+import yaml from 'highlight.js/lib/languages/yaml'
+import 'highlight.js/styles/github.css'
 import { CodeBlockLineNumbers } from '../extensions/CodeBlockLineNumbers'
 
 const props = withDefaults(
@@ -117,11 +129,38 @@ const emit = defineEmits<{
   'update:markdown': [value: string]
 }>()
 
+// 只注册常用语言（与 MarkdownView 保持一致），控制打包体积
+const lowlight = createLowlight()
+lowlight.register({
+  javascript,
+  typescript,
+  js: javascript,
+  ts: typescript,
+  bash,
+  sh: bash,
+  shell,
+  json,
+  css,
+  xml,
+  html: xml,
+  python,
+  markdown,
+  md: markdown,
+  yaml,
+  yml: yaml,
+})
+
 const editor = useEditor({
   content: props.modelValue,
   // 给 Markdown 扩展单独的 marked 实例，避免它把自定义 tokenizer（如 underline 的 ++text++）
   // 注册到全局 marked 上，污染页面里其他用 marked 做渲染的地方
-  extensions: [StarterKit, CodeBlockLineNumbers, Markdown.configure({ marked: new Marked() })],
+  // StarterKit 自带的 CodeBlock 没有语法高亮，禁用它；换用继承自
+  // CodeBlockLowlight 的 CodeBlockLineNumbers，同时提供高亮和外挂式行号栏
+  extensions: [
+    StarterKit.configure({ codeBlock: false }),
+    CodeBlockLineNumbers.configure({ lowlight }),
+    Markdown.configure({ marked: new Marked() }),
+  ],
   // Nuxt 使用 SSR，禁止在服务器端渲染，仅在客户端 hydration 后渲染
   immediatelyRender: false,
   onUpdate: ({ editor }) => {
@@ -325,6 +364,38 @@ function confirmLink() {
     border-radius: 4px;
   }
 
+  /* 代码块（NodeView 渲染为 行号栏 + pre 的组合，见 CodeBlockLineNumbers.ts） */
+  .tiptap .tiptap-code-block {
+    display: flex;
+    margin: 0.8em 0;
+    font-size: 0.9em;
+    background: #f6f6f9;
+    border-radius: 6px;
+  }
+
+  .tiptap .tiptap-code-block__gutter {
+    flex-shrink: 0;
+    padding: 12px 0 12px 14px;
+    text-align: right;
+    color: #98a1ab;
+    user-select: none;
+    cursor: default;
+  }
+
+  .tiptap .tiptap-code-block__gutter span {
+    display: block;
+    min-width: 2ch;
+    padding-right: 1ch;
+  }
+
+  .tiptap .tiptap-code-block pre {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
+    overflow-x: auto;
+  }
+
   .tiptap pre {
     margin: 0.8em 0;
     padding: 12px 14px;
@@ -337,16 +408,6 @@ function confirmLink() {
   .tiptap pre code {
     padding: 0;
     background: none;
-  }
-
-  /* 代码块行号（CodeBlockLineNumbers 扩展注入的 widget） */
-  .tiptap pre .tiptap-line-number {
-    display: inline-block;
-    min-width: 2ch;
-    margin-right: 1ch;
-    text-align: right;
-    color: #98a1ab;
-    user-select: none;
   }
 
   .tiptap hr {
