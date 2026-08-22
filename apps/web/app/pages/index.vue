@@ -67,12 +67,12 @@
           </div>
           <i class="hero__stat-divider" />
           <div class="hero__stat">
-            <strong>{{ categoriesStore.list.length }}</strong>
+            <strong>{{ categories?.length ?? 0 }}</strong>
             <span>个分类</span>
           </div>
           <i class="hero__stat-divider" />
           <div class="hero__stat">
-            <strong>{{ tagsStore.list.length }}</strong>
+            <strong>{{ tags?.length ?? 0 }}</strong>
             <span>个标签</span>
           </div>
         </div>
@@ -135,20 +135,20 @@
           <div class="scene__body">
             <NuxtLink
               v-if="featuredPost"
-              :to="`/posts/${featuredPost.id}`"
+              :to="`/posts/${featuredPost.slug}`"
               class="featured reveal"
             >
               <div class="featured__glow" aria-hidden="true" />
               <span class="featured__badge">最新发布</span>
               <h3 class="featured__title">{{ featuredPost.title }}</h3>
-              <p class="featured__excerpt">{{ featuredPost.excerpt }}</p>
+              <p class="featured__excerpt">{{ featuredPost.summary }}</p>
               <div class="featured__foot">
                 <div class="featured__meta">
                   <span class="chip">{{ categoryName(featuredPost.categoryId) }}</span>
                   <span class="meta-dot">·</span>
                   <time>{{ formatDate(featuredPost.createdAt) }}</time>
                   <span class="meta-dot">·</span>
-                  <span>{{ featuredPost.views.toLocaleString() }} 次阅读</span>
+                  <span>{{ featuredPost.viewCount.toLocaleString() }} 次阅读</span>
                 </div>
                 <span class="featured__cta">
                   阅读全文
@@ -160,20 +160,20 @@
             <NuxtLink
               v-for="(post, i) in homeRows"
               :key="post.id"
-              :to="`/posts/${post.id}`"
+              :to="`/posts/${post.slug}`"
               class="row reveal"
               :style="{ '--reveal-delay': `${Math.min(i + 1, 5) * 80}ms` }"
             >
               <span class="row__num" aria-hidden="true">{{ String(i + 2).padStart(2, '0') }}</span>
               <span class="row__main">
                 <h3 class="row__title">{{ post.title }}</h3>
-                <p class="row__excerpt">{{ post.excerpt }}</p>
+                <p class="row__excerpt">{{ post.summary }}</p>
                 <span class="row__meta">
                   <span class="chip">{{ categoryName(post.categoryId) }}</span>
                   <span class="meta-dot">·</span>
                   <time>{{ formatDate(post.createdAt) }}</time>
                   <span class="meta-dot">·</span>
-                  <span>{{ post.views.toLocaleString() }} 次阅读</span>
+                  <span>{{ post.viewCount.toLocaleString() }} 次阅读</span>
                 </span>
               </span>
               <span class="row__arrow" aria-hidden="true">→</span>
@@ -311,15 +311,23 @@
 </template>
 
 <script setup lang="ts">
-const postsStore = usePostsStore()
-const categoriesStore = useCategoriesStore()
-const tagsStore = useTagsStore()
+import type { Category, PageResult, Post, Tag } from '~/stores/types'
+
+// 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
+const { data: pageData } = await useAsyncData('home-articles', () =>
+  apiFetch<PageResult<Post>>('/api/v1/articles', { query: { page: 1, size: 1000 } }),
+)
+const { data: categories } = await useAsyncData('home-categories', () =>
+  apiFetch<Category[]>('/api/v1/categories'),
+)
+const { data: tags } = await useAsyncData('home-tags', () =>
+  apiFetch<Tag[]>('/api/v1/tags'),
+)
 
 /** 已发布文章，按发布时间倒序 */
+const sortKey = (p: Post) => p.publishedAt ?? p.createdAt
 const publishedPosts = computed(() =>
-  postsStore.list
-    .filter(p => p.status === 'published')
-    .sort((a, b) => b.createdAt - a.createdAt),
+  [...(pageData.value?.list ?? [])].sort((a, b) => (sortKey(a) < sortKey(b) ? 1 : -1)),
 )
 
 const totalPosts = computed(() => publishedPosts.value.length)
@@ -335,15 +343,15 @@ const homeRows = computed(() => publishedPosts.value.slice(1, homeCount))
 
 /** 分类卡片：带文章数与该分类下最新一篇的标题 */
 const categoryCards = computed(() =>
-  categoriesStore.list
+  (categories.value ?? [])
     .map(cat => ({
       ...cat,
       count: publishedPosts.value.filter(p => p.categoryId === cat.id).length,
       latestTitle:
-        publishedPosts.value.find(p => p.categoryId === cat.id)?.excerpt ?? '暂无文章，快来写下第一篇',
+        publishedPosts.value.find(p => p.categoryId === cat.id)?.summary ?? '暂无文章，快来写下第一篇',
     }))
     .sort((a, b) => b.count - a.count),
-)
+  ))
 
 /** 分类卡片的糖果色轮换 */
 const catAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#7cc7f7', '#ffc94d', '#fb923c']
@@ -355,12 +363,12 @@ const tagAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#ffc94d', '#7cc7f7']
 const tagCloud = computed(() => {
   const countByName = new Map<string, number>()
   for (const post of publishedPosts.value) {
-    for (const t of tagsStore.list.filter(t => post.tagIds.includes(t.id))) {
+    for (const t of post.tags) {
       countByName.set(t.name, (countByName.get(t.name) ?? 0) + 1)
     }
   }
   const max = Math.max(1, ...countByName.values())
-  return tagsStore.list
+  return (tags.value ?? [])
     .map(tag => ({ id: tag.id, name: tag.name, count: countByName.get(tag.name) ?? 0 }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 16)
@@ -372,7 +380,7 @@ const tagCloud = computed(() => {
 
 /** 跑马灯标签：去重后取前 12 个 */
 const marqueeTags = computed(() =>
-  [...new Set(tagsStore.list.map(t => t.name))].slice(0, 12),
+  [...new Set((tags.value ?? []).map(t => t.name))].slice(0, 12),
 )
 
 /** 无缝循环需要重复一份轨道内容 */
@@ -551,11 +559,12 @@ onBeforeUnmount(() => {
   window.removeEventListener('pointermove', onPointerMove)
 })
 
-function categoryName(categoryId: string | null): string {
-  return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
+function categoryName(categoryId: number | null): string {
+  return categories.value?.find(c => c.id === categoryId)?.name ?? '未分类'
 }
 
-function formatDate(ts: number): string {
+function formatDate(value: string | number): string {
+  const ts = value as number | string // new Date 同时兼容时间戳与 ISO 字符串
   return new Date(ts).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',

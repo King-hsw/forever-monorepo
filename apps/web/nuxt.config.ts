@@ -3,9 +3,14 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   runtimeConfig: {
+    // forever-server 后端地址（仅服务端使用，可通过 NUXT_API_BASE 覆盖）；
+    // 前后端之间的 /api/** 请求由 Nitro 路由（server/api/[...path].ts）代理转发，避免浏览器跨域
+    apiBase: 'http://localhost:8080',
     public: {
       // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
       siteUrl: 'https://forever.example.com',
+      // 浏览器端 API 地址：默认同源（走 Nitro 代理路由），一般无需修改
+      apiBase: '',
     },
   },
   css: ['~/assets/css/main.css'],

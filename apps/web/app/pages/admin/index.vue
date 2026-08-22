@@ -37,14 +37,14 @@
             class="recent-list__item"
             :style="{ '--stagger-index': i + 6 }"
           >
-            <span class="badge" :class="`badge--${post.status}`">
-              {{ post.status === 'published' ? '已发布' : '草稿' }}
+            <span class="badge" :class="`badge--${statusClass(post.status)}`">
+              {{ statusLabel(post.status) }}
             </span>
             <NuxtLink :to="`/admin/posts/${post.id}/edit`" class="recent-list__title">
               {{ post.title }}
             </NuxtLink>
             <span class="recent-list__category">{{ categoryName(post.categoryId) }}</span>
-            <time class="recent-list__time">{{ formatDate(post.updatedAt) }}</time>
+            <time class="recent-list__time">{{ formatShortDate(post.updatedAt) }}</time>
           </li>
           <li v-if="!recentPosts.length" class="list-empty">
             还没有文章，<NuxtLink to="/admin/posts/new">写下第一篇</NuxtLink>吧
@@ -80,6 +80,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Post } from '~/stores/types'
+
 definePageMeta({ layout: 'admin' })
 
 useHead({ title: '仪表盘 - Forever 后台' })
@@ -88,44 +90,54 @@ useState('admin-page-title', () => '仪表盘')
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
 
+// 进入后台时拉取文章（取足够大的一页用于统计）与分类数据
+await useAsyncData('admin-dashboard', async () => {
+  await Promise.all([
+    postsStore.fetchAdmin({ page: 1, size: 1000 }),
+    categoriesStore.fetch(),
+  ])
+})
+
 const stats = computed(() => [
   {
     label: '文章总数',
-    value: postsStore.list.length.toLocaleString(),
+    value: postsStore.total.toLocaleString(),
     icon: '📄',
     tone: 'primary',
   },
   {
     label: '已发布',
-    value: postsStore.list.filter(p => p.status === 'published').length.toLocaleString(),
+    value: postsStore.list.filter(p => p.status === 'PUBLISHED').length.toLocaleString(),
     icon: '✅',
     tone: 'success',
   },
   {
     label: '草稿',
-    value: postsStore.list.filter(p => p.status === 'draft').length.toLocaleString(),
+    value: postsStore.list.filter(p => p.status === 'DRAFT').length.toLocaleString(),
     icon: '✏️',
     tone: 'warning',
   },
   {
     label: '总浏览量',
-    value: postsStore.list.reduce((sum, p) => sum + p.views, 0).toLocaleString(),
+    value: postsStore.list.reduce((sum, p) => sum + p.viewCount, 0).toLocaleString(),
     icon: '👁️',
     tone: 'default',
   },
 ])
 
 const recentPosts = computed(() =>
-  [...postsStore.list].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5),
+  [...postsStore.list]
+    .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+    .slice(0, 5),
 )
 
-function categoryName(categoryId: string | null): string {
+function categoryName(categoryId: number | null): string {
   if (!categoryId) return '未分类'
   return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
 }
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString('zh-CN')
+function formatShortDate(value: string): string {
+  return new Date(value).toLocaleDateString('zh-CN')
 }
 
 const categoryDist = computed(() => {

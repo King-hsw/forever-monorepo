@@ -21,33 +21,33 @@
       >
         <span class="cell-title">
           <strong>{{ post.title }}</strong>
-          <small>{{ post.excerpt || '（暂无摘要）' }}</small>
+          <small>{{ post.summary || '（暂无摘要）' }}</small>
         </span>
-        <span>{{ categoryName(post.categoryId) }}</span>
+        <span>{{ post.categoryName || '未分类' }}</span>
         <span class="cell-tags">
-          <template v-if="tagNames(post).length">
+          <template v-if="post.tags.length">
             <span
-              v-for="name in tagNames(post).slice(0, 3)"
-              :key="name"
+              v-for="tag in post.tags.slice(0, 3)"
+              :key="tag.id"
               class="tag-chip"
-            >{{ name }}</span>
-            <span v-if="tagNames(post).length > 3" class="tag-chip tag-chip--more">
-              +{{ tagNames(post).length - 3 }}
+            >{{ tag.name }}</span>
+            <span v-if="post.tags.length > 3" class="tag-chip tag-chip--more">
+              +{{ post.tags.length - 3 }}
             </span>
           </template>
           <template v-else>—</template>
         </span>
         <span>
-          <span class="badge" :class="`badge--${post.status}`">
-            {{ post.status === 'published' ? '已发布' : '草稿' }}
+          <span class="badge" :class="`badge--${statusClass(post.status)}`">
+            {{ statusLabel(post.status) }}
           </span>
         </span>
-        <span class="num">{{ post.views.toLocaleString() }}</span>
-        <span>{{ formatDate(post.updatedAt) }}</span>
+        <span class="num">{{ post.viewCount.toLocaleString() }}</span>
+        <span>{{ formatShortDate(post.updatedAt) }}</span>
         <span class="ops">
           <NuxtLink :to="`/admin/posts/${post.id}/edit`" class="btn btn--ghost">编辑</NuxtLink>
-          <button type="button" class="btn btn--ghost" @click="postsStore.toggleStatus(post.id)">
-            {{ post.status === 'published' ? '下线' : '发布' }}
+          <button type="button" class="btn btn--ghost" @click="toggle(post)">
+            {{ post.status === 'PUBLISHED' ? '下线' : '发布' }}
           </button>
           <button type="button" class="btn btn--ghost op-danger" @click="askRemove(post)">删除</button>
         </span>
@@ -80,25 +80,29 @@ useState('admin-page-title', () => '文章管理')
 
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
-const tagsStore = useTagsStore()
+
+// 进入页面时拉取文章（取足够大的一页）与分类数据
+await useAsyncData('admin-posts-page', async () => {
+  await Promise.all([
+    postsStore.fetchAdmin({ page: 1, size: 1000 }),
+    categoriesStore.fetch(),
+  ])
+})
 
 const sortedPosts = computed(() =>
-  [...postsStore.list].sort((a, b) => b.updatedAt - a.updatedAt),
+  [...postsStore.list].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1)),
 )
 
-function categoryName(categoryId: string | null): string {
-  if (!categoryId) return '未分类'
-  return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
+async function toggle(post: Post) {
+  try {
+    await postsStore.toggleStatus(post)
+  } catch (err) {
+    alert(err instanceof Error ? err.message : '操作失败')
+  }
 }
 
-function tagNames(post: Post): string[] {
-  return post.tagIds
-    .map(id => tagsStore.list.find(t => t.id === id)?.name)
-    .filter((n): n is string => !!n)
-}
-
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString('zh-CN')
+function formatShortDate(value: string): string {
+  return new Date(value).toLocaleDateString('zh-CN')
 }
 
 const pendingDelete = ref<Post | null>(null)
@@ -107,9 +111,13 @@ function askRemove(post: Post) {
   pendingDelete.value = post
 }
 
-function confirmRemove() {
+async function confirmRemove() {
   if (pendingDelete.value) {
-    postsStore.remove(pendingDelete.value.id)
+    try {
+      await postsStore.remove(pendingDelete.value.id)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '删除失败')
+    }
   }
   pendingDelete.value = null
 }

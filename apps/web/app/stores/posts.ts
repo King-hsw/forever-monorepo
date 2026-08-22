@@ -1,88 +1,98 @@
 import { defineStore } from 'pinia'
-import type { Post, PostInput } from './types'
-import { genId, loadList, saveList } from './storage'
-import { buildSeedPosts } from '#shared/blog-seed'
-
-const STORAGE_KEY = 'forever-admin-posts'
+import type {
+  AdminArticleQuery,
+  Post,
+  PostInput,
+  PostStatus,
+  PublicArticleQuery,
+  PageResult,
+} from './types'
+import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const usePostsStore = defineStore('admin-posts', () => {
-  // 种子数据来自前后端共享模块（shared/blog-seed.ts），服务端路由也用它生成 sitemap / RSS
-  const list = ref<Post[]>(loadList<Post>(STORAGE_KEY) ?? buildSeedPosts())
+  /** 当前已拉取的文章列表 */
+  const list = ref<Post[]>([])
+  const total = ref(0)
+  const loading = ref(false)
 
-  function persist() {
-    saveList(STORAGE_KEY, list.value)
-  }
-
-  function getById(id: string): Post | undefined {
-    return list.value.find(p => p.id === id)
-  }
-
-  function create(input: PostInput): Post {
-    const post: Post = {
-      id: genId(),
-      ...input,
-      views: 0,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+  /** 管理端分页查询（含草稿） */
+  async function fetchAdmin(params: AdminArticleQuery = {}) {
+    loading.value = true
+    try {
+      const data = await apiFetch<PageResult<Post>>('/api/admin/articles', {
+        query: cleanQuery({ ...params }),
+      })
+      list.value = data.list
+      total.value = data.total
+    } finally {
+      loading.value = false
     }
-    list.value.push(post)
-    persist()
-    return post
   }
 
-  /** 更新文章内容，保留 id / views / createdAt */
-  function update(id: string, input: PostInput) {
-    const post = list.value.find(p => p.id === id)
-    if (!post) return
-    Object.assign(post, input, { updatedAt: Date.now() })
-    persist()
+  /** 公开分页查询（仅已发布） */
+  async function fetchPublic(params: PublicArticleQuery = {}) {
+    return apiFetch<PageResult<Post>>('/api/v1/articles', {
+      query: cleanQuery({ ...params }),
+    })
   }
 
-/** 详情页访问时累加阅读数 */
-  function incrementViews(id: string) {
-    const post = list.value.find(p => p.id === id)
-    if (!post) return
-    post.views += 1
-    persist()
+  /** 管理端文章详情（含 content） */
+  async function getById(id: number | string): Promise<Post> {
+    return apiFetch<Post>(`/api/admin/articles/${id}`)
   }
 
-  function remove(id: string) {
+  /** 公开文章详情（按 slug，含 content） */
+  async function getBySlug(slug: string): Promise<Post> {
+    return apiFetch<Post>(`/api/v1/articles/${encodeURIComponent(slug)}`)
+  }
+
+  /** 创建文章（后端默认为草稿状态） */
+  async function create(input: PostInput): Promise<Post> {
+    return apiFetch<Post>('/api/admin/articles', {
+      method: 'POST',
+      body: input as unknown as Record<string, unknown>,
+    })
+  }
+
+  /** 全量更新文章 */
+  async function update(id: number | string, input: PostInput): Promise<Post> {
+    return apiFetch<Post>(`/api/admin/articles/${id}`, {
+      method: 'PUT',
+      body: input as unknown as Record<string, unknown>,
+    })
+  }
+
+  async function remove(id: number): Promise<void> {
+    await apiFetch<void>(`/api/admin/articles/${id}`, { method: 'DELETE' })
     list.value = list.value.filter(p => p.id !== id)
-    persist()
+    total.value = Math.max(0, total.value - 1)
   }
 
-  /** 发布 / 下线切换 */
-  function toggleStatus(id: string) {
+  /** 发布 / 下线文章 */
+  async function setStatus(id: number, status: PostStatus): Promise<void> {
+    const action = status === 'PUBLISHED' ? 'publish' : 'unpublish'
+    await apiFetch<void>(`/api/admin/articles/${id}/${action}`, { method: 'PUT' })
     const post = list.value.find(p => p.id === id)
-    if (!post) return
-    post.status = post.status === 'published' ? 'draft' : 'published'
-    post.updatedAt = Date.now()
-    persist()
+    if (post) post.status = status
   }
 
-  /** 分类被删除时调用：引用该分类的文章置为未分类 */
-  function detachCategory(categoryId: string) {
-    let changed = false
-    for (const post of list.value) {
-      if (post.categoryId === categoryId) {
-        post.categoryId = null
-        changed = true
-      }
-    }
-    if (changed) persist()
+  /** 按当前状态取反：已发布 → 下线，草稿 → 发布 */
+  async function toggleStatus(post: Post): Promise<void> {
+    await setStatus(post.id, post.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED')
   }
 
-  /** 标签被删除时调用：从所有文章中移除该标签 */
-  function detachTag(tagId: string) {
-    let changed = false
-    for (const post of list.value) {
-      if (post.tagIds.includes(tagId)) {
-        post.tagIds = post.tagIds.filter(t => t !== tagId)
-        changed = true
-      }
-    }
-    if (changed) persist()
+  return {
+    list,
+    total,
+    loading,
+    fetchAdmin,
+    fetchPublic,
+    getById,
+    getBySlug,
+    create,
+    update,
+    remove,
+    setStatus,
+    toggleStatus,
   }
-
-  return { list, getById, create, update, remove, toggleStatus, incrementViews, detachCategory, detachTag }
 })

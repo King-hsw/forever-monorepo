@@ -1,4 +1,4 @@
-import { buildSeedPosts } from '~~/shared/blog-seed'
+import type { PageResult, Post } from '~~/shared/types'
 
 /** XML 实体转义（& < > " '） */
 function escapeXml(value: string): string {
@@ -10,32 +10,34 @@ function escapeXml(value: string): string {
     .replace(/'/g, '&apos;')
 }
 
-export default defineEventHandler((event) => {
-  const { siteUrl } = useRuntimeConfig(event).public
-  const base = siteUrl.replace(/\/+$/, '')
+export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig(event)
+  const base = config.public.siteUrl.replace(/\/+$/, '')
+  const apiBase = config.apiBase
 
-  /** 已发布文章，按创建时间倒序 */
-  const posts = buildSeedPosts()
-    .filter(post => post.status === 'published')
-    .sort((a, b) => b.createdAt - a.createdAt)
+  /** 从 forever-server 拉取已发布文章（失败时降级为空列表） */
+  let posts: Post[] = []
+  try {
+    const data = await $fetch<{ code: number; data: PageResult<Post> }>(
+      `${apiBase}/api/v1/articles?page=1&size=1000`,
+    )
+    posts = data.data.list
+  } catch {
+    // 后端不可用时不阻塞 RSS 输出
+  }
 
   const items = posts.map((post) => {
-    const link = `${base}/posts/${post.id}`
+    const link = `${base}/posts/${post.slug}`
     return [
       '    <item>',
       `      <title>${escapeXml(post.title)}</title>`,
       `      <link>${escapeXml(link)}</link>`,
       `      <guid isPermaLink="true">${escapeXml(link)}</guid>`,
-      `      <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>`,
-      `      <description>${escapeXml(post.excerpt)}</description>`,
+      `      <pubDate>${new Date(post.publishedAt ?? post.createdAt).toUTCString()}</pubDate>`,
+      `      <description>${escapeXml(post.summary)}</description>`,
       '    </item>',
     ].join('\n')
   }).join('\n')
-
-  const lastBuildDate = Math.max(
-    ...posts.map(p => p.updatedAt),
-    Date.now(),
-  )
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -45,7 +47,7 @@ export default defineEventHandler((event) => {
     `    <link>${escapeXml(base)}</link>`,
     '    <description>Forever · 用心记录每一篇，分享前端、后端与效率工具的实践心得。</description>',
     '    <language>zh-cn</language>',
-    `    <lastBuildDate>${new Date(lastBuildDate).toUTCString()}</lastBuildDate>`,
+    `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
     items,
     '  </channel>',
     '</rss>',

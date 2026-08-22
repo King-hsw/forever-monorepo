@@ -1,40 +1,19 @@
-export type PostStatus = 'draft' | 'published'
-
-export interface Post {
-  id: string
-  title: string
-  excerpt: string
-  contentHtml: string
-  markdown: string
-  status: PostStatus
-  categoryId: string | null
-  tagIds: string[]
-  views: number
-  createdAt: number
-  updatedAt: number
-}
-
-export interface Category {
-  id: string
-  name: string
-  slug: string
-  description: string
-  createdAt: number
-}
-
-export interface Tag {
-  id: string
-  name: string
-  createdAt: number
-}
-
-/** 文章表单提交的数据（不含 id / views / 时间戳） */
-export interface PostInput {
-  title: string
-  excerpt: string
-  contentHtml: string
-  markdown: string
-  status: PostStatus
-  categoryId: string | null
-  tagIds: string[]
-}
+/**
+ * 前端数据模型 —— 统一从前后端共享的契约模块导出，
+ * 保证与 forever-server 的 OpenAPI 契约一致。
+ */
+export type {
+  AdminArticleQuery,
+  ApiResponse,
+  Category,
+  CategoryInput,
+  MeInfo,
+  PageResult,
+  Post,
+  PostInput,
+  PostStatus,
+  PublicArticleQuery,
+  Tag,
+  TagInput,
+  TagItem,
+} from '#shared/types'

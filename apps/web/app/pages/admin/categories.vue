@@ -56,18 +56,20 @@
           </div>
         </div>
         <div>
-          <label class="field-label" for="cat-desc">描述</label>
+          <label class="field-label" for="cat-sort">排序</label>
           <input
-            id="cat-desc"
-            v-model="catForm.description"
+            id="cat-sort"
+            v-model.number="catForm.sort"
             class="field-input"
-            type="text"
-            placeholder="一句话描述该分类"
+            type="number"
+            placeholder="越小越靠前，默认 0"
           >
         </div>
         <footer class="cats-form__actions">
           <button type="button" class="btn" @click="cancelCatForm">取消</button>
-          <button type="button" class="btn btn--primary" @click="saveCatForm">保存</button>
+          <button type="button" class="btn btn--primary" :disabled="saving" @click="saveCatForm">
+            {{ saving ? '保存中…' : '保存' }}
+          </button>
         </footer>
       </div>
 
@@ -81,9 +83,9 @@
           <div class="cats-list__info">
             <strong>{{ cat.name }}</strong>
             <code>{{ cat.slug }}</code>
-            <small>{{ cat.description || '暂无描述' }}</small>
+            <small>排序 {{ cat.sort }}</small>
           </div>
-          <span class="cats-list__count">{{ catCount(cat.id) }} 篇文章</span>
+          <span class="cats-list__count">{{ cat.articleCount }} 篇文章</span>
           <div class="cats-list__ops">
             <button type="button" class="btn btn--ghost" @click="openCatEdit(cat)">编辑</button>
             <button type="button" class="btn btn--ghost danger-text" @click="askRemove('cat', cat.id)">
@@ -111,7 +113,9 @@
         <p v-if="tagError" class="field-error">{{ tagError }}</p>
         <footer class="cats-form__actions">
           <button type="button" class="btn" @click="cancelTagForm">取消</button>
-          <button type="button" class="btn btn--primary" @click="saveTagForm">保存</button>
+          <button type="button" class="btn btn--primary" :disabled="saving" @click="saveTagForm">
+            {{ saving ? '保存中…' : '保存' }}
+          </button>
         </footer>
       </div>
 
@@ -123,7 +127,7 @@
           :style="{ '--stagger-index': i + 2 }"
         >
           {{ tag.name }}
-          <small>{{ tagCount(tag.id) }}</small>
+          <small>{{ tag.articleCount }}</small>
           <button type="button" aria-label="编辑" @click="openTagEdit(tag)">✎</button>
           <button type="button" class="danger-text" aria-label="删除" @click="askRemove('tag', tag.id)">✕</button>
         </span>
@@ -154,48 +158,33 @@ const tab = ref<'cats' | 'tags'>('cats')
 
 const categoriesStore = useCategoriesStore()
 const tagsStore = useTagsStore()
-const postsStore = usePostsStore()
 
-const catCountMap = computed(() => {
-  const map = new Map<string, number>()
-  for (const post of postsStore.list) {
-    if (post.categoryId) map.set(post.categoryId, (map.get(post.categoryId) ?? 0) + 1)
-  }
-  return map
+await useAsyncData('admin-cats-tags', async () => {
+  await Promise.all([categoriesStore.fetch(true), tagsStore.fetch(true)])
 })
 
-const tagCountMap = computed(() => {
-  const map = new Map<string, number>()
-  for (const post of postsStore.list) {
-    for (const id of post.tagIds) map.set(id, (map.get(id) ?? 0) + 1)
-  }
-  return map
-})
+const saving = ref(false)
 
-function catCount(id: string): number {
-  return catCountMap.value.get(id) ?? 0
-}
-
-function tagCount(id: string): number {
-  return tagCountMap.value.get(id) ?? 0
+function reportError(err: unknown) {
+  alert(err instanceof Error ? err.message : '操作失败')
 }
 
 /* ---------- 分类表单 ---------- */
 const catFormOpen = ref(false)
-const editingCatId = ref<string | null>(null)
-const catForm = reactive({ name: '', slug: '', description: '' })
+const editingCatId = ref<number | null>(null)
+const catForm = reactive({ name: '', slug: '', sort: 0 })
 const catErrors = reactive({ name: '' })
 
 function openCatCreate() {
   editingCatId.value = null
-  Object.assign(catForm, { name: '', slug: '', description: '' })
+  Object.assign(catForm, { name: '', slug: '', sort: 0 })
   catErrors.name = ''
   catFormOpen.value = true
 }
 
 function openCatEdit(cat: Category) {
   editingCatId.value = cat.id
-  Object.assign(catForm, { name: cat.name, slug: cat.slug, description: cat.description })
+  Object.assign(catForm, { name: cat.name, slug: cat.slug, sort: cat.sort })
   catErrors.name = ''
   catFormOpen.value = true
 }
@@ -204,22 +193,30 @@ function cancelCatForm() {
   catFormOpen.value = false
 }
 
-function saveCatForm() {
+async function saveCatForm() {
   if (!catForm.name.trim()) {
     catErrors.name = '名称不能为空'
     return
   }
-  if (editingCatId.value) {
-    categoriesStore.update(editingCatId.value, { ...catForm })
-  } else {
-    categoriesStore.create({ ...catForm })
+  saving.value = true
+  try {
+    const input = { name: catForm.name.trim(), slug: catForm.slug.trim() || undefined, sort: catForm.sort }
+    if (editingCatId.value !== null) {
+      await categoriesStore.update(editingCatId.value, input)
+    } else {
+      await categoriesStore.create(input)
+    }
+    catFormOpen.value = false
+  } catch (err) {
+    reportError(err)
+  } finally {
+    saving.value = false
   }
-  catFormOpen.value = false
 }
 
 /* ---------- 标签表单 ---------- */
 const tagFormOpen = ref(false)
-const editingTagId = ref<string | null>(null)
+const editingTagId = ref<number | null>(null)
 const tagName = ref('')
 const tagError = ref('')
 
@@ -241,47 +238,57 @@ function cancelTagForm() {
   tagFormOpen.value = false
 }
 
-function saveTagForm() {
+async function saveTagForm() {
   const name = tagName.value.trim()
   if (!name) {
     tagError.value = '名称不能为空'
     return
   }
-  if (editingTagId.value) {
-    tagsStore.update(editingTagId.value, name)
-  } else {
-    tagsStore.create(name)
+  saving.value = true
+  try {
+    if (editingTagId.value !== null) {
+      await tagsStore.update(editingTagId.value, name)
+    } else {
+      await tagsStore.create(name)
+    }
+    tagFormOpen.value = false
+  } catch (err) {
+    reportError(err)
+  } finally {
+    saving.value = false
   }
-  tagFormOpen.value = false
 }
 
 /* ---------- 删除确认 ---------- */
-const pendingDelete = ref<{ type: 'cat' | 'tag'; id: string } | null>(null)
+const pendingDelete = ref<{ type: 'cat' | 'tag'; id: number } | null>(null)
 
 const deleteMessage = computed(() => {
   if (!pendingDelete.value) return ''
   if (pendingDelete.value.type === 'cat') {
     const cat = categoriesStore.list.find(c => c.id === pendingDelete.value!.id)
-    const count = pendingDelete.value.id ? catCount(pendingDelete.value.id) : 0
-    return `确定删除分类「${cat?.name ?? ''}」吗？同时会将 ${count} 篇文章设为未分类。`
+    return `确定删除分类「${cat?.name ?? ''}」吗？该分类下的文章将变为未分类。`
   }
   const tag = tagsStore.list.find(t => t.id === pendingDelete.value!.id)
-  const count = pendingDelete.value.id ? tagCount(pendingDelete.value.id) : 0
-  return `确定删除标签「${tag?.name ?? ''}」吗？同时将从 ${count} 篇文章移除该标签。`
+  return `确定删除标签「${tag?.name ?? ''}」吗？`
 })
 
-function askRemove(type: 'cat' | 'tag', id: string) {
+function askRemove(type: 'cat' | 'tag', id: number) {
   pendingDelete.value = { type, id }
 }
 
-function confirmRemove() {
+async function confirmRemove() {
   if (!pendingDelete.value) return
-  if (pendingDelete.value.type === 'cat') {
-    categoriesStore.remove(pendingDelete.value.id)
-  } else {
-    tagsStore.remove(pendingDelete.value.id)
+  try {
+    if (pendingDelete.value.type === 'cat') {
+      await categoriesStore.remove(pendingDelete.value.id)
+    } else {
+      await tagsStore.remove(pendingDelete.value.id)
+    }
+  } catch (err) {
+    reportError(err)
+  } finally {
+    pendingDelete.value = null
   }
-  pendingDelete.value = null
 }
 </script>
 

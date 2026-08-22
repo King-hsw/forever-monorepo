@@ -1,5 +1,5 @@
 <template>
-  <form class="composer" novalidate @submit.prevent="submit('published')">
+  <form class="composer" novalidate @submit.prevent="submit('PUBLISHED')">
     <!-- 标题：通栏大字输入，像稿纸的标题行 -->
     <div class="card composer__title-block fade-up">
       <input
@@ -30,20 +30,17 @@
           <h3 class="rail-head">发布设置</h3>
 
           <div class="composer__field">
-            <label class="field-label" for="post-category">分类 <em>*</em></label>
+            <label class="field-label" for="post-category">分类</label>
             <select
               id="post-category"
               v-model="form.categoryId"
               class="field-input"
-              :class="{ 'is-invalid': !!errors.categoryId }"
-              @change="errors.categoryId = ''"
             >
-              <option :value="null" disabled>请选择分类</option>
+              <option :value="null">未分类</option>
               <option v-for="cat in categoriesStore.list" :key="cat.id" :value="cat.id">
                 {{ cat.name }}
               </option>
             </select>
-            <p v-if="errors.categoryId" class="field-error">{{ errors.categoryId }}</p>
           </div>
 
           <div class="composer__field">
@@ -59,6 +56,7 @@
               >
                 {{ tag.name }}
               </button>
+              <p v-if="!tagsStore.list.length" class="field-hint">暂无可选标签，可在「分类标签」页新增</p>
             </div>
           </div>
 
@@ -66,17 +64,17 @@
             <label class="field-label" for="post-excerpt">摘要</label>
             <textarea
               id="post-excerpt"
-              v-model="form.excerpt"
+              v-model="form.summary"
               class="field-input"
               rows="4"
-              placeholder="简要描述这篇文章（列表页展示用）"
+              placeholder="简要描述这篇文章（留空则发布时自动截取正文前 120 字）"
             />
           </div>
         </div>
 
         <div class="card composer__actions fade-up" style="--stagger-index: 3">
-          <button type="submit" class="btn btn--primary">保存并发布</button>
-          <button type="button" class="btn" @click="submit('draft')">存为草稿</button>
+          <button type="submit" class="btn btn--primary" :disabled="saving">{{ saving ? '保存中…' : '保存并发布' }}</button>
+          <button type="button" class="btn" :disabled="saving" @click="submit('DRAFT')">存为草稿</button>
         </div>
       </aside>
     </div>
@@ -86,31 +84,37 @@
 <script setup lang="ts">
 import type { Post, PostInput, PostStatus } from '~/stores/types'
 
-const props = defineProps<{ initial?: Post | null }>()
-const emit = defineEmits<{ save: [input: PostInput] }>()
+const props = withDefaults(defineProps<{
+  initial?: Post | null
+  /** 保存请求进行中，禁用提交按钮 */
+  saving?: boolean
+}>(), { initial: null, saving: false })
+const emit = defineEmits<{ save: [input: PostInput, status: PostStatus] }>()
 
 const categoriesStore = useCategoriesStore()
 const tagsStore = useTagsStore()
 
-const form = reactive({
-  title: props.initial?.title ?? '',
-  excerpt: props.initial?.excerpt ?? '',
-  categoryId: (props.initial?.categoryId ?? null) as string | null,
-  tagIds: [...(props.initial?.tagIds ?? [])],
-  contentHtml: props.initial?.contentHtml ?? '',
-  markdown: props.initial?.markdown ?? '',
+onMounted(() => {
+  categoriesStore.fetch()
+  tagsStore.fetch()
 })
 
-const errors = reactive({ title: '', categoryId: '' })
+const form = reactive({
+  title: props.initial?.title ?? '',
+  summary: props.initial?.summary ?? '',
+  categoryId: (props.initial?.categoryId ?? null) as number | null,
+  tagIds: [...(props.initial?.tags.map(t => t.id) ?? [])],
+  // 编辑时后端返回 Markdown 正文；Tiptap 的 Markdown 扩展可直接解析渲染
+  contentHtml: props.initial?.content ?? '',
+  markdown: props.initial?.content ?? '',
+})
+
+const errors = reactive({ title: '' })
 
 function validate(): boolean {
   let ok = true
   if (!form.title.trim()) {
     errors.title = '标题不能为空'
-    ok = false
-  }
-  if (!form.categoryId) {
-    errors.categoryId = '请选择分类'
     ok = false
   }
   return ok
@@ -120,16 +124,14 @@ function submit(status: PostStatus) {
   if (!validate()) return
   emit('save', {
     title: form.title.trim(),
-    excerpt: form.excerpt.trim(),
-    contentHtml: form.contentHtml,
-    markdown: form.markdown,
-    status,
+    content: form.markdown,
+    summary: form.summary.trim() || undefined,
     categoryId: form.categoryId,
     tagIds: [...form.tagIds],
-  })
+  }, status)
 }
 
-function toggleTag(id: string) {
+function toggleTag(id: number) {
   const idx = form.tagIds.indexOf(id)
   if (idx >= 0) form.tagIds.splice(idx, 1)
   else form.tagIds.push(id)
@@ -160,6 +162,12 @@ function toggleTag(id: string) {
   margin-top: 4px;
   font-size: 12px;
   color: var(--c-danger);
+}
+
+.field-hint {
+  width: 100%;
+  font-size: 12px;
+  color: var(--c-text-muted);
 }
 
 .composer__grid {

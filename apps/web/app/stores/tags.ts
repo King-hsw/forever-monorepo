@@ -1,49 +1,46 @@
 import { defineStore } from 'pinia'
-import type { Tag } from './types'
-import { genId, loadList, saveList } from './storage'
-
-const STORAGE_KEY = 'forever-admin-tags'
-
-const DAY = 86_400_000
-
-function seed(): Tag[] {
-  const names = ['Vue', 'Nuxt', 'TypeScript', 'CSS', 'Node.js', '性能优化', '工程化', 'AI 编程']
-  const now = Date.now()
-  return names.map((name, i) => ({
-    id: `tag-${i + 1}`,
-    name,
-    createdAt: now - (25 - i * 2) * DAY,
-  }))
-}
+import type { Tag, TagInput } from './types'
+import { apiFetch } from '~/utils/api'
 
 export const useTagsStore = defineStore('admin-tags', () => {
-  const list = ref<Tag[]>(loadList<Tag>(STORAGE_KEY) ?? seed())
+  const list = ref<Tag[]>([])
+  const loaded = ref(false)
+  const loading = ref(false)
 
-  function persist() {
-    saveList(STORAGE_KEY, list.value)
+  /** 拉取标签列表（管理端接口，含全部标签） */
+  async function fetch(force = false) {
+    if (loading.value || (loaded.value && !force)) return
+    loading.value = true
+    try {
+      list.value = await apiFetch<Tag[]>('/api/admin/tags')
+      loaded.value = true
+    } finally {
+      loading.value = false
+    }
   }
 
-  function create(name: string): Tag {
-    const tag: Tag = { id: genId(), name: name.trim(), createdAt: Date.now() }
+  async function create(name: string): Promise<Tag> {
+    const tag = await apiFetch<Tag>('/api/admin/tags', {
+      method: 'POST',
+      body: { name } as unknown as Record<string, unknown>,
+    })
     list.value.push(tag)
-    persist()
     return tag
   }
 
-  function update(id: string, name: string) {
-    const tag = list.value.find(t => t.id === id)
-    if (!tag) return
-    tag.name = name.trim()
-    persist()
+  async function update(id: number, name: string): Promise<void> {
+    const tag = await apiFetch<Tag>(`/api/admin/tags/${id}`, {
+      method: 'PUT',
+      body: { name } as unknown as Record<string, unknown>,
+    })
+    const idx = list.value.findIndex(t => t.id === id)
+    if (idx >= 0) list.value[idx] = tag
   }
 
-  /** 删除标签，同时从所有文章的 tagIds 中移除 */
-  function remove(id: string) {
+  async function remove(id: number): Promise<void> {
+    await apiFetch<void>(`/api/admin/tags/${id}`, { method: 'DELETE' })
     list.value = list.value.filter(t => t.id !== id)
-    persist()
-    const postsStore = usePostsStore()
-    postsStore.detachTag(id)
   }
 
-  return { list, create, update, remove }
+  return { list, loaded, loading, fetch, create, update, remove }
 })

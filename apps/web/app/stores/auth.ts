@@ -1,7 +1,11 @@
 import { defineStore } from 'pinia'
+import type { MeInfo } from './types'
+import { apiFetch, clearAuth, loadAuth, saveAuth } from '~/utils/api'
 
-const STORAGE_KEY = 'forever-admin-auth'
-const MOCK_USER = { username: 'admin', password: '123456' }
+interface LoginResponse {
+  accessToken: string
+  expiresIn: number
+}
 
 export const useAuthStore = defineStore('admin-auth', () => {
   const token = ref<string | null>(null)
@@ -11,31 +15,38 @@ export const useAuthStore = defineStore('admin-auth', () => {
   /** 客户端从 localStorage 恢复登录态（仅执行一次） */
   function hydrate() {
     if (!import.meta.client || token.value) return
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) {
-        const data = JSON.parse(raw) as { token: string; username: string }
-        token.value = data.token
-        username.value = data.username
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY)
+    const auth = loadAuth()
+    if (auth) {
+      token.value = auth.token
+      username.value = auth.username
     }
   }
 
-  /** mock 登录：校验账号密码，成功返回 true */
-  function login(user: string, password: string): boolean {
-    if (user !== MOCK_USER.username || password !== MOCK_USER.password) return false
-    token.value = crypto.randomUUID()
-    username.value = user
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ token: token.value, username: user }))
-    return true
+  /** 调用后端 /api/auth/login 登录，成功返回 true */
+  async function login(user: string, password: string): Promise<boolean> {
+    try {
+      const data = await apiFetch<LoginResponse>('/api/auth/login', {
+        method: 'POST',
+        body: { username: user, password },
+      })
+      // 用新令牌拉取当前用户信息，确认令牌可用并取真实用户名
+      const me = await apiFetch<MeInfo>('/api/admin/me', {
+        headers: { Authorization: `Bearer ${data.accessToken}` },
+      }).catch(() => null)
+
+      token.value = data.accessToken
+      username.value = me?.username ?? user
+      saveAuth(data.accessToken, username.value)
+      return true
+    } catch {
+      return false
+    }
   }
 
   function logout() {
     token.value = null
     username.value = null
-    localStorage.removeItem(STORAGE_KEY)
+    clearAuth()
   }
 
   return { token, username, isAuthenticated, hydrate, login, logout }

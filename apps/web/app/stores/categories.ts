@@ -1,76 +1,46 @@
 import { defineStore } from 'pinia'
-import type { Category } from './types'
-import { genId, loadList, saveList } from './storage'
-
-const STORAGE_KEY = 'forever-admin-categories'
-
-const DAY = 86_400_000
-
-function slugify(name: string): string {
-  const base = name.toLowerCase().trim().replace(/\s+/g, '-')
-  return base || `cat-${Date.now()}`
-}
-
-function seed(): Category[] {
-  const now = Date.now()
-  const rows: Array<[string, string, string]> = [
-    ['前端开发', 'frontend', 'Web 前端技术与实践'],
-    ['后端架构', 'backend', '服务端设计与架构'],
-    ['工具效率', 'tools', '开发工具与效率提升'],
-    ['随笔思考', 'essays', '生活与技术的随想'],
-    ['教程指南', 'tutorials', '手把手系列教程'],
-  ]
-  return rows.map(([name, slug, description], i) => ({
-    id: `cat-${slug}`,
-    name,
-    slug,
-    description,
-    createdAt: now - (20 - i * 3) * DAY,
-  }))
-}
-
-interface CategoryInput {
-  name: string
-  slug?: string
-  description?: string
-}
+import type { Category, CategoryInput } from './types'
+import { apiFetch } from '~/utils/api'
 
 export const useCategoriesStore = defineStore('admin-categories', () => {
-  const list = ref<Category[]>(loadList<Category>(STORAGE_KEY) ?? seed())
+  const list = ref<Category[]>([])
+  const loaded = ref(false)
+  const loading = ref(false)
 
-  function persist() {
-    saveList(STORAGE_KEY, list.value)
+  /** 拉取分类列表（管理端接口，含全部分类） */
+  async function fetch(force = false) {
+    if (loading.value || (loaded.value && !force)) return
+    loading.value = true
+    try {
+      list.value = await apiFetch<Category[]>('/api/admin/categories')
+      loaded.value = true
+    } finally {
+      loading.value = false
+    }
   }
 
-  function create(input: CategoryInput): Category {
-    const cat: Category = {
-      id: genId(),
-      name: input.name.trim(),
-      slug: input.slug?.trim() || slugify(input.name),
-      description: input.description?.trim() ?? '',
-      createdAt: Date.now(),
-    }
+  async function create(input: CategoryInput): Promise<Category> {
+    const cat = await apiFetch<Category>('/api/admin/categories', {
+      method: 'POST',
+      body: input as unknown as Record<string, unknown>,
+    })
     list.value.push(cat)
-    persist()
     return cat
   }
 
-  function update(id: string, input: CategoryInput) {
-    const cat = list.value.find(c => c.id === id)
-    if (!cat) return
-    cat.name = input.name.trim()
-    cat.slug = input.slug?.trim() || slugify(input.name)
-    cat.description = input.description?.trim() ?? ''
-    persist()
+  async function update(id: number, input: CategoryInput): Promise<void> {
+    const cat = await apiFetch<Category>(`/api/admin/categories/${id}`, {
+      method: 'PUT',
+      body: input as unknown as Record<string, unknown>,
+    })
+    const idx = list.value.findIndex(c => c.id === id)
+    if (idx >= 0) list.value[idx] = cat
   }
 
-  /** 删除分类，同时将引用它的文章置为未分类 */
-  function remove(id: string) {
+  async function remove(id: number): Promise<void> {
+    await apiFetch<void>(`/api/admin/categories/${id}`, { method: 'DELETE' })
     list.value = list.value.filter(c => c.id !== id)
-    persist()
-    const postsStore = usePostsStore()
-    postsStore.detachCategory(id)
   }
 
-  return { list, create, update, remove }
+  return { list, loaded, loading, fetch, create, update, remove }
 })

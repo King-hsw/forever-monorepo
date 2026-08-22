@@ -33,10 +33,12 @@
 
       <p v-if="errorMsg" class="field-error" role="alert">{{ errorMsg }}</p>
 
-      <button class="btn btn--primary login__submit" type="submit">登 录</button>
+      <button class="btn btn--primary login__submit" type="submit" :disabled="submitting">
+        {{ submitting ? '登录中…' : '登 录' }}
+      </button>
     </form>
 
-    <p class="login__hint">演示账号：admin / 123456</p>
+    <p class="login__hint">使用 forever-server 后台账号登录</p>
   </div>
 </template>
 
@@ -52,21 +54,31 @@ const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
 
+const submitting = ref(false)
+
 async function handleSubmit() {
   if (!username.value.trim() || !password.value) {
     errorMsg.value = '请输入账号和密码'
     triggerShake()
     return
   }
-  if (auth.login(username.value.trim(), password.value)) {
-    const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
-      ? route.query.redirect
-      : '/admin'
-    await navigateTo(redirect)
-    return
+  submitting.value = true
+  try {
+    if (await auth.login(username.value.trim(), password.value)) {
+      const redirect = typeof route.query.redirect === 'string' && route.query.redirect.startsWith('/')
+        ? route.query.redirect
+        : '/admin'
+      await navigateTo(redirect)
+      return
+    }
+    errorMsg.value = '账号或密码错误'
+    triggerShake()
+  } catch {
+    errorMsg.value = '登录失败，请检查网络后重试'
+    triggerShake()
+  } finally {
+    submitting.value = false
   }
-  errorMsg.value = '账号或密码错误'
-  triggerShake()
 }
 
 function triggerShake() {

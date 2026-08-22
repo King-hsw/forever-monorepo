@@ -10,39 +10,35 @@
 
     <main v-if="post" class="article-wrap">
       <article class="article-card">
-        <p v-if="post.status === 'draft'" class="draft-banner">
-          当前文章为草稿，尚未发布
-        </p>
-
         <header class="article-head">
           <NuxtLink
-            v-if="category"
-            :to="`/posts?category=${category.slug}`"
+          <NuxtLink
+            v-if="categorySlug"
+            :to="`/posts?category=${categorySlug}`"
             class="category-chip"
-          >{{ category.name }}</NuxtLink>
-          <span v-else class="category-chip category-chip--none">未分类</span>
+          >{{ post.categoryName }}</NuxtLink>
+          <span v-else class="category-chip category-chip--none">{{ post.categoryName || '未分类' }}</span>
 
           <h1 class="article-title">{{ post.title }}</h1>
 
           <div class="article-meta">
-            <span>发布于 {{ formatDate(post.createdAt) }}</span>
-            <template v-if="formatDate(post.updatedAt) !== formatDate(post.createdAt)">
+            <span>发布于 {{ formatDate(post.publishedAt ?? post.createdAt) }}</span>
+            <template v-if="formatDate(post.updatedAt) !== formatDate(post.publishedAt ?? post.createdAt)">
               <span class="meta-dot">·</span>
               <span>更新于 {{ formatDate(post.updatedAt) }}</span>
             </template>
             <span class="meta-dot">·</span>
-            <span>{{ post.views.toLocaleString() }} 次阅读</span>
+            <span>{{ post.viewCount.toLocaleString() }} 次阅读</span>
           </div>
         </header>
 
-        <p v-if="post.excerpt" class="article-excerpt">{{ post.excerpt }}</p>
+        <p v-if="post.summary" class="article-excerpt">{{ post.summary }}</p>
 
-        <!-- 正文：优先渲染 Markdown，历史数据只有 HTML 时降级 -->
-        <MarkdownView v-if="post.markdown" :source="post.markdown" class="article-body" />
-        <div v-else class="markdown-view article-body" v-html="post.contentHtml"></div>
+        <!-- 正文：后端存储 Markdown -->
+        <MarkdownView :source="post.content ?? ''" class="article-body" />
 
-        <footer v-if="tags.length" class="article-tags">
-          <span v-for="tag in tags" :key="tag.id" class="tag-chip"># {{ tag.name }}</span>
+        <footer v-if="post.tags.length" class="article-tags">
+          <span v-for="tag in post.tags" :key="tag.id" class="tag-chip"># {{ tag.name }}</span>
         </footer>
       </article>
 
@@ -51,9 +47,9 @@
         <ul class="related__list">
           <li v-for="(item, i) in relatedPosts" :key="item.id" class="related__item"
               :style="{ animationDelay: `${i * 60}ms` }">
-            <NuxtLink :to="`/posts/${item.id}`" class="related__link">
+            <NuxtLink :to="`/posts/${item.slug}`" class="related__link">
               <span class="related__name">{{ item.title }}</span>
-              <time class="related__time">{{ formatDate(item.createdAt) }}</time>
+              <time class="related__time">{{ formatDate(item.publishedAt ?? item.createdAt) }}</time>
             </NuxtLink>
           </li>
         </ul>
@@ -63,44 +59,40 @@
 </template>
 
 <script setup lang="ts">
+import type { PageResult, Post } from '~/stores/types'
+
 const route = useRoute()
-const postsStore = usePostsStore()
-const categoriesStore = useCategoriesStore()
-const tagsStore = useTagsStore()
+const slug = route.params.slug as string
 
-const id = route.params.id as string
+/** 公开文章详情（仅已发布文章可访问，浏览量由服务端统计） */
+const { data: post, error } = await useAsyncData(`article-${slug}`, () =>
+  apiFetch<Post>(`/api/v1/articles/${encodeURIComponent(slug)}`),
+)
 
-const post = computed(() => postsStore.getById(id))
-if (!post.value) {
+if (error.value || !post.value) {
   throw createError({ statusCode: 404, statusMessage: '文章不存在', fatal: true })
 }
 
-const category = computed(() =>
-  post.value?.categoryId
-    ? categoriesStore.list.find(c => c.id === post.value!.categoryId) ?? null
-    : null,
+/** 分类 slug（分类 chip 跳回首页对应筛选） */
+const { data: categories } = await useAsyncData('home-categories', () =>
+  apiFetch<{ slug: string; id: number }[]>('/api/v1/categories'),
 )
-
-const tags = computed(() =>
-  post.value ? tagsStore.list.filter(t => post.value!.tagIds.includes(t.id)) : [],
+const categorySlug = computed(() =>
+  categories.value?.find(c => c.id === post.value?.categoryId)?.slug ?? '',
 )
 
 /** 同分类下已发布的其他文章，最多 4 篇 */
-const relatedPosts = computed(() => {
-  const cur = post.value
-  if (!cur) return []
-  return postsStore.list
-    .filter(p =>
-      p.id !== cur.id
-      && p.status === 'published'
-      && p.categoryId === cur.categoryId,
-    )
-    .sort((a, b) => b.createdAt - a.createdAt)
-    .slice(0, 4)
+const { data: related } = await useAsyncData(`related-${slug}`, () => {
+  if (!post.value?.categoryId) return Promise.resolve(null)
+  return apiFetch<PageResult<Post>>('/api/v1/articles', {
+    query: { categoryId: post.value.categoryId, page: 1, size: 5 },
+  })
 })
-
-// 阅读数在客户端挂载后累加，避免 SSR/水合不一致与重复计数
-onMounted(() => postsStore.incrementViews(id))
+const relatedPosts = computed(() =>
+  (related.value?.list ?? [])
+    .filter(p => p.id !== post.value?.id)
+    .slice(0, 4),
+)
 
 function goBack() {
   if (window.history.length > 1) {
@@ -111,8 +103,9 @@ function goBack() {
   }
 }
 
-function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString('zh-CN', {
+function formatDate(value: string | number | null | undefined): string {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('zh-CN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -188,15 +181,6 @@ useHead(() => ({
   border-radius: 12px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   animation: fade-up 0.4s ease both;
-}
-
-.draft-banner {
-  margin: -8px 0 16px;
-  padding: 8px 14px;
-  font-size: 13px;
-  color: var(--c-warning-text);
-  background: var(--c-warning-bg);
-  border-radius: 8px;
 }
 
 .article-title {
