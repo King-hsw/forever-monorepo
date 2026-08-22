@@ -8,5 +8,13 @@ import { proxyRequest } from 'h3'
  */
 export default defineEventHandler((event) => {
   const base = (useRuntimeConfig(event).apiBase as string).replace(/\/+$/, '')
+  const url = new URL(base)
+
+  // 浏览器请求会携带 Origin: http://localhost:3000，会被后端 Spring Security
+  // 的 CORS 校验拒绝（403）。改写为后端自身的地址以通过校验。
+  event.node.req.headers.origin = url.origin
+  event.node.req.headers.referer = `${url.origin}/`
+  event.node.req.headers.host = url.host
+
   return proxyRequest(event, `${base}${event.path}`)
 })

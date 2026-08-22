@@ -288,7 +288,7 @@
         <nav class="site-footer__links">
           <a href="#latest" @click.prevent="scrollToId('latest')">最新文章</a>
           <NuxtLink to="/posts">全部文章</NuxtLink>
-          <NuxtLink to="/rss.xml" target="_blank">RSS</NuxtLink>
+          <a href="/rss.xml" target="_blank" rel="noopener">RSS</a>
         </nav>
       </div>
       <div class="site-footer__bottom">

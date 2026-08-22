@@ -22,7 +22,8 @@
           <ThemeToggle />
           <span class="topbar__user">
             <span class="topbar__avatar" aria-hidden="true">{{ avatarText }}</span>
-            {{ auth.username || '未登录' }}
+            <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
+            <ClientOnly>{{ auth.username || '未登录' }}</ClientOnly>
           </span>
           <button type="button" class="topbar__logout" @click="handleLogout">退出登录</button>
         </div>
@@ -43,7 +44,7 @@ const pageTitle = useState('admin-page-title', () => '')
 const route = useRoute()
 const auth = useAuthStore()
 
-const avatarText = computed(() => (auth.username || 'A').slice(0, 1).toUpperCase())
+const avatarText = computed(() => (auth.username?.slice(0, 1) ?? 'A').toUpperCase())
 
 // 路由变化时自动收起抽屉
 watch(

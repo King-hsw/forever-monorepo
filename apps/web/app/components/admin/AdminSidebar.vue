@@ -25,7 +25,8 @@
     <div class="sidenav__footer">
       <p class="sidenav__user" title="当前登录用户">
         <span class="sidenav__avatar" aria-hidden="true">{{ avatarText }}</span>
-        {{ auth.username || '未登录' }}
+        <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
+        <ClientOnly>{{ auth.username || '未登录' }}</ClientOnly>
       </p>
       <button type="button" class="sidenav__close-btn" aria-label="关闭菜单" @click="$emit('close')">
         ✕ 收起
@@ -47,7 +48,7 @@ const navItems = [
   { label: '分类标签', to: '/admin/categories', icon: '🗂️' },
 ]
 
-const avatarText = computed(() => (auth.username || 'A').slice(0, 1).toUpperCase())
+const avatarText = computed(() => (auth.username?.slice(0, 1) ?? 'A').toUpperCase())
 
 function isActive(to: string): boolean {
   return to === '/admin' ? route.path === '/admin' : route.path.startsWith(to)
