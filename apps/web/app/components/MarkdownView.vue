@@ -7,35 +7,13 @@ import { computed } from 'vue'
 import { Marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js/lib/core'
-import javascript from 'highlight.js/lib/languages/javascript'
-import typescript from 'highlight.js/lib/languages/typescript'
-import bash from 'highlight.js/lib/languages/bash'
-import shell from 'highlight.js/lib/languages/shell'
-import json from 'highlight.js/lib/languages/json'
-import css from 'highlight.js/lib/languages/css'
-import xml from 'highlight.js/lib/languages/xml'
-import python from 'highlight.js/lib/languages/python'
-import markdown from 'highlight.js/lib/languages/markdown'
-import yaml from 'highlight.js/lib/languages/yaml'
+import { codeLanguages } from '../utils/codeLanguages'
 import 'highlight.js/styles/github.css'
 
-// 只注册常用语言，控制打包体积
-hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('typescript', typescript)
-hljs.registerLanguage('js', javascript)
-hljs.registerLanguage('ts', typescript)
-hljs.registerLanguage('bash', bash)
-hljs.registerLanguage('sh', bash)
-hljs.registerLanguage('shell', shell)
-hljs.registerLanguage('json', json)
-hljs.registerLanguage('css', css)
-hljs.registerLanguage('xml', xml)
-hljs.registerLanguage('html', xml)
-hljs.registerLanguage('python', python)
-hljs.registerLanguage('markdown', markdown)
-hljs.registerLanguage('md', markdown)
-hljs.registerLanguage('yaml', yaml)
-hljs.registerLanguage('yml', yaml)
+// 与 TiptapEditor 共用同一份语言清单（含别名），保证编辑器和渲染的高亮能力一致
+for (const [name, language] of Object.entries(codeLanguages)) {
+  hljs.registerLanguage(name, language)
+}
 
 // 语言未注册时转义 HTML，防止裸代码里的 < > & 被当作标签渲染
 const escapeHtml = (value: string) =>

@@ -95,16 +95,8 @@ import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { Marked } from 'marked'
 import { createLowlight } from 'lowlight'
-import javascript from 'highlight.js/lib/languages/javascript'
-import typescript from 'highlight.js/lib/languages/typescript'
-import bash from 'highlight.js/lib/languages/bash'
-import shell from 'highlight.js/lib/languages/shell'
-import json from 'highlight.js/lib/languages/json'
-import css from 'highlight.js/lib/languages/css'
-import xml from 'highlight.js/lib/languages/xml'
-import python from 'highlight.js/lib/languages/python'
-import markdown from 'highlight.js/lib/languages/markdown'
-import yaml from 'highlight.js/lib/languages/yaml'
+import type { LanguageFn } from 'highlight.js'
+import { codeLanguages } from '../utils/codeLanguages'
 import 'highlight.js/styles/github.css'
 import { CodeBlockLineNumbers } from '../extensions/CodeBlockLineNumbers'
 
@@ -129,26 +121,9 @@ const emit = defineEmits<{
   'update:markdown': [value: string]
 }>()
 
-// 只注册常用语言（与 MarkdownView 保持一致），控制打包体积
+// 与 MarkdownView 共用同一份语言清单，保证两边高亮能力一致
 const lowlight = createLowlight()
-lowlight.register({
-  javascript,
-  typescript,
-  js: javascript,
-  ts: typescript,
-  bash,
-  sh: bash,
-  shell,
-  json,
-  css,
-  xml,
-  html: xml,
-  python,
-  markdown,
-  md: markdown,
-  yaml,
-  yml: yaml,
-})
+lowlight.register(codeLanguages as Record<string, LanguageFn>)
 
 const editor = useEditor({
   content: props.modelValue,

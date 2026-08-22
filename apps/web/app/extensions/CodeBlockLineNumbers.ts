@@ -67,7 +67,17 @@ export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
       for (const language of languages) {
         languageSelect.appendChild(new Option(language, language))
       }
-      languageSelect.value = (node.attrs.language as string | null) || ''
+
+      // 当前语言可能不在已注册列表里（如文档里带了未注册的语言标记），
+      // 不补 option 的话 select.value 赋值会失效，回退显示成第一项「纯文本」
+      const syncSelectValue = () => {
+        const current = (node.attrs.language as string | null) || ''
+        if (current && !languages.includes(current)) {
+          languageSelect.appendChild(new Option(current, current))
+        }
+        languageSelect.value = current
+      }
+      syncSelectValue()
 
       // 切换语言：参考 @tiptap/core 中 NodeView.updateAttributes 的实现，
       // 用 setNodeMarkup 在当前节点位置更新 attributes。语言变更后 <code> 的
@@ -150,7 +160,7 @@ export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
           }
           node = updatedNode
           code.className = node.attrs.language ? `language-${node.attrs.language}` : ''
-          languageSelect.value = (node.attrs.language as string | null) || ''
+          syncSelectValue()
           renderGutter()
           return true
         },
