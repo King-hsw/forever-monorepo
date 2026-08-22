@@ -511,6 +511,10 @@ function confirmLink() {
     margin: 0;
     padding: 12px 14px;
     overflow-x: auto;
+    /* 外层 .tiptap pre 的 0.9em 会再叠乘容器已有的 0.9em，导致代码比行号
+       字号小、行高逐行错位；这里改为继承容器字号，与行号栏保持完全一致 */
+    font-size: inherit;
+    line-height: inherit;
     /* 右侧留白稍大一点，避免第一行被悬浮工具条遮住 */
     padding-right: 110px;
   }
