@@ -148,7 +148,7 @@ function confirmRemove() {
   }
 
   &:hover {
-    background: #fafbff;
+    background: var(--c-bg-soft);
   }
 
   .ops {
@@ -189,7 +189,7 @@ function confirmRemove() {
 
   &.tag-chip--more {
     color: var(--c-text-muted);
-    background: #f1f3f9;
+    background: var(--c-bg-soft);
   }
 }
 

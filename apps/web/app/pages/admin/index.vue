@@ -164,7 +164,7 @@ const categoryDist = computed(() => {
   font-size: 20px;
   border-radius: 12px;
 
-  &.is-default { background: #f1f3f9; }
+  &.is-default { background: var(--c-bg-soft); }
   &.is-primary { background: var(--c-primary-light); }
   &.is-success { background: rgb(16 185 129 / 12%); }
   &.is-warning { background: rgb(245 158 11 / 14%); }
@@ -299,7 +299,7 @@ const categoryDist = computed(() => {
 .dist-list__track {
   height: 8px;
   overflow: hidden;
-  background: #eef0f6;
+  background: var(--c-bg-soft);
   border-radius: 999px;
 }
 

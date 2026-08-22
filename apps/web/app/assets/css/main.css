@@ -19,12 +19,40 @@ body {
   --c-text-muted: #98a1ab;
   --c-border: #e5e7ef;
   --c-bg: #f6f7fb;
+  --c-bg-card: #fff;
+  --c-bg-soft: #f6f6fa;
+  --c-on-primary: #fff;
   --c-danger: #ef4444;
   --c-success: #10b981;
+  --c-warning-text: #92400e;
+  --c-warning-bg: #fef3c7;
   --radius-card: 12px;
   --radius-control: 8px;
   --shadow-card: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 10%);
+  color-scheme: light;
+}
+
+/* ===== 暗色主题 ===== */
+html.dark {
+  --c-primary: #818cf8;
+  --c-primary-hover: #93a0fd;
+  --c-primary-light: rgb(129 140 248 / 16%);
+  --c-text: #e6e8ef;
+  --c-text-secondary: #a6adba;
+  --c-text-muted: #7b8494;
+  --c-border: #2e3340;
+  --c-bg: #14161d;
+  --c-bg-card: #1e212b;
+  --c-bg-soft: #191c24;
+  --c-on-primary: #10121a;
+  --c-danger: #f87171;
+  --c-success: #34d399;
+  --c-warning-text: #fbbf24;
+  --c-warning-bg: rgb(251 191 36 / 12%);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 12px rgb(0 0 0 / 30%);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 45%);
+  color-scheme: dark;
 }
 
 /* ===== 动画 ===== */
@@ -49,6 +77,26 @@ body {
   animation-delay: calc(var(--stagger-index, 0) * 60ms);
 }
 
+/* ===== 主题切换动画（View Transition） ===== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 新主题在上层，通过 clip-path 圆形揭示 */
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+html.dark::view-transition-old(root) {
+  z-index: 999;
+}
+
+html.dark::view-transition-new(root) {
+  z-index: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -61,7 +109,7 @@ body {
 
 /* ===== 通用组件类 ===== */
 .card {
-  background: #fff;
+  background: var(--c-bg-card);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
@@ -76,7 +124,7 @@ body {
   line-height: 1.4;
   border: 1px solid var(--c-border);
   border-radius: var(--radius-control);
-  background: #fff;
+  background: var(--c-bg-card);
   color: var(--c-text);
   cursor: pointer;
   text-decoration: none;
@@ -96,7 +144,7 @@ body {
 .btn--primary {
   background: var(--c-primary);
   border-color: var(--c-primary);
-  color: #fff;
+  color: var(--c-on-primary);
 }
 
 .btn--primary:hover:not(:disabled) {
@@ -142,7 +190,7 @@ body {
   padding: 8px 12px;
   font-size: 14px;
   color: var(--c-text);
-  background: #fff;
+  background: var(--c-bg-card);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-control);
   outline: none;
@@ -167,3 +215,63 @@ body {
   font-size: 12px;
   color: var(--c-danger);
 }
+
+/* ===== 暗色模式代码高亮（覆盖 highlight.js github 亮色主题） ===== */
+html.dark .hljs {
+  color: #c9d1d9;
+  background: var(--c-bg-soft);
+}
+
+html.dark .hljs-comment,
+html.dark .hljs-quote {
+  color: #8b949e;
+  font-style: italic;
+}
+
+html.dark .hljs-keyword,
+html.dark .hljs-selector-tag,
+html.dark .hljs-doctag,
+html.dark .hljs-formula,
+html.dark .hljs-name,
+html.dark .hljs-section {
+  color: #ff7b72;
+}
+
+html.dark .hljs-string,
+html.dark .hljs-regexp,
+html.dark .hljs-addition,
+html.dark .hljs-attribute,
+html.dark .hljs-meta .hljs-string {
+  color: #a5d6ff;
+}
+
+html.dark .hljs-number,
+html.dark .hljs-literal,
+html.dark .hljs-variable,
+html.dark .hljs-template-variable,
+html.dark .hljs-type,
+html.dark .hljs-params,
+html.dark .hljs-link,
+html.dark .hljs-selector-id,
+html.dark .hljs-selector-class,
+html.dark .hljs-meta {
+  color: #79c0fd;
+}
+
+html.dark .hljs-title,
+html.dark .hljs-function,
+html.dark .hljs-built_in,
+html.dark .hljs-builtin-name,
+html.dark .hljs-class .hljs-title {
+  color: #d2a8ff;
+}
+
+html.dark .hljs-attr,
+html.dark .hljs-symbol,
+html.dark .hljs-bullet,
+html.dark .hljs-deletion {
+  color: #ffa657;
+}
+
+html.dark .hljs-emphasis { font-style: italic; }
+html.dark .hljs-strong { font-weight: 600; }

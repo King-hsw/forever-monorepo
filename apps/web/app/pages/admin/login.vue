@@ -89,7 +89,7 @@ function triggerShake() {
   height: 56px;
   font-size: 26px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-on-primary);
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border-radius: 50%;
   box-shadow: var(--shadow-card);

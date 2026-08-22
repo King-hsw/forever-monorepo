@@ -69,6 +69,16 @@ export default defineNuxtConfig({
       meta: [
         { name: 'theme-color', content: '#6366f1' }
       ],
+      script: [
+        {
+          // 首屏防闪烁：在渲染前根据 localStorage / 系统偏好给 <html> 加上 dark 类
+          innerHTML:
+            "(function(){try{var t=localStorage.getItem('forever-theme');" +
+            "if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))" +
+            "{document.documentElement.classList.add('dark')}}catch(e){}})()",
+          tagPosition: 'head',
+        },
+      ],
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },

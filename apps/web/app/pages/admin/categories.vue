@@ -300,7 +300,7 @@ function confirmRemove() {
   grid-template-columns: 1fr 1fr;
   width: 260px;
   padding: 4px;
-  background: #eceef5;
+  background: var(--c-bg-soft);
   border-radius: var(--radius-control);
 }
 
@@ -326,7 +326,7 @@ function confirmRemove() {
   left: 4px;
   width: calc(50% - 4px);
   height: calc(100% - 8px);
-  background: #fff;
+  background: var(--c-bg-card);
   border-radius: inherit;
   box-shadow: var(--shadow-card);
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
@@ -455,7 +455,7 @@ function confirmRemove() {
   gap: 6px;
   padding: 7px 12px;
   font-size: 13px;
-  background: #fff;
+  background: var(--c-bg-card);
   border: 1px solid var(--c-border);
   border-radius: 999px;
   box-shadow: var(--shadow-card);

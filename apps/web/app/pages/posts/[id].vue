@@ -2,7 +2,10 @@
   <div class="post-page">
     <header class="site-header">
       <NuxtLink to="/" class="brand">Forever</NuxtLink>
-      <button type="button" class="back-btn" @click="goBack">← 返回</button>
+      <div class="site-header__actions">
+        <ThemeToggle />
+        <button type="button" class="back-btn" @click="goBack">← 返回</button>
+      </div>
     </header>
 
     <main v-if="post" class="article-wrap">
@@ -125,7 +128,7 @@ useHead(() => ({
 .post-page {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #f6f6fa;
+  background: var(--c-bg-soft);
 }
 
 .site-header {
@@ -136,32 +139,37 @@ useHead(() => ({
   margin: 0 auto;
   padding: 16px 20px;
 }
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .brand {
   font-size: 18px;
   font-weight: 700;
-  color: #1a1a26;
+  color: var(--c-text);
   text-decoration: none;
   letter-spacing: 0.01em;
 
   &:hover {
-    color: #6366f1;
+    color: var(--c-primary);
   }
 }
 
 .back-btn {
   padding: 6px 14px;
   font-size: 13px;
-  color: #55556a;
-  border: 1px solid #d9d9e3;
+  color: var(--c-text-secondary);
+  border: 1px solid var(--c-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--c-bg-card);
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    color: #6366f1;
-    border-color: #c3c3f7;
+    color: var(--c-primary);
+    border-color: var(--c-primary);
     transform: translateY(-1px);
     box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   }
@@ -175,8 +183,8 @@ useHead(() => ({
 
 .article-card {
   padding: 36px clamp(20px, 5vw, 44px) 32px;
-  background: #fff;
-  border: 1px solid #ececf2;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
   border-radius: 12px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   animation: fade-up 0.4s ease both;
@@ -186,8 +194,8 @@ useHead(() => ({
   margin: -8px 0 16px;
   padding: 8px 14px;
   font-size: 13px;
-  color: #92400e;
-  background: #fef3c7;
+  color: var(--c-warning-text);
+  background: var(--c-warning-bg);
   border-radius: 8px;
 }
 
@@ -196,7 +204,7 @@ useHead(() => ({
   font-size: clamp(24px, 4vw, 32px);
   font-weight: 700;
   line-height: 1.3;
-  color: #1a1a26;
+  color: var(--c-text);
 }
 
 .category-chip {
@@ -204,19 +212,19 @@ useHead(() => ({
   padding: 3px 12px;
   font-size: 12px;
   font-weight: 500;
-  color: #6366f1;
-  background: #eef0fe;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
   border-radius: 999px;
   text-decoration: none;
   transition: all 0.2s ease;
 
   &:hover {
-    background: #dfe2fd;
+    background: var(--c-primary-light);
   }
 
   &--none {
-    color: #8a8a99;
-    background: #f1f1f5;
+    color: var(--c-text-muted);
+    background: var(--c-bg-soft);
   }
 }
 
@@ -225,11 +233,11 @@ useHead(() => ({
   flex-wrap: wrap;
   gap: 8px;
   font-size: 13px;
-  color: #8a8a99;
+  color: var(--c-text-muted);
 }
 
 .meta-dot {
-  color: #c5c5d2;
+  color: var(--c-text-muted);
 }
 
 .article-excerpt {
@@ -237,9 +245,9 @@ useHead(() => ({
   padding: 14px 18px;
   font-size: 14.5px;
   line-height: 1.7;
-  color: #57606a;
-  background: #fafafc;
-  border-left: 3px solid #c7caf9;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+  border-left: 3px solid var(--c-primary);
   border-radius: 0 8px 8px 0;
 }
 
@@ -255,20 +263,20 @@ useHead(() => ({
   gap: 10px;
   margin-top: 28px;
   padding-top: 20px;
-  border-top: 1px solid #ececf2;
+  border-top: 1px solid var(--c-border);
 }
 
 .tag-chip {
   padding: 4px 12px;
   font-size: 13px;
-  color: #55556a;
-  background: #f4f4f8;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
   border-radius: 999px;
   transition: all 0.2s ease;
 
   &:hover {
-    color: #6366f1;
-    background: #eef0fe;
+    color: var(--c-primary);
+    background: var(--c-primary-light);
   }
 }
 
@@ -281,7 +289,7 @@ useHead(() => ({
   margin: 0 0 12px;
   font-size: 16px;
   font-weight: 600;
-  color: #1a1a26;
+  color: var(--c-text);
 }
 
 .related__list {
@@ -302,14 +310,14 @@ useHead(() => ({
   justify-content: space-between;
   gap: 16px;
   padding: 14px 18px;
-  background: #fff;
-  border: 1px solid #ececf2;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
   border-radius: 12px;
   text-decoration: none;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #c3c3f7;
+    border-color: var(--c-primary);
     transform: translateY(-2px);
     box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   }
@@ -324,7 +332,7 @@ useHead(() => ({
 .related__time {
   flex-shrink: 0;
   font-size: 12.5px;
-  color: #8a8a99;
+  color: var(--c-text-muted);
 }
 
 @keyframes fade-up {

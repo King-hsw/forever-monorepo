@@ -106,7 +106,7 @@ const html = computed(() => {
 .markdown-view {
   font-size: 15px;
   line-height: 1.7;
-  color: #24292f;
+  color: var(--c-text);
   word-break: break-word;
 
   & > :first-child {
@@ -163,7 +163,7 @@ const html = computed(() => {
   }
 
   a {
-    color: #0969da;
+    color: var(--c-primary);
     text-decoration: underline;
   }
 
@@ -171,7 +171,7 @@ const html = computed(() => {
     margin: 0.8em 0;
     padding: 0 1em;
     border-left: 4px solid #d0d7de;
-    color: #57606a;
+    color: var(--c-text-secondary);
   }
 
   code {
@@ -185,7 +185,7 @@ const html = computed(() => {
   pre {
     margin: 0.8em 0;
     padding: 16px;
-    background: #f6f8fa;
+    background: var(--c-bg-soft);
     border-radius: 8px;
     overflow-x: auto;
     line-height: 1.5;
@@ -211,7 +211,7 @@ const html = computed(() => {
     min-width: 3ch;
     margin-right: 1em;
     text-align: right;
-    color: #8b949e;
+    color: var(--c-text-muted);
     user-select: none;
   }
 
@@ -238,11 +238,11 @@ const html = computed(() => {
   }
 
   th {
-    background: #f6f8fa;
+    background: var(--c-bg-soft);
   }
 
   del {
-    color: #57606a;
+    color: var(--c-text-secondary);
   }
 }
 </style>

@@ -236,7 +236,7 @@ select.field-input {
   padding: 4px 13px;
   font-size: 13px;
   color: var(--c-text-secondary);
-  background: #f1f3f9;
+  background: var(--c-bg-soft);
   border: 1px solid transparent;
   border-radius: 999px;
   cursor: pointer;

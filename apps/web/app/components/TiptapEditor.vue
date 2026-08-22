@@ -292,7 +292,7 @@ function confirmLink() {
   border: 1px solid var(--tt-border);
   border-radius: 8px;
   overflow: hidden;
-  background: #fff;
+  background: var(--c-bg-card);
 }
 
 /* 撑满父容器（分栏布局） */
@@ -319,7 +319,7 @@ function confirmLink() {
   gap: 4px;
   padding: 6px;
   border-bottom: 1px solid var(--tt-border);
-  background: #f8f8fb;
+  background: var(--c-bg-soft);
 }
 
 .tiptap-editor__group {
@@ -337,7 +337,7 @@ function confirmLink() {
   padding: 4px 8px;
   font-size: 13px;
   line-height: 1;
-  color: #333;
+  color: var(--c-text);
   text-align: center;
   background: transparent;
   border: none;
@@ -366,7 +366,7 @@ function confirmLink() {
     padding: 16px 20px;
     font-size: 15px;
     line-height: 1.7;
-    color: #222;
+    color: var(--c-text);
     outline: none;
   }
 
@@ -412,13 +412,13 @@ function confirmLink() {
     margin: 0.8em 0;
     padding-left: 1em;
     border-left: 3px solid var(--tt-border);
-    color: #555;
+    color: var(--c-text-secondary);
   }
 
   .tiptap code {
     padding: 2px 4px;
     font-size: 0.9em;
-    background: #f1f1f5;
+    background: var(--c-bg-soft);
     border-radius: 4px;
   }
 
@@ -428,7 +428,7 @@ function confirmLink() {
     display: flex;
     margin: 0.8em 0;
     font-size: 0.9em;
-    background: #f6f6f9;
+    background: var(--c-bg-soft);
     border-radius: 6px;
   }
 
@@ -455,7 +455,7 @@ function confirmLink() {
     padding: 2px 4px;
     font-size: 12px;
     line-height: 1.4;
-    color: #444;
+    color: var(--c-text);
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--tt-border);
     border-radius: 4px;
@@ -463,8 +463,8 @@ function confirmLink() {
 
     &:hover,
     &:focus {
-      background: #fff;
-      border-color: #b9b9cc;
+      background: var(--c-bg-card);
+      border-color: var(--c-border);
       outline: none;
     }
   }
@@ -473,20 +473,20 @@ function confirmLink() {
     padding: 3px 10px;
     font-size: 12px;
     line-height: 1.4;
-    color: #444;
+    color: var(--c-text);
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--tt-border);
     border-radius: 4px;
     cursor: pointer;
 
     &:hover {
-      background: #fff;
-      border-color: #b9b9cc;
+      background: var(--c-bg-card);
+      border-color: var(--c-border);
     }
 
     &.is-copied {
-      color: #16a34a;
-      border-color: #86dfa5;
+      color: var(--c-success);
+      border-color: var(--c-success);
     }
   }
 
@@ -494,7 +494,7 @@ function confirmLink() {
     flex-shrink: 0;
     padding: 12px 0 12px 14px;
     text-align: right;
-    color: #98a1ab;
+    color: var(--c-text-muted);
     user-select: none;
     cursor: default;
   }
@@ -523,7 +523,7 @@ function confirmLink() {
     margin: 0.8em 0;
     padding: 12px 14px;
     font-size: 0.9em;
-    background: #f6f6f9;
+    background: var(--c-bg-soft);
     border-radius: 6px;
     overflow-x: auto;
   }
@@ -605,7 +605,7 @@ function confirmLink() {
     font-size: 13px;
     border: 1px solid #d9d9e3;
     border-radius: 6px;
-    background: #fff;
+    background: var(--c-bg-card);
     cursor: pointer;
 
     &.primary {

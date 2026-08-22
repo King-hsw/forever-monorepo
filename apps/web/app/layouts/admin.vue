@@ -19,6 +19,7 @@
         <strong class="topbar__title">{{ pageTitle }}</strong>
 
         <div class="topbar__right">
+          <ThemeToggle />
           <span class="topbar__user">
             <span class="topbar__avatar" aria-hidden="true">{{ avatarText }}</span>
             {{ auth.username || '未登录' }}
@@ -78,7 +79,7 @@ async function handleLogout() {
   gap: 14px;
   height: 64px;
   padding: 0 28px;
-  background: rgb(255 255 255 / 90%);
+  background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--c-border);
 }
@@ -124,7 +125,7 @@ async function handleLogout() {
   height: 28px;
   font-size: 12px;
   font-weight: 700;
-  color: #fff;
+  color: var(--c-on-primary);
   background: var(--c-primary);
   border-radius: 50%;
 }

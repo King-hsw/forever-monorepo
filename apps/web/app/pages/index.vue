@@ -1,6 +1,7 @@
 <template>
   <div class="blog-home">
     <header class="hero">
+      <div class="hero__theme"><ThemeToggle /></div>
       <h1 class="hero__brand">Forever</h1>
       <p class="hero__tagline">记录技术与思考</p>
     </header>
@@ -182,27 +183,34 @@ useHead({ title: 'Forever - 记录技术与思考' })
 .blog-home {
   min-height: 100vh;
   min-height: 100dvh;
-  background: #f6f6fa;
+  background: var(--c-bg-soft);
 }
 
 .hero {
+  position: relative;
   padding: 56px 20px 8px;
   text-align: center;
   animation: fade-up 0.4s ease both;
+}
+
+.hero__theme {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .hero__brand {
   margin: 0;
   font-size: clamp(28px, 5vw, 40px);
   font-weight: 700;
-  color: #1a1a26;
+  color: var(--c-text);
   letter-spacing: 0.01em;
 }
 
 .hero__tagline {
   margin: 10px 0 0;
   font-size: 14.5px;
-  color: #8a8a99;
+  color: var(--c-text-muted);
 }
 
 .filters {
@@ -220,25 +228,25 @@ useHead({ title: 'Forever - 记录技术与思考' })
   padding: 6px 16px;
   font-size: 13.5px;
   color: #55556a;
-  background: #fff;
+  background: var(--c-bg-card);
   border: 1px solid #e3e3ec;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    color: #6366f1;
+    color: var(--c-primary);
     border-color: #c3c3f7;
     transform: translateY(-1px);
   }
 
   &--active {
-    color: #fff;
-    background: #6366f1;
-    border-color: #6366f1;
+    color: var(--c-on-primary);
+    background: var(--c-primary);
+    border-color: var(--c-primary);
 
     &:hover {
-      color: #fff;
+      color: var(--c-on-primary);
     }
   }
 }
@@ -257,7 +265,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
   justify-content: space-between;
   gap: 16px;
   padding: 22px 26px;
-  background: #fff;
+  background: var(--c-bg-card);
   border: 1px solid #ececf2;
   border-radius: 12px;
   box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
@@ -271,7 +279,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
     box-shadow: 0 2px 4px rgb(0 0 0 / 4%), 0 10px 24px rgb(0 0 0 / 8%);
 
     .post-card__arrow {
-      color: #6366f1;
+      color: var(--c-primary);
       transform: translateX(4px);
     }
   }
@@ -287,7 +295,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
   font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
-  color: #1a1a26;
+  color: var(--c-text);
 }
 
 .post-card__excerpt {
@@ -311,13 +319,13 @@ useHead({ title: 'Forever - 记录技术与思考' })
   gap: 8px;
   margin-top: 12px;
   font-size: 12.5px;
-  color: #8a8a99;
+  color: var(--c-text-muted);
 }
 
 .post-card__category {
   padding: 2px 10px;
-  color: #6366f1;
-  background: #eef0fe;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
   border-radius: 999px;
 }
 
@@ -334,7 +342,7 @@ useHead({ title: 'Forever - 记录技术与思考' })
   color: #9a9aad;
 
   &:hover {
-    color: #6366f1;
+    color: var(--c-primary);
   }
 }
 
@@ -367,14 +375,14 @@ useHead({ title: 'Forever - 记录技术与思考' })
   padding: 7px 14px;
   font-size: 13.5px;
   color: #55556a;
-  background: #fff;
+  background: var(--c-bg-card);
   border: 1px solid #e3e3ec;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    color: #6366f1;
+    color: var(--c-primary);
     border-color: #c3c3f7;
     transform: translateY(-1px);
   }
@@ -385,12 +393,12 @@ useHead({ title: 'Forever - 记录技术与思考' })
   }
 
   &--active {
-    color: #fff;
-    background: #6366f1;
-    border-color: #6366f1;
+    color: var(--c-on-primary);
+    background: var(--c-primary);
+    border-color: var(--c-primary);
 
     &:hover {
-      color: #fff;
+      color: var(--c-on-primary);
       transform: none;
     }
   }
@@ -411,8 +419,8 @@ useHead({ title: 'Forever - 记录技术与思考' })
 }
 
 .site-footer .rss-link:hover {
-  color: #6366f1;
-  border-bottom-color: #6366f1;
+  color: var(--c-primary);
+  border-bottom-color: var(--c-primary);
 }
 
 @keyframes fade-up {
