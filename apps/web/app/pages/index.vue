@@ -18,6 +18,7 @@
         <nav class="site-nav">
           <a class="site-nav__link" href="#latest" @click.prevent="scrollToId('latest')">文章</a>
           <NuxtLink class="site-nav__link" to="/posts">全部文章</NuxtLink>
+          <NuxtLink to="/friends" class="site-nav__link">友链</NuxtLink>
           <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
           <NuxtLink class="site-nav__link" to="/admin">管理</NuxtLink>
         </nav>
