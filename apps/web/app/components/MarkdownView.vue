@@ -106,6 +106,7 @@ const decorateCodeBlocks = (html: string): string =>
       return (
         `<div class="md-code-block">`
         + `<div class="md-code-block__bar">`
+        + `<span class="md-code-block__dots" aria-hidden="true"><i></i><i></i><i></i></span>`
         + `<span class="md-code-block__lang">${lang ?? '纯文本'}</span>`
         + `<button type="button" class="md-code-block__copy">复制</button>`
         + `</div>`
