@@ -3,19 +3,27 @@
     <!-- ===== Header：全站统一导航 ===== -->
     <SiteHeader width="780px" />
 
-    <!-- 目录边栏：宽屏固定在正文左侧，窄屏隐藏 -->
-    <aside v-if="toc.length > 1" class="toc" aria-label="文章目录">
-      <p class="toc__title">目录</p>
-      <ul class="toc__list">
-        <li v-for="item in toc" :key="item.id">
-          <a
-            :href="`#${item.id}`"
-            class="toc__link"
-            :class="{ 'is-active': activeId === item.id, 'is-h3': item.level === 3 }"
-            @click.prevent="scrollToHeading(item.id)"
-          >{{ item.text }}</a>
-        </li>
-      </ul>
+    <!-- 目录：宽屏固定在正文左侧；窄屏右下角悬浮按钮展开 -->
+    <aside
+      v-if="toc.length > 1"
+      class="toc"
+      :class="{ 'is-open': tocOpen }"
+      aria-label="文章目录"
+    >
+      <button type="button" class="toc__toggle" @click="tocOpen = !tocOpen">目录</button>
+      <div class="toc__body">
+        <p class="toc__title">目录</p>
+        <ul class="toc__list">
+          <li v-for="item in toc" :key="item.id">
+            <a
+              :href="`#${item.id}`"
+              class="toc__link"
+              :class="{ 'is-active': activeId === item.id, 'is-h3': item.level === 3 }"
+              @click.prevent="scrollToHeading(item.id)"
+            >{{ item.text }}</a>
+          </li>
+        </ul>
+      </div>
     </aside>
 
     <main v-if="post" ref="bodyEl" class="article-wrap">
@@ -127,6 +135,8 @@ const toc = computed(() => {
 
 const bodyEl = ref<HTMLElement | null>(null)
 const activeId = ref('')
+/** 移动端目录面板展开状态（桌面端常显，不生效） */
+const tocOpen = ref(false)
 
 /** 挂载后给正文中对应的 h2/h3 写入锚点 id（顺序与 toc 一致） */
 onMounted(() => {
@@ -150,6 +160,7 @@ function updateActive() {
 }
 
 function scrollToHeading(id: string) {
+  tocOpen.value = false // 移动端点击后收起面板，桌面端无影响
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
@@ -197,9 +208,56 @@ usePageSeo({
   overflow-y: auto;
 }
 
+/* 桌面端不需要切换按钮 */
+.toc__toggle {
+  display: none;
+}
+
+/* ===== 窄屏：右下角悬浮按钮 + 展开面板 ===== */
 @media (max-width: 1299px) {
   .toc {
+    top: auto;
+    right: 18px;
+    bottom: 22px;
+    left: auto;
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    z-index: 20;
+  }
+
+  .toc__toggle {
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #fff;
+    background: var(--c-primary);
+    border: none;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 18%);
+    cursor: pointer;
+  }
+
+  .toc__body {
     display: none;
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    width: min(300px, 82vw);
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 14px 16px;
+    background: var(--c-bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 16%);
+  }
+
+  .toc.is-open .toc__body {
+    display: block;
   }
 }
 
