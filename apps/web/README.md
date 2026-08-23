@@ -90,6 +90,16 @@ pnpm dev
 | `NUXT_PUBLIC_SITE_URL` | `https://forever.example.com` | 站点地址，sitemap / RSS / OG 等绝对链接使用 |
 | `NUXT_PUBLIC_API_BASE` | 空（同源） | 浏览器端 API 地址，一般无需修改 |
 
+环境参数通过 `.env` 文件管理，项目根目录提供模板 [.env.example](.env.example)：
+
+```bash
+cp .env.example .env   # 本地开发用；生产可复制为 .env.production
+```
+
+- `nuxt dev` / `nuxt build` 会自动读取根目录的 `.env`；也可以用 `--dotenv` 指定其它文件，例如 `nuxt build --dotenv .env.production`
+- 真实的 `.env` / `.env.production` 已被 `.gitignore` 忽略，不会提交到仓库
+- **注意**：Nuxt 只在 dev / build 阶段读取 `.env`。生产「运行时」（`node .output/server/index.mjs`）请通过系统环境变量注入（systemd / Docker / PM2 等），或构建时把最终值写进 `.env.production` 后再打包
+
 ### 生产构建
 
 ```bash
