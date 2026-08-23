@@ -36,7 +36,7 @@
             :key="i"
             class="heatmap__cell"
             :class="[`is-l${cell.level}`, { 'is-future': cell.future }]"
-            :title="cell.future ? undefined : `${cell.label}：${cell.count} 篇`"
+            :data-tip="cell.future ? undefined : `${cell.label} · ${cell.count} 篇`"
           />
         </div>
       </div>
@@ -183,13 +183,18 @@ const data = computed(() => {
   }
 }
 
-/* 小屏横向滚动 */
+/* 自适应宽度：以容器宽度为基准计算格子尺寸，53 列始终填满一行，
+ * 不再出现横向滚动条；容器查询兼容性不足时回退到固定 13px 并允许横向滚动 */
 .heatmap__scroll {
-  overflow-x: auto;
-  padding-bottom: 4px;
+  container-type: inline-size;
 }
 
 .heatmap__canvas {
+  --hm-cell: clamp(
+    6px,
+    calc((100cqw - 20px - 52 * 3px) / 53),
+    16px
+  ); /* 20px 为星期标签列 + 列间距，52 个列间距 */
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 4px;
@@ -200,8 +205,8 @@ const data = computed(() => {
 .heatmap__cells {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 13px;
-  grid-template-rows: repeat(7, 13px);
+  grid-auto-columns: var(--hm-cell);
+  grid-template-rows: repeat(7, var(--hm-cell));
   gap: 3px;
 }
 
@@ -220,11 +225,11 @@ const data = computed(() => {
 
 .heatmap__weekdays {
   display: grid;
-  grid-template-rows: repeat(7, 13px);
+  grid-template-rows: repeat(7, var(--hm-cell));
   gap: 3px;
   padding-top: 20px; /* 对齐月份行下方 */
   font-size: 10px;
-  line-height: 13px;
+  line-height: var(--hm-cell);
   color: var(--c-text-muted);
 }
 
@@ -234,16 +239,69 @@ const data = computed(() => {
 .heatmap__weekdays span:nth-child(3) { grid-row: 5; }
 
 .heatmap__cell {
+  position: relative;
   display: inline-block;
-  width: 13px;
-  height: 13px;
-  border-radius: 4px;
+  width: var(--hm-cell);
+  height: var(--hm-cell);
+  border-radius: 3px;
   transition: transform var(--dur-soft) var(--ease-bounce);
 }
 
 .heatmap__cells .heatmap__cell:hover:not(.is-future) {
   transform: scale(1.35); /* 悬停轻轻放大 */
   box-shadow: 0 2px 6px rgb(244 114 182 / 30%);
+}
+
+/* 悬停信息气泡：替代原生 title，展示更及时、样式更精致 */
+.heatmap__cell[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  z-index: 10;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  white-space: nowrap;
+  color: #fff;
+  pointer-events: none;
+  background: rgb(23 23 33 / 92%);
+  border-radius: 6px;
+  opacity: 0;
+  transform: translateX(-50%) translateY(2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* 气泡小箭头 */
+.heatmap__cell[data-tip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  z-index: 10;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  background: rgb(23 23 33 / 92%);
+  border-radius: 1.5px;
+  opacity: 0;
+  transform: translateX(-50%) rotate(45deg);
+  transition: opacity 0.15s ease;
+}
+
+html.dark .heatmap__cell[data-tip]::after,
+html.dark .heatmap__cell[data-tip]::before {
+  background: rgb(60 60 75 / 95%);
+}
+
+.heatmap__cells .heatmap__cell:hover:not(.is-future)::after,
+.heatmap__cells .heatmap__cell:hover:not(.is-future)::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.heatmap__cells .heatmap__cell:hover:not(.is-future)::before {
+  transform: translateX(-50%) rotate(45deg);
 }
 
 .is-l0 { background: var(--hm-0); }
