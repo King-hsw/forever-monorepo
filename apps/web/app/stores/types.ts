@@ -13,6 +13,8 @@ export type {
   PostInput,
   PostStatus,
   PublicArticleQuery,
+  RssFeed,
+  RssFeedInput,
   Tag,
   TagInput,
   TagItem,

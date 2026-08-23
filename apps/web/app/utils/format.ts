@@ -20,6 +20,18 @@ export function formatDate(value: string | number | null | undefined): string {
   })
 }
 
+/** 日期时间格式（抓取时间等需要精确到分） */
+export function formatDateTime(value: string | number | null | undefined): string {
+  if (!value) return ''
+  return new Date(value).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 /** 短日期格式（后台表格用） */
 export function formatShortDate(value: string | number | null | undefined): string {
   if (!value) return ''

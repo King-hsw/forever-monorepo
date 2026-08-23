@@ -75,6 +75,35 @@ export interface TagInput {
   name: string
 }
 
+/** RSS 订阅源（对应 RssFeedResponse；管理端含抓取状态） */
+export interface RssFeed {
+  id: number
+  /** 站点名称；创建时可不填，后端抓取成功后自动回填 feed 自带标题 */
+  title: string
+  /** 博客主页地址 */
+  siteUrl: string
+  /** RSS/Atom 订阅地址 */
+  feedUrl: string
+  description: string
+  /** 是否启用抓取 */
+  enabled: boolean
+  /** 已抓取的条目数 */
+  itemCount: number
+  /** 上次抓取时间；从未抓取为 null */
+  lastFetchedAt: string | null
+  /** 上次抓取的错误信息；正常为 null */
+  lastError: string | null
+}
+
+/** RSS 订阅源创建/更新请求（对应 RssFeedRequest；全量提交） */
+export interface RssFeedInput {
+  title?: string
+  siteUrl: string
+  feedUrl: string
+  description?: string
+  enabled?: boolean
+}
+
 /** 后端统一分页结构 */
 export interface PageResult<T> {
   list: T[]
