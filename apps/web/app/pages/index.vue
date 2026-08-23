@@ -378,7 +378,9 @@ onMounted(() => {
     targetScroll = currentScroll = window.scrollY
 
     // 滚出视口后停掉 rAF，节省性能；滚回来再恢复
-    io = new IntersectionObserver(([entry]) => {
+    io = new IntersectionObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
       const wasVisible = heroVisible
       heroVisible = entry.isIntersecting
       if (heroVisible && !wasVisible) {

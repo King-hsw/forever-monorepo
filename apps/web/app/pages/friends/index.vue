@@ -8,7 +8,7 @@
       <!-- 页面标题 -->
       <div class="page-head fade-up">
         <h1 class="page-head__cn">友情链接</h1>
-        <span class="page-head__en">Friends · {{ friends.length }} 个站点</span>
+        <span class="page-head__en">Friends · {{ friends?.length ?? 0 }} 个站点</span>
       </div>
 
       <p class="page-intro fade-up" style="--stagger-index: 1">
@@ -45,7 +45,7 @@
         </a>
       </section>
 
-      <p v-if="!friends.length && !pending" class="friends-empty fade-up" style="--stagger-index: 2">
+      <p v-if="!friends?.length && !pending" class="friends-empty fade-up" style="--stagger-index: 2">
         还没有友链，快来申请第一个吧 👉
       </p>
 

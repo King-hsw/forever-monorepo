@@ -122,13 +122,15 @@ const toc = computed(() => {
   for (const line of (post.value?.content ?? '').split('\n')) {
     if (/^(```|~~~)/.test(line.trim())) inCode = !inCode
     if (inCode) continue
-    const m = line.match(/^(#{2,3})\s+(.+?)\s*#*\s*$/)
-    if (!m) continue
-    const text = m[2]
+    const match = line.match(/^(#{2,3})\s+(.+?)\s*#*\s*$/)
+    const tag = match?.[1]
+    const raw = match?.[2]
+    if (!tag || !raw) continue
+    const text = raw
       .replace(/!?!\[([^\]]*)\]\([^)]*\)/g, '$1') // 图片/链接只留文字
       .replace(/[*_~`]/g, '')
       .trim()
-    if (text) items.push({ id: `toc-${items.length}`, text, level: m[1].length })
+    if (text) items.push({ id: `toc-${items.length}`, text, level: tag.length })
   }
   return items
 })
@@ -142,7 +144,7 @@ const tocOpen = ref(false)
 onMounted(() => {
   const nodes = bodyEl.value?.querySelectorAll('.article-body h2, .article-body h3')
   nodes?.forEach((el, i) => {
-    if (toc.value[i]) el.id = toc.value[i].id
+    if (toc.value[i]) el.id = toc.value[i]!.id
   })
   updateActive()
   window.addEventListener('scroll', updateActive, { passive: true })

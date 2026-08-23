@@ -17,9 +17,10 @@
         <CommentForm
           :article-id="board.id"
           :reply-to="replyTo"
+          :mention="mentionName"
           placeholder-suffix="（留言）"
           @success="onCreated"
-          @cancel-reply="replyTo = null"
+          @cancel-reply="resetReply"
         />
       </div>
 
@@ -60,9 +61,25 @@
                 <img :src="reply.avatarUrl" alt="" class="wall-reply__avatar" loading="lazy"
                      @error="(e: Event) => ((e.target as HTMLImageElement).style.visibility = 'hidden')">
                 <div class="wall-reply__body">
-                  <span class="wall-reply__name">{{ reply.nickname }}</span>
-                  <time class="wall-reply__time">{{ formatDate(reply.createdAt) }}</time>
-                  <p class="wall-reply__content">{{ reply.content }}</p>
+                  <header class="wall-reply__meta">
+                    <a
+                      v-if="reply.site"
+                      :href="reply.site"
+                      target="_blank"
+                      rel="noopener nofollow ugc"
+                      class="wall-reply__name wall-reply__name--link"
+                    >{{ reply.nickname }}</a>
+                    <span v-else class="wall-reply__name">{{ reply.nickname }}</span>
+                    <span v-if="mentionOf(reply.content)" class="wall-reply__target">回复 @{{ mentionOf(reply.content) }}</span>
+                    <time class="wall-reply__time">{{ formatDate(reply.createdAt) }}</time>
+                    <button
+                      type="button"
+                      class="wall-reply__btn"
+                      :class="{ 'is-active': replyTo?.id === msg.id && replyTo?.nickname === reply.nickname }"
+                      @click="startReply(msg, reply)"
+                    >回复</button>
+                  </header>
+                  <p class="wall-reply__content">{{ stripMention(reply.content) }}</p>
                 </div>
               </li>
             </ul>
@@ -143,14 +160,40 @@ onMounted(() => load(1))
 
 /* ---------- 回复留言 ---------- */
 const formEl = ref<HTMLElement | null>(null)
-const replyTo = ref<CommentNode | null>(null)
+const replyTo = ref<{ id: number, nickname: string } | null>(null)
+/** 回复楼内某条回复时记录其昵称，提交时内容自动加 @前缀（公开接口不返回回复对象） */
+const mentionName = ref('')
 
-function startReply(msg: CommentNode) {
-  // 已处于回复状态再点则取消
-  replyTo.value = replyTo.value?.id === msg.id ? null : msg
-  if (replyTo.value) {
-    nextTick(() => formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+/**
+ * 回复留言：parentId 始终指向楼主（后端两层楼结构），
+ * 若点的是楼内回复则额外记下目标昵称用于 @前缀。
+ */
+function startReply(msg: CommentNode, reply?: CommentNode) {
+  const target = reply ?? msg
+  // 已处于同一回复状态再点则取消（key 用 楼主id+目标昵称）
+  const key = `${msg.id}:${target.nickname}`
+  const activeKey = replyTo.value ? `${replyTo.value.id}:${replyTo.value.nickname}` : ''
+  if (activeKey === key) {
+    resetReply()
+    return
   }
+  replyTo.value = { id: msg.id, nickname: target.nickname }
+  mentionName.value = reply ? reply.nickname : ''
+  nextTick(() => formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+}
+
+function resetReply() {
+  replyTo.value = null
+  mentionName.value = ''
+}
+
+/** 内容开头的 @昵称（前端写入的回复对象标记） */
+function mentionOf(content: string): string {
+  return content.match(/^@(\S+)\s+/)?.[1] ?? ''
+}
+
+function stripMention(content: string): string {
+  return content.replace(/^@\S+\s+/, '')
 }
 
 /** 新留言插入墙顶；先审后显时提示等待审核 */
@@ -161,7 +204,7 @@ async function onCreated(created: { status: string }) {
     : '留言已提交 ✓'
   total.value++
   setTimeout(() => (justPosted.value = false), 4000)
-  replyTo.value = null
+  resetReply()
   await load(1)
 }
 
@@ -335,18 +378,68 @@ usePageSeo({
 
 .wall-reply__body {
   min-width: 0;
+  flex: 1;
+}
+
+.wall-reply__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .wall-reply__name {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--c-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &--link:hover {
+    color: var(--c-primary);
+    text-decoration: underline;
+  }
+}
+
+/* 回复对象标签：数据来自内容开头的 @前缀 */
+.wall-reply__target {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  font-size: 11px;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+  border-radius: 999px;
 }
 
 .wall-reply__time {
-  margin-left: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
   font-size: 11px;
   color: var(--c-text-muted);
+}
+
+.wall-reply__btn {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  font-size: 11.5px;
+  color: var(--c-text-muted);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    color: var(--c-primary);
+    background: var(--c-primary-light);
+  }
+
+  &.is-active {
+    font-weight: 600;
+    color: var(--c-primary);
+    background: var(--c-primary-light);
+  }
 }
 
 .wall-reply__content {
