@@ -11,13 +11,19 @@ export default defineNuxtConfig({
       apiBase: '',
     },
   },
-  // 仅开发环境生效：把 /api/** 代理到 forever-server，浏览器直连后端，生产不经过 Node 代理
-  devProxy: {
-    '/api/': {
-      target: 'http://localhost:8080',
-      changeOrigin: true,
-      // Spring Security 会校验 Origin，改写为后端自身地址以通过 CORS 校验
-      headers: { origin: 'http://localhost:8080' },
+  // 仅开发环境生效：/api/** 及 rss/sitemap 代理到 forever-server，浏览器直连后端，生产不经过 Node 代理
+  nitro: {
+    devProxy: {
+      '/api/': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        // Spring Security 会校验 Origin，改写为后端自身地址以通过 CORS 校验
+        headers: { origin: 'http://localhost:8080' },
+      },
+      // RSS / sitemap 由 forever-server 提供，页面里的 /rss.xml、/sitemap.xml 链接保持同源不变；
+      // 生产环境由 nginx（或网关）把这两个路径转发到后端
+      '/rss.xml': { target: 'http://localhost:8080', changeOrigin: true },
+      '/sitemap.xml': { target: 'http://localhost:8080', changeOrigin: true },
     },
   },
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
