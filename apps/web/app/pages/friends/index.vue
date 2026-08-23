@@ -79,9 +79,7 @@
     </main>
 
     <!-- ===== Footer ===== -->
-    <footer class="site-footer">
-      <span>© {{ new Date().getFullYear() }} Forever · 记录技术与思考</span>
-    </footer>
+    <SiteFooter />
   </div>
 </template>
 
@@ -340,18 +338,6 @@ function hostOf(url: string): string {
 
 .apply-req__cta {
   margin-top: 16px;
-}
-
-/* ===== Footer ===== */
-.site-footer {
-  display: flex;
-  justify-content: center;
-  padding: 24px 20px 32px;
-  margin-top: 48px;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-  border-top: 1px solid var(--c-border);
-  background: var(--c-bg-card);
 }
 
 @media (max-width: 640px) {

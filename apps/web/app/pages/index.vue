@@ -278,27 +278,7 @@
     </main>
 
     <!-- ===== Footer ===== -->
-    <footer class="site-footer">
-      <div class="site-footer__inner">
-        <div class="site-footer__brand">
-          <span class="brand__mark" aria-hidden="true" />
-          <div>
-            <p class="site-footer__name">Forever</p>
-            <p class="site-footer__slogan">用心记录每一篇</p>
-          </div>
-        </div>
-        <nav class="site-footer__links">
-          <a href="#latest" @click.prevent="scrollToId('latest')">最新文章</a>
-          <NuxtLink to="/posts">全部文章</NuxtLink>
-          <NuxtLink to="/friends">友链</NuxtLink>
-          <a href="/rss.xml" target="_blank" rel="noopener">RSS</a>
-        </nav>
-      </div>
-      <div class="site-footer__bottom">
-        <span>© {{ new Date().getFullYear() }} Forever · 记录技术与思考</span>
-        <span class="site-footer__heart">用 <span aria-hidden="true">♥</span> 书写</span>
-      </div>
-    </footer>
+    <SiteFooter />
 
     <!-- 回到顶部 -->
     <Transition name="totop">
@@ -1779,79 +1759,6 @@ html.dark .row__num {
   backdrop-filter: blur(4px);
 }
 
-/* ===== Footer ===== */
-.site-footer {
-  margin-top: 48px;
-  background: var(--c-bg-card);
-  border-top: 1px solid var(--c-border);
-}
-
-.site-footer__inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 32px 20px;
-}
-
-.site-footer__brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.site-footer__name {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--c-text);
-}
-
-.site-footer__slogan {
-  margin: 2px 0 0;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-}
-
-.site-footer__links {
-  display: flex;
-  gap: 6px;
-}
-
-.site-footer__links a {
-  padding: 6px 14px;
-  font-size: 13.5px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-  border-radius: 999px;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.site-footer__links a:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-}
-
-.site-footer__bottom {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px 20px 26px;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-  border-top: 1px solid var(--c-border);
-}
-
-.site-footer__heart span {
-  color: var(--c-primary);
-}
 
 /* ===== 回到顶部：小软糖 ===== */
 .back-top {
