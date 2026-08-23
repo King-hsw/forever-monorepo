@@ -3,14 +3,22 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   runtimeConfig: {
-    // forever-server 后端地址（仅服务端使用，可通过 NUXT_API_BASE 覆盖）；
-    // 前后端之间的 /api/** 请求由 Nitro 路由（server/api/[...path].ts）代理转发，避免浏览器跨域
+    // forever-server 后端地址（仅服务端使用，供 RSS / sitemap 调用，可通过 NUXT_API_BASE 覆盖）
     apiBase: 'http://localhost:8080',
     public: {
       // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
       siteUrl: 'https://forever.example.com',
-      // 浏览器端 API 地址：默认同源（走 Nitro 代理路由），一般无需修改
+      // 浏览器端 API 地址：开发环境为空（走 devProxy 代理），生产环境通过 NUXT_PUBLIC_API_BASE 指向后端
       apiBase: '',
+    },
+  },
+  // 仅开发环境生效：把 /api/** 代理到 forever-server，浏览器直连后端，生产不经过 Node 代理
+  devProxy: {
+    '/api/': {
+      target: 'http://localhost:8080',
+      changeOrigin: true,
+      // Spring Security 会校验 Origin，改写为后端自身地址以通过 CORS 校验
+      headers: { origin: 'http://localhost:8080' },
     },
   },
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
