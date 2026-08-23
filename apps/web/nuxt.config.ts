@@ -3,15 +3,19 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   runtimeConfig: {
+    // forever-server 后端地址：仅服务端 SSR 使用，直连后端不走代理，
+    // 运行时可通过 NUXT_API_BASE 覆盖
+    apiBase: 'http://localhost:8080',
     public: {
       // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
       siteUrl: 'https://forever.example.com',
-      // forever-server 地址：开发环境为空（浏览器走 devProxy 代理，服务端用默认值兜底），
-      // 生产环境通过 NUXT_PUBLIC_API_BASE 指向后端
+      // 浏览器端 API 地址：默认空 = 同源，开发走 devProxy、生产由 nginx 转发；
+      // 仅前后端不同域部署且不经过网关时才需要填写
       apiBase: '',
     },
   },
-  // 仅开发环境生效：/api/** 及 rss/sitemap 代理到 forever-server，浏览器直连后端，生产不经过 Node 代理
+  // 开发环境：浏览器发出的 /api/** 及 rss/sitemap 由 devProxy 转发到后端；
+  // 注意 devProxy 对 SSR 内部 $fetch 无效，SSR 靠上面的 apiBase 直连
   nitro: {
     devProxy: {
       '/api/': {
@@ -20,8 +24,6 @@ export default defineNuxtConfig({
         // Spring Security 会校验 Origin，改写为后端自身地址以通过 CORS 校验
         headers: { origin: 'http://localhost:8080' },
       },
-      // RSS / sitemap 由 forever-server 提供，页面里的 /rss.xml、/sitemap.xml 链接保持同源不变；
-      // 生产环境由 nginx（或网关）把这两个路径转发到后端
       '/rss.xml': { target: 'http://localhost:8080', changeOrigin: true },
       '/sitemap.xml': { target: 'http://localhost:8080', changeOrigin: true },
     },

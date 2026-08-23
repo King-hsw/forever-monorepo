@@ -68,7 +68,9 @@ function handleUnauthorized() {
  * 失败时抛出 ApiError；401 会清除本地登录态并跳转登录页。
  */
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
-  const base = useRuntimeConfig().public.apiBase as string
+  // devProxy 只对浏览器请求生效；SSR 内部 $fetch 必须直连后端地址
+  const config = useRuntimeConfig()
+  const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
   const headers: Record<string, string> = { ...options.headers }
 
   const auth = loadAuth()
