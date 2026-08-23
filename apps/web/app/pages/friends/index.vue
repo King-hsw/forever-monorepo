@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FriendLink } from '~/stores/types'
+import type { FriendLink } from '#shared/types'
 
 usePageSeo({
   title: '友情链接 - Forever',

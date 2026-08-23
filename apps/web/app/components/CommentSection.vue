@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentNode } from '~/stores/types'
+import type { CommentNode } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 
 const props = defineProps<{ articleId: number }>()

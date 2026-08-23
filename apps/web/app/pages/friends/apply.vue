@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FriendLinkApplyInput } from '~/stores/types'
+import type { FriendLinkApplyInput } from '#shared/types'
 import { ApiError, apiFetch } from '~/utils/api'
 
 usePageSeo({

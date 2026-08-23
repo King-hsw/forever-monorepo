@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminComment, CommentStatus } from '~/stores/types'
+import type { AdminComment, CommentStatus } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 import { formatDateTime } from '~/utils/format'
 

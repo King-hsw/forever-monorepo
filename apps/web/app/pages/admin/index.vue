@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '~/stores/types'
+import type { Post } from '#shared/types'
 
 definePageMeta({ layout: 'admin' })
 

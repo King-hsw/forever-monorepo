@@ -76,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category } from '~/stores/types'
+import type { Category } from '#shared/types'
 
 /** 分类列表（复用首页的缓存 key，避免重复请求） */
 const { data: categories } = await useAsyncData('home-categories', () =>

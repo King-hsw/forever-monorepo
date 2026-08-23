@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, Tag } from '~/stores/types'
+import type { Category, PageResult, Post, Tag } from '#shared/types'
 
 const route = useRoute()
 const router = useRouter()

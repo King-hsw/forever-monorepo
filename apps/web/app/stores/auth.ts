@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { MeInfo } from './types'
+import type { MeInfo } from '#shared/types'
 import { apiFetch, clearAuth, loadAuth, saveAuth } from '~/utils/api'
 
 interface LoginResponse {

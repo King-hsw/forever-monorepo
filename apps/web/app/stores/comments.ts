@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AdminComment, CommentInput, CommentNode, CommentStatus, PageResult } from './types'
+import type { AdminComment, CommentInput, CommentNode, CommentStatus, PageResult } from '#shared/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const useCommentsStore = defineStore('comments', () => {

@@ -6,7 +6,7 @@
  * - 统一解包后端 ApiResponse<T>：code === 0 返回 data，否则抛 ApiError。
  * - 自动携带登录令牌（Authorization: Bearer）。
  */
-import type { ApiResponse } from '~/stores/types'
+import type { ApiResponse } from '#shared/types'
 
 const AUTH_KEY = 'forever-admin-auth'
 

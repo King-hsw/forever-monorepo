@@ -1,4 +1,4 @@
-import type { PostStatus } from '~/stores/types'
+import type { PostStatus } from '#shared/types'
 
 /** 文章状态展示文案 */
 export function statusLabel(status: PostStatus): string {

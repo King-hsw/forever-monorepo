@@ -54,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminComment } from '~/stores/types'
+import type { AdminComment } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 
 const props = defineProps<{

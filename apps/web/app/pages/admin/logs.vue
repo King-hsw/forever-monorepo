@@ -71,8 +71,8 @@
 </template>
 
 <script setup lang="ts">
-import type { ActionLogQuery } from '~/stores/types'
-import { useLogsStore } from '~/stores/logs'
+import type { ActionLog, ActionLogQuery, PageResult } from '#shared/types'
+import { apiFetch, cleanQuery } from '~/utils/api'
 import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin' })
@@ -80,7 +80,32 @@ definePageMeta({ layout: 'admin' })
 useHead({ title: '日志审计 - Forever 后台' })
 useState('admin-page-title', () => '日志审计')
 
-const logsStore = useLogsStore()
+/** 日志状态与查询（原 useLogsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
+const logsStore = reactive((() => {
+  const list = ref<ActionLog[]>([])
+  const total = ref(0)
+  const loading = ref(false)
+
+  /** 分页查询审计日志（按时间倒序），每次都取最新数据 */
+  async function fetch(query: ActionLogQuery = {}): Promise<PageResult<ActionLog>> {
+    loading.value = true
+    try {
+      return await apiFetch<PageResult<ActionLog>>('/api/admin/logs', {
+        query: cleanQuery({
+          page: query.page ?? 1,
+          size: query.size ?? 20,
+          username: query.username,
+          path: query.path,
+        }),
+      })
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  return { list, total, loading, fetch }
+})())
 
 const list = computed(() => logsStore.list)
 const total = computed(() => logsStore.total)
@@ -104,7 +129,7 @@ async function load(targetPage = 1) {
     size: size.value,
   }
   try {
-    const data = await logsStore.fetch(query, true)
+    const data = await logsStore.fetch(query)
     page.value = data.page
   }
   catch (err) {

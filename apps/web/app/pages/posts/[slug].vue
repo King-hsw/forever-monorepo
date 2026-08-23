@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PageResult, Post } from '~/stores/types'
+import type { PageResult, Post } from '#shared/types'
 
 const route = useRoute()
 const slug = route.params.slug as string

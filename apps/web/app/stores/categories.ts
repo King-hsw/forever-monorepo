@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Category, CategoryInput } from './types'
+import type { Category, CategoryInput } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 
 export const useCategoriesStore = defineStore('admin-categories', () => {

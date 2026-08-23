@@ -127,17 +127,46 @@
 </template>
 
 <script setup lang="ts">
-import type { SettingItem } from '~/stores/types'
+import type { SettingItem } from '#shared/types'
+import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin' })
 
 useHead({ title: '站点设置 - Forever 后台' })
 useState('admin-page-title', () => '站点设置')
 
-const settingsStore = useSettingsStore()
+/** 配置状态与操作（原 useSettingsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
+const settingsStore = reactive((() => {
+  const list = ref<SettingItem[]>([])
+  const loading = ref(false)
+
+  /** 拉取全部配置项（value 为空字符串表示未在数据库设置、走 yml 默认值），每次都取最新数据 */
+  async function fetch() {
+    loading.value = true
+    try {
+      list.value = await apiFetch<SettingItem[]>('/api/admin/settings')
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /** 更新单项配置（仅支持已登记的配置键），成功后用返回值替换列表中的旧项 */
+  async function update(key: string, value: string): Promise<void> {
+    const item = await apiFetch<SettingItem>('/api/admin/settings', {
+      method: 'PUT',
+      body: { key, value },
+    })
+    const idx = list.value.findIndex(s => s.key === key)
+    if (idx >= 0) list.value[idx] = item
+    else list.value.push(item)
+  }
+
+  return { list, loading, fetch, update }
+})())
 
 await useAsyncData('admin-settings', async () => {
-  await settingsStore.fetch(true)
+  await settingsStore.fetch()
 }, { server: false })
 
 /* ---------- 配置项元数据（与服务端 SiteConfigService 的登记表对应） ---------- */

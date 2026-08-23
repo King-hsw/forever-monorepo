@@ -82,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post, PostInput, PostStatus } from '~/stores/types'
+import type { Post, PostInput, PostStatus } from '#shared/types'
 
 const props = withDefaults(defineProps<{
   initial?: Post | null

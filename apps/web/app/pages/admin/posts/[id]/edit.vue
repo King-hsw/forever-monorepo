@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PostInput, PostStatus } from '~/stores/types'
+import type { PostInput, PostStatus } from '#shared/types'
 
 definePageMeta({ layout: 'admin' })
 

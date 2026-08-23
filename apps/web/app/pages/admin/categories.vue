@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, Tag } from '~/stores/types'
+import type { Category, Tag } from '#shared/types'
 
 definePageMeta({ layout: 'admin' })
 

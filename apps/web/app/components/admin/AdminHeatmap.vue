@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '~/stores/types'
+import type { Post } from '#shared/types'
 
 defineProps<{
   /** 文章列表（含草稿），按 createdAt 统计每日发文数 */

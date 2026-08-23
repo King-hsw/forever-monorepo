@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentNode } from '~/stores/types'
+import type { CommentNode } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
 
 defineProps<{

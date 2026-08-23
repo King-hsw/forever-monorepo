@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '~/stores/types'
+import type { Post } from '#shared/types'
 
 const props = defineProps<{
   /** 文章列表，按 createdAt 统计每日发文数 */

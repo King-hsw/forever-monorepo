@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ArchiveItem } from '~/stores/types'
+import type { ArchiveItem } from '#shared/types'
 
 usePageSeo({
   title: '归档 - Forever',

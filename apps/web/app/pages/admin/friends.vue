@@ -210,7 +210,8 @@
 </template>
 
 <script setup lang="ts">
-import type { FriendLink, FriendLinkStatus } from '~/stores/types'
+import type { FriendLink, FriendLinkApplyInput, FriendLinkStatus, FriendLinkUpdateInput } from '#shared/types'
+import { apiFetch } from '~/utils/api'
 import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin' })
@@ -218,11 +219,69 @@ definePageMeta({ layout: 'admin' })
 useHead({ title: '友链管理 - Forever 后台' })
 useState('admin-page-title', () => '友链管理')
 
-const friendsStore = useFriendsStore()
+/** 友链状态与操作（原 useFriendsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
+const friendsStore = reactive((() => {
+  const list = ref<FriendLink[]>([])
+  const loading = ref(false)
+
+  /** 拉取友链全量列表（含待审核与已驳回），每次都取最新数据 */
+  async function fetch() {
+    loading.value = true
+    try {
+      list.value = await apiFetch<FriendLink[]>('/api/admin/friend-links')
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /** 新增友链（管理端直接创建，状态为 APPROVED），成功后插入列表开头 */
+  async function create(input: FriendLinkApplyInput): Promise<void> {
+    const link = await apiFetch<FriendLink>('/api/admin/friend-links', {
+      method: 'POST',
+      body: input as unknown as Record<string, unknown>,
+    })
+    list.value = [link, ...list.value]
+  }
+
+  /** 全量更新友链（未传的字段会被后端置空） */
+  async function update(id: number, input: FriendLinkUpdateInput): Promise<void> {
+    replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}`, {
+      method: 'PUT',
+      body: input as unknown as Record<string, unknown>,
+    }))
+  }
+
+  /** 通过审核 */
+  async function approve(id: number): Promise<void> {
+    replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}/approve`, { method: 'POST' }))
+  }
+
+  /** 驳回申请，可附带原因 */
+  async function reject(id: number, reason?: string): Promise<void> {
+    replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}/reject`, {
+      method: 'POST',
+      query: reason ? { reason } : undefined,
+    }))
+  }
+
+  /** 删除友链 */
+  async function remove(id: number): Promise<void> {
+    await apiFetch<void>(`/api/admin/friend-links/${id}`, { method: 'DELETE' })
+    list.value = list.value.filter(f => f.id !== id)
+  }
+
+  function replace(link: FriendLink) {
+    const idx = list.value.findIndex(f => f.id === link.id)
+    if (idx >= 0) list.value[idx] = link
+  }
+
+  return { list, loading, fetch, create, update, approve, reject, remove }
+})())
 
 // 仅客户端拉取：登录令牌存在 localStorage，SSR 阶段拿不到（避免直接访问 URL 时 SSR 401 失败）
 await useAsyncData('admin-friend-links', async () => {
-  await friendsStore.fetch(true)
+  await friendsStore.fetch()
 }, { server: false })
 
 const saving = ref(false)

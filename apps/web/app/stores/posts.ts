@@ -6,7 +6,7 @@ import type {
   PostStatus,
   PublicArticleQuery,
   PageResult,
-} from './types'
+} from '#shared/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const usePostsStore = defineStore('admin-posts', () => {

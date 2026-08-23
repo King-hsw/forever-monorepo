@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Tag, TagInput } from './types'
+import type { Tag, TagInput } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 
 export const useTagsStore = defineStore('admin-tags', () => {

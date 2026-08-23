@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentNode, Post } from '~/stores/types'
+import type { CommentNode, Post } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 import { usePageSeo } from '~/composables/usePageSeo'
 

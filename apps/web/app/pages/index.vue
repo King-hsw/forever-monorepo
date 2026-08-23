@@ -214,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, Tag } from '~/stores/types'
+import type { Category, PageResult, Post, Tag } from '#shared/types'
 
 // 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
 const { data: pageData } = await useAsyncData('home-articles', () =>
