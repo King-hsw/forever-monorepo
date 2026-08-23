@@ -4,6 +4,7 @@
       <p class="friends-admin__hint">
         访客提交的友链申请会出现在这里，审核通过后在前台「友链」页展示；共 {{ friendsStore.list.length }} 条
       </p>
+      <button type="button" class="btn btn--primary" @click="openCreate">+ 添加友链</button>
     </header>
 
     <!-- 编辑表单 -->
@@ -136,6 +137,67 @@
       </footer>
     </div>
 
+    <!-- 添加友链弹窗 -->
+    <Teleport to="body">
+      <Transition name="create-dialog">
+        <div
+          v-if="createOpen"
+          class="create-dialog__overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="添加友链"
+          @click.self="createOpen = false"
+        >
+          <div class="create-dialog card">
+            <h3 class="create-dialog__title">添加友链</h3>
+            <div>
+              <label class="field-label" for="create-friend-name">站点名称 <em>*</em></label>
+              <input
+                id="create-friend-name"
+                v-model="createForm.name"
+                class="field-input"
+                :class="{ 'is-invalid': !!createErrors.name }"
+                type="text"
+                @input="createErrors.name = ''"
+              >
+              <p v-if="createErrors.name" class="field-error">{{ createErrors.name }}</p>
+            </div>
+            <div>
+              <label class="field-label" for="create-friend-url">站点地址 <em>*</em></label>
+              <input
+                id="create-friend-url"
+                v-model="createForm.siteUrl"
+                class="field-input"
+                :class="{ 'is-invalid': !!createErrors.siteUrl }"
+                type="url"
+                placeholder="https://example.com"
+                @input="createErrors.siteUrl = ''"
+              >
+              <p v-if="createErrors.siteUrl" class="field-error">{{ createErrors.siteUrl }}</p>
+            </div>
+            <div>
+              <label class="field-label" for="create-friend-icon">图标地址</label>
+              <input id="create-friend-icon" v-model="createForm.iconUrl" class="field-input" type="url" placeholder="选填">
+            </div>
+            <div>
+              <label class="field-label" for="create-friend-desc">简介</label>
+              <input id="create-friend-desc" v-model="createForm.description" class="field-input" type="text" placeholder="选填">
+            </div>
+            <div>
+              <label class="field-label" for="create-friend-contact">联系方式</label>
+              <input id="create-friend-contact" v-model="createForm.contact" class="field-input" type="text" placeholder="选填，仅管理端可见">
+            </div>
+            <footer class="create-dialog__actions">
+              <button type="button" class="btn" :disabled="creating" @click="createOpen = false">取消</button>
+              <button type="button" class="btn btn--primary" :disabled="creating" @click="submitCreate">
+                {{ creating ? '保存中…' : '保存' }}
+              </button>
+            </footer>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <AdminConfirmDialog
       :open="!!pendingDelete"
       title="确认删除"
@@ -263,6 +325,56 @@ async function saveForm() {
   }
 }
 
+/* ---------- 新增友链 ---------- */
+const createOpen = ref(false)
+const creating = ref(false)
+const createForm = reactive({ name: '', siteUrl: '', iconUrl: '', description: '', contact: '' })
+const createErrors = reactive({ name: '', siteUrl: '' })
+
+function openCreate() {
+  Object.assign(createForm, { name: '', siteUrl: '', iconUrl: '', description: '', contact: '' })
+  createErrors.name = ''
+  createErrors.siteUrl = ''
+  createOpen.value = true
+}
+
+async function submitCreate() {
+  const name = createForm.name.trim()
+  const siteUrl = createForm.siteUrl.trim()
+  if (!name) createErrors.name = '站点名称不能为空'
+  if (!siteUrl) {
+    createErrors.siteUrl = '站点地址不能为空'
+  } else if (!/^https?:\/\//i.test(siteUrl)) {
+    createErrors.siteUrl = '站点地址需以 http(s):// 开头'
+  }
+  if (createErrors.name || createErrors.siteUrl) return
+
+  creating.value = true
+  try {
+    await friendsStore.create({
+      name,
+      siteUrl,
+      iconUrl: createForm.iconUrl.trim() || undefined,
+      description: createForm.description.trim() || undefined,
+      contact: createForm.contact.trim() || undefined,
+    })
+    createOpen.value = false
+  } catch (err) {
+    reportError(err)
+  } finally {
+    creating.value = false
+  }
+}
+
+function onCreateKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && createOpen.value && !creating.value) {
+    createOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('keydown', onCreateKeydown))
+onBeforeUnmount(() => document.removeEventListener('keydown', onCreateKeydown))
+
 /* ---------- 删除确认 ---------- */
 const pendingDelete = ref<FriendLink | null>(null)
 
@@ -284,6 +396,10 @@ async function confirmRemove() {
 
 <style scoped>
 .friends-admin__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 18px;
 }
 
@@ -320,6 +436,62 @@ async function confirmRemove() {
 
 .field-input.is-invalid {
   border-color: var(--c-danger);
+}
+
+.create-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(15 23 42 / 40%);
+}
+
+.create-dialog {
+  width: min(460px, 100%);
+  max-height: calc(100vh - 48px);
+  padding: 22px;
+  overflow-y: auto;
+
+  > div {
+    margin-bottom: 14px;
+  }
+}
+
+.create-dialog__title {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.create-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+
+  .btn {
+    min-width: 76px;
+    padding-block: 7px;
+  }
+}
+
+.create-dialog-enter-active,
+.create-dialog-leave-active {
+  transition: opacity 0.22s ease;
+
+  .create-dialog {
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+.create-dialog-enter-from,
+.create-dialog-leave-to {
+  opacity: 0;
+
+  .create-dialog {
+    transform: translateY(12px) scale(0.96);
+  }
 }
 
 .friends-form__actions {

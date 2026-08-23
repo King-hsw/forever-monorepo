@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { FriendLink, FriendLinkUpdateInput } from './types'
+import type { FriendLink, FriendLinkApplyInput, FriendLinkUpdateInput } from './types'
 import { apiFetch } from '~/utils/api'
 
 export const useFriendsStore = defineStore('admin-friends', () => {
@@ -17,6 +17,15 @@ export const useFriendsStore = defineStore('admin-friends', () => {
     } finally {
       loading.value = false
     }
+  }
+
+  /** 新增友链（管理端直接创建，状态为 APPROVED），成功后插入列表开头 */
+  async function create(input: FriendLinkApplyInput): Promise<void> {
+    const link = await apiFetch<FriendLink>('/api/admin/friend-links', {
+      method: 'POST',
+      body: input as unknown as Record<string, unknown>,
+    })
+    list.value = [link, ...list.value]
   }
 
   /** 全量更新友链（未传的字段会被后端置空） */
@@ -54,5 +63,5 @@ export const useFriendsStore = defineStore('admin-friends', () => {
     if (idx >= 0) list.value[idx] = link
   }
 
-  return { list, loaded, loading, fetch, update, approve, reject, remove }
+  return { list, loaded, loading, fetch, create, update, approve, reject, remove }
 })
