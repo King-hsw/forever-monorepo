@@ -160,16 +160,16 @@ const data = computed(() => {
   --hm-0: var(--c-bg-soft);
   --hm-1: #f8dcc0;
   --hm-2: #f0b183;
-  --hm-3: #ee8a3c;
+  --hm-3: #e56f43;
   --hm-4: #c96a26;
 }
 
 :global(html.dark) .heatmap {
   --hm-0: rgb(255 255 255 / 5%);
-  --hm-1: rgb(238 138 60 / 28%);
-  --hm-2: rgb(238 138 60 / 48%);
-  --hm-3: rgb(238 138 60 / 75%);
-  --hm-4: #f2a35e;
+  --hm-1: rgb(229 111 67 / 28%);
+  --hm-2: rgb(229 111 67 / 48%);
+  --hm-3: rgb(229 111 67 / 75%);
+  --hm-4: #eb8258;
 }
 
 .heatmap__summary {
@@ -250,7 +250,7 @@ const data = computed(() => {
 .heatmap__cells .heatmap__cell:hover:not(.is-future) {
   z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
   transform: scale(1.35); /* 悬停轻轻放大 */
-  box-shadow: 0 2px 6px rgb(238 138 60 / 30%);
+  box-shadow: 0 2px 6px rgb(229 111 67 / 30%);
 }
 
 /* 悬停信息气泡：替代原生 title，展示更及时、样式更精致。

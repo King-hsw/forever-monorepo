@@ -16,16 +16,6 @@
 
     <!-- ===== Hero：头像 + 问候 + 眉题签名 + 引言（构图参考余白首页） ===== -->
     <section ref="heroEl" class="hero">
-      <!-- 彩旗：挂在 hero 顶边的一排小三角，随风轻摆 -->
-      <div class="hero__bunting" aria-hidden="true">
-        <span
-          v-for="i in 22"
-          :key="i"
-          class="hero__flag"
-          :style="{ '--fc': flagColors[(i - 1) % flagColors.length], '--fd': `${(i % 5) * 0.18}s` }"
-        />
-      </div>
-
       <div class="hero__bg" aria-hidden="true">
         <div class="hero__glow" />
       </div>
@@ -363,9 +353,6 @@ function tick() {
 
 let revealObserver: IntersectionObserver | null = null
 
-/** 彩旗颜色：暖调五色轮换 */
-const flagColors = ['#ee8a3c', '#f2c14e', '#93b884', '#cd6f52', '#b98a5e']
-
 /** 上线天数：从最早一篇文章算起，客户端挂载后填充避免水合不一致 */
 const sinceDays = ref<number | null>(null)
 onMounted(() => {
@@ -515,44 +502,6 @@ usePageSeo({
   pointer-events: none;
 }
 
-/* 彩旗：挂在 hero 顶边的一排小三角，随风轻摆 */
-.hero__bunting {
-  position: absolute;
-  top: -2px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-evenly;
-  pointer-events: none;
-}
-
-/* 旗绳 */
-.hero__bunting::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: color-mix(in srgb, var(--c-primary) 30%, var(--c-border));
-}
-
-.hero__flag {
-  width: 20px;
-  height: 28px;
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
-  background: var(--fc, var(--c-primary));
-  transform-origin: top center;
-  animation: flag-sway 3.2s ease-in-out infinite alternate;
-  animation-delay: var(--fd, 0s);
-  opacity: 0.85;
-}
-
-@keyframes flag-sway {
-  from { transform: rotate(-4deg); }
-  to { transform: rotate(4deg); }
-}
-
 /* 周年徽章：一枚会发光的小圆牌 */
 .hero__anniv {
   display: inline-flex;
@@ -595,11 +544,11 @@ usePageSeo({
   aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgb(238 138 60 / 12%) 0%, transparent 55%);
+  background: radial-gradient(ellipse, rgb(229 111 67 / 12%) 0%, transparent 55%);
 }
 
 html.dark .hero__glow {
-  background: radial-gradient(ellipse, rgb(242 163 94 / 8%) 0%, transparent 55%);
+  background: radial-gradient(ellipse, rgb(235 130 88 / 8%) 0%, transparent 55%);
 }
 
 .hero__content {
@@ -628,7 +577,7 @@ html.dark .hero__glow {
   border-radius: 50%;
   box-shadow:
     inset 0 0 0 1px rgb(255 255 255 / 25%),
-    0 8px 24px rgb(238 138 60 / 30%);
+    0 8px 24px rgb(229 111 67 / 30%);
 }
 
 /* 标题：细体问候 + 中等字重名字，像余白首页的 Hi, I'm Vinking。 */
@@ -735,13 +684,13 @@ html.dark .hero__glow {
   border-radius: 999px; /* 小软糖胶囊 */
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(238 138 60 / 32%), inset 0 -3px 0 rgb(0 0 0 / 8%); /* 底部厚度像果冻 */
+  box-shadow: 0 6px 18px rgb(229 111 67 / 32%), inset 0 -3px 0 rgb(0 0 0 / 8%); /* 底部厚度像果冻 */
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .hero__cta:hover {
   transform: translateY(-3px) scale(1.04); /* 弹起 */
-  box-shadow: 0 10px 26px rgb(238 138 60 / 42%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  box-shadow: 0 10px 26px rgb(229 111 67 / 42%), inset 0 -3px 0 rgb(0 0 0 / 8%);
 }
 
 .hero__cta:active {
@@ -1078,7 +1027,7 @@ html.dark .hero__glow {
   padding: 30px 34px 26px;
   /* 白卡上叠一层极淡的粉→紫渐变，像一张带色的信纸 */
   background:
-    linear-gradient(135deg, rgb(238 138 60 / 7%) 0%, rgb(213 168 82 / 7%) 100%),
+    linear-gradient(135deg, rgb(229 111 67 / 7%) 0%, rgb(147 184 132 / 7%) 100%),
     var(--c-bg-card);
   border: 1.5px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
   border-radius: var(--radius-card);
@@ -1102,7 +1051,7 @@ html.dark .hero__glow {
   right: -38px;
   width: 150px;
   height: 150px;
-  background: rgb(238 138 60 / 22%);
+  background: rgb(229 111 67 / 22%);
   animation: featured-float 7s ease-in-out infinite;
 }
 
@@ -1111,7 +1060,7 @@ html.dark .hero__glow {
   left: -30px;
   width: 130px;
   height: 130px;
-  background: rgb(213 168 82 / 20%);
+  background: rgb(147 184 132 / 20%);
   animation: featured-float 9s ease-in-out 1.2s infinite reverse;
 }
 
@@ -1140,7 +1089,7 @@ html.dark .hero__glow {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   transform: rotate(-2deg); /* 像随手贴上的贴纸 */
-  box-shadow: 0 3px 10px rgb(238 138 60 / 35%);
+  box-shadow: 0 3px 10px rgb(229 111 67 / 35%);
 }
 
 .featured__badge::before {
@@ -1233,7 +1182,7 @@ html.dark .hero__glow {
   color: #fff;
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   transform: rotate(-45deg) scale(1.12);
-  box-shadow: 0 4px 12px rgb(238 138 60 / 35%);
+  box-shadow: 0 4px 12px rgb(229 111 67 / 35%);
 }
 
 /* ---- 编号时间线：左侧一条竖线贯穿，序号压在线上，像目录的页码 ---- */
@@ -1366,7 +1315,7 @@ html.dark .hero__glow {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-color: transparent;
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 20px rgb(238 138 60 / 32%);
+  box-shadow: 0 8px 20px rgb(229 111 67 / 32%);
 
   .more-link__arrow {
     transform: translateX(4px);
@@ -1433,12 +1382,12 @@ html.dark .hero__glow {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(238 138 60 / 30%);
+  box-shadow: 0 6px 18px rgb(229 111 67 / 30%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 
   &:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 10px 26px rgb(238 138 60 / 40%);
+    box-shadow: 0 10px 26px rgb(229 111 67 / 40%);
   }
 }
 
@@ -1472,13 +1421,13 @@ html.dark .hero__glow {
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgb(238 138 60 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  box-shadow: 0 8px 20px rgb(229 111 67 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .back-top:hover {
   transform: translateY(-4px) scale(1.08);
-  box-shadow: 0 12px 26px rgb(238 138 60 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  box-shadow: 0 12px 26px rgb(229 111 67 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
 }
 
 .back-top:active {

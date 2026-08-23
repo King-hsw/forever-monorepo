@@ -17,7 +17,7 @@
  * - 极低透明度，只做氛围不打扰阅读
  * - prefers-reduced-motion 下动画被全局禁用，彩纸停在透明态不可见
  */
-const COLORS = ['#ee8a3c', '#f2c14e', '#93b884', '#cd6f52', '#b98a5e']
+const COLORS = ['#e56f43', '#93b884', '#c05868', '#8ba692', '#b98a5e']
 
 /** 可复现的伪随机数（避免 Math.random 导致 SSR/客户端不一致） */
 function makeRng(seed: number) {

@@ -214,15 +214,15 @@ onBeforeUnmount(() => {
 
 /* 糖果色轮换：粉 / 紫 / 薄荷 / 柠檬 / 天空蓝 */
 .tag-sphere__item:nth-child(5n + 1) {
-  color: color-mix(in srgb, #ee8a3c 75%, var(--c-text));
-  background: color-mix(in srgb, #ee8a3c 13%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #ee8a3c 30%, transparent);
+  color: color-mix(in srgb, #e56f43 75%, var(--c-text));
+  background: color-mix(in srgb, #e56f43 13%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #e56f43 30%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 2) {
-  color: color-mix(in srgb, #f2c14e 80%, var(--c-text));
-  background: color-mix(in srgb, #f2c14e 15%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #f2c14e 32%, transparent);
+  color: color-mix(in srgb, #c05868 80%, var(--c-text));
+  background: color-mix(in srgb, #c05868 15%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #c05868 32%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 3) {
@@ -232,9 +232,9 @@ onBeforeUnmount(() => {
 }
 
 .tag-sphere__item:nth-child(5n + 4) {
-  color: color-mix(in srgb, #cd6f52 75%, var(--c-text));
-  background: color-mix(in srgb, #cd6f52 13%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #cd6f52 30%, transparent);
+  color: color-mix(in srgb, #8ba692 75%, var(--c-text));
+  background: color-mix(in srgb, #8ba692 13%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #8ba692 30%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 5) {
@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
 
 .tag-sphere__item:hover {
   border-color: currentcolor;
-  box-shadow: 0 4px 12px rgb(238 138 60 / 20%);
+  box-shadow: 0 4px 12px rgb(229 111 67 / 20%);
 }
 
 .tag-sphere__item sup {
