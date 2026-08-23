@@ -1,0 +1,163 @@
+/* ===== 共享文章排版样式 =====
+ * 唯一基准：MarkdownView（文章详情页）的 GitHub 风格排版。
+ * 同时作用于：
+ *   - .markdown-view —— marked 渲染出的详情页正文容器
+ *   - .tiptap        —— TiptapEditor 的编辑器根元素
+ * 保证「所见即所得」：编辑器里的标题边框、引用、表格、链接颜色等
+ * 与详情页渲染结果完全一致。
+ * 通过 :is() 复用同一组规则；视觉参数以局部变量参数化，便于统一调整。
+ */
+
+/* ---- 参数化变量（默认取 MarkdownView 原始值） ---- */
+:is(.markdown-view, .tiptap) {
+  --prose-heading-border: #eaecef;            /* H1/H2 下边框 */
+  --prose-rule-border: #d0d7de;               /* 引用竖线 / 分割线 / 表格边框 */
+  --prose-inline-code-bg: rgb(175 184 193 / 20%); /* 行内代码底色 */
+  --prose-pre-padding: 16px;                  /* 代码块内边距 */
+
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--c-text);
+  word-break: break-word;
+}
+
+/* 首尾元素贴边 */
+:is(.markdown-view, .tiptap) > :first-child {
+  margin-top: 0;
+}
+
+:is(.markdown-view, .tiptap) > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---- 标题 ---- */
+:is(.markdown-view, .tiptap) :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1.2em 0 0.6em;
+}
+
+:is(.markdown-view, .tiptap) h1 {
+  font-size: 1.6em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--prose-heading-border);
+}
+
+:is(.markdown-view, .tiptap) h2 {
+  font-size: 1.35em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--prose-heading-border);
+}
+
+:is(.markdown-view, .tiptap) h3 {
+  font-size: 1.15em;
+}
+
+/* ---- 段落 / 列表 ---- */
+:is(.markdown-view, .tiptap) p {
+  margin: 0.6em 0;
+}
+
+:is(.markdown-view, .tiptap) :is(ul, ol) {
+  padding-left: 1.5em;
+  margin: 0.6em 0;
+}
+
+:is(.markdown-view, .tiptap) ul {
+  list-style: disc;
+}
+
+:is(.markdown-view, .tiptap) ol {
+  list-style: decimal;
+}
+
+/* ---- 链接 ---- */
+:is(.markdown-view, .tiptap) a {
+  color: var(--c-primary);
+  text-decoration: underline;
+}
+
+/* ---- 引用 ---- */
+:is(.markdown-view, .tiptap) blockquote {
+  margin: 0.8em 0;
+  padding: 0 1em;
+  border-left: 4px solid var(--prose-rule-border);
+  color: var(--c-text-secondary);
+}
+
+/* ---- 行内代码 ---- */
+:is(.markdown-view, .tiptap) code {
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--prose-inline-code-bg);
+  border-radius: 6px;
+}
+
+/* ---- 代码块 ---- */
+:is(.markdown-view, .tiptap) pre {
+  margin: 0.8em 0;
+  padding: var(--prose-pre-padding);
+  background: var(--c-bg-soft);
+  border-radius: 8px;
+  overflow-x: auto;
+  line-height: 1.5;
+  counter-reset: line;
+}
+
+:is(.markdown-view, .tiptap) pre code {
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font-size: 0.9em;
+}
+
+/* 代码块行号（详情页专用）：marked-highlight 渲染期把每行包成
+ * <span class="line">，这里用 counter 显示编号；
+ * 编辑器是外挂 gutter 栏，视觉参数在 TiptapEditor.vue 中与此保持一致。 */
+:is(.markdown-view, .tiptap) pre code .line {
+  display: block;
+  counter-increment: line;
+}
+
+:is(.markdown-view, .tiptap) pre code .line::before {
+  content: counter(line);
+  display: inline-block;
+  min-width: 3ch;
+  margin-right: 1em;
+  text-align: right;
+  color: var(--c-text-muted);
+  user-select: none;
+}
+
+/* ---- 分割线 / 图片 / 删除线 ---- */
+:is(.markdown-view, .tiptap) hr {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 1px solid var(--prose-rule-border);
+}
+
+:is(.markdown-view, .tiptap) img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+:is(.markdown-view, .tiptap) del {
+  color: var(--c-text-secondary);
+}
+
+/* ---- 表格 ---- */
+:is(.markdown-view, .tiptap) table {
+  border-collapse: collapse;
+  margin: 0.8em 0;
+}
+
+:is(.markdown-view, .tiptap) th,
+:is(.markdown-view, .tiptap) td {
+  border: 1px solid var(--prose-rule-border);
+  padding: 6px 12px;
+}
+
+:is(.markdown-view, .tiptap) th {
+  background: var(--c-bg-soft);
+}

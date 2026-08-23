@@ -365,67 +365,15 @@ function confirmLink() {
   }
 }
 
-/* 编辑区域（.tiptap 是 Tiptap 的根元素） */
+/* 编辑区域（.tiptap 是 Tiptap 的根元素）
+ * 标题/段落/列表/引用/行内代码/pre/链接/图片/hr/表格等排版
+ * 由全局共享样式 app/assets/css/prose.css 提供（与 MarkdownView 完全一致），
+ * 这里只保留编辑器特有的规则：容器、::selection、选中描边、代码块 NodeView。 */
 .tiptap-editor__content {
   .tiptap {
     min-height: 200px;
     padding: 16px 20px;
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--c-text);
     outline: none;
-  }
-
-  .tiptap p {
-    margin: 0.6em 0;
-  }
-
-  .tiptap h1,
-  .tiptap h2,
-  .tiptap h3 {
-    font-weight: 600;
-    line-height: 1.3;
-    margin: 1em 0 0.5em;
-  }
-
-  .tiptap h1 {
-    font-size: 1.8em;
-  }
-
-  .tiptap h2 {
-    font-size: 1.5em;
-  }
-
-  .tiptap h3 {
-    font-size: 1.25em;
-  }
-
-  .tiptap ul,
-  .tiptap ol {
-    padding-left: 1.4em;
-    margin: 0.6em 0;
-  }
-
-  .tiptap ul {
-    list-style: disc;
-  }
-
-  .tiptap ol {
-    list-style: decimal;
-  }
-
-  .tiptap blockquote {
-    margin: 0.8em 0;
-    padding-left: 1em;
-    border-left: 3px solid var(--tt-border);
-    color: var(--c-text-secondary);
-  }
-
-  .tiptap code {
-    padding: 2px 4px;
-    font-size: 0.9em;
-    background: var(--c-bg-soft);
-    border-radius: 4px;
   }
 
   /* 代码块（NodeView 渲染为 行号栏 + pre + 悬浮工具条的组合，见 CodeBlockLineNumbers.ts） */
@@ -433,9 +381,12 @@ function confirmLink() {
     position: relative;
     display: flex;
     margin: 0.8em 0;
+    /* 字号 / 行高 / 底色 / 圆角与共享样式的 pre 保持一致：
+       0.9em（相对根字号 15px = 13.5px）、1.5、--c-bg-soft、8px */
     font-size: 0.9em;
+    line-height: 1.5;
     background: var(--c-bg-soft);
-    border-radius: 6px;
+    border-radius: 8px;
   }
 
   /* 代码块右上角悬浮工具条：默认半透明，hover/focus 时完全显示 */
@@ -496,6 +447,8 @@ function confirmLink() {
     }
   }
 
+  /* 外挂行号栏：字号 / 行高随 .tiptap-code-block，颜色与 min-width 与详情页的
+     pre code .line::before 对齐（--c-text-muted / 3ch） */
   .tiptap .tiptap-code-block__gutter {
     flex-shrink: 0;
     padding: 12px 0 12px 14px;
@@ -507,55 +460,22 @@ function confirmLink() {
 
   .tiptap .tiptap-code-block__gutter span {
     display: block;
-    min-width: 2ch;
-    padding-right: 1ch;
+    min-width: 3ch;
+    padding-right: 1em;
   }
 
   .tiptap .tiptap-code-block pre {
     flex: 1;
     min-width: 0;
     margin: 0;
-    padding: 12px 14px;
+    padding: 12px 16px;
     overflow-x: auto;
-    /* 外层 .tiptap pre 的 0.9em 会再叠乘容器已有的 0.9em，导致代码比行号
-       字号小、行高逐行错位；这里改为继承容器字号，与行号栏保持完全一致 */
+    /* 字号 / 行高继承 .tiptap-code-block（0.9em / 1.5），与行号栏及详情页
+       代码块完全一致；避免叠乘共享样式导致错位 */
     font-size: inherit;
     line-height: inherit;
     /* 右侧留白稍大一点，避免第一行被悬浮工具条遮住 */
     padding-right: 110px;
-  }
-
-  .tiptap pre {
-    margin: 0.8em 0;
-    padding: 12px 14px;
-    font-size: 0.9em;
-    background: var(--c-bg-soft);
-    border-radius: 6px;
-    overflow-x: auto;
-  }
-
-  .tiptap pre code {
-    padding: 0;
-    background: none;
-  }
-
-  .tiptap hr {
-    margin: 1.2em 0;
-    border: none;
-    border-top: 1px solid var(--tt-border);
-  }
-
-  .tiptap a {
-    color: var(--tt-accent);
-    text-decoration: underline;
-  }
-
-  .tiptap img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 0.8em auto;
-    border-radius: 6px;
   }
 
   /* 图片节点被选中时的描边 */

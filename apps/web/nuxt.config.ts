@@ -13,7 +13,8 @@ export default defineNuxtConfig({
       apiBase: '',
     },
   },
-  css: ['~/assets/css/main.css'],
+  // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
+  css: ['~/assets/css/main.css', '~/assets/css/prose.css'],
   modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
   pwa: {
     registerType: 'autoUpdate',
