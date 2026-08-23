@@ -37,6 +37,9 @@
 </template>
 
 <script setup lang="ts">
+// 后台页面不希望被搜索引擎收录
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+
 const sidebarOpen = ref(false)
 
 // 各页面通过 useState('admin-page-title') 设置顶栏标题

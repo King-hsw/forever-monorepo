@@ -1,2 +1,4 @@
 User-Agent: *
 Disallow:
+
+Sitemap: https://forever.example.com/sitemap.xml

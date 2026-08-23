@@ -115,7 +115,11 @@
 import type { FriendLinkApplyInput } from '~/stores/types'
 import { ApiError, apiFetch } from '~/utils/api'
 
-useHead({ title: '申请友链 - Forever' })
+usePageSeo({
+  title: '申请友链 - Forever',
+  path: '/friends/apply',
+})
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 const form = reactive({
   name: '',

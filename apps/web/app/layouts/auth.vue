@@ -8,6 +8,9 @@
 </template>
 
 <script setup lang="ts">
+// 登录页不希望被搜索引擎收录
+useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
+
 const shaking = ref(false)
 
 /** 错误抖动动画（由页面通过 useState 触发） */

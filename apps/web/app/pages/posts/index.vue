@@ -256,7 +256,11 @@ function formatDate(value: string | number): string {
   })
 }
 
-useHead({ title: '全部文章 - Forever' })
+usePageSeo({
+  title: '全部文章 - Forever',
+  description: '浏览 Forever 的全部技术文章与思考记录，可按分类、标签筛选。',
+  path: '/posts',
+})
 </script>
 
 <style scoped>

@@ -113,9 +113,16 @@ function formatDate(value: string | number | null | undefined): string {
   })
 }
 
-useHead(() => ({
-  title: post.value ? `${post.value.title} - Forever` : 'Forever',
-}))
+usePageSeo({
+  title: () => (post.value ? `${post.value.title} - Forever` : 'Forever'),
+  description: () => post.value?.summary,
+  // 关键词直接用标签名，无需后端新增字段
+  keywords: () => post.value?.tags.map(t => t.name) ?? [],
+  image: () => post.value?.coverImage,
+  type: 'article',
+  publishedTime: () => post.value?.publishedAt,
+  modifiedTime: () => post.value?.updatedAt,
+})
 </script>
 
 <style scoped>

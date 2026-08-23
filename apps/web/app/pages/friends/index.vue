@@ -88,7 +88,11 @@
 <script setup lang="ts">
 import type { FriendLink } from '~/stores/types'
 
-useHead({ title: '友情链接 - Forever' })
+usePageSeo({
+  title: '友情链接 - Forever',
+  description: 'Forever 的朋友们 —— 收录的友链博客一览，欢迎申请交换友情链接。',
+  path: '/friends',
+})
 
 const { data: friends, pending } = await useAsyncData('public-friend-links', () =>
   apiFetch<FriendLink[]>('/api/v1/friend-links'),

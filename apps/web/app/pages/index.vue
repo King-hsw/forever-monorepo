@@ -579,7 +579,10 @@ function formatDate(value: string | number): string {
 const TITLE_A = ['记', '录']
 const TITLE_B = ['技', '术', '与', '思', '考']
 
-useHead({ title: 'Forever - 记录技术与思考' })
+usePageSeo({
+  title: 'Forever - 记录技术与思考',
+  path: '/',
+})
 </script>
 
 <style scoped>
