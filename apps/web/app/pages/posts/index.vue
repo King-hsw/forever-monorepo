@@ -178,6 +178,9 @@ function postTagsOf(post: Post) {
 
 function setCategory(slug: string) {
   hasSwapped.value = true
+  if (slug !== activeCategory.value) {
+    scrollToTop()
+  }
   router.replace(slug ? { query: { category: slug } } : { query: {} })
 }
 
@@ -197,7 +200,14 @@ function setPage(page: number) {
 function changePage(page: number) {
   if (page === currentPage.value) return
   setPage(page)
-  // 悬浮翻页器始终可见，翻页后无需强制滚动打断阅读位置
+  // 翻页后回到页顶，让用户从新页面的第一行开始阅读
+  scrollToTop()
+}
+
+function scrollToTop() {
+  if (!import.meta.client) return
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
 }
 
 // 是否已经发生过翻页 / 切分类。
