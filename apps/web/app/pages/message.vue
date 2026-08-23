@@ -1,12 +1,7 @@
 <template>
   <div class="wall-page">
-    <header class="site-header">
-      <NuxtLink to="/" class="brand">Forever</NuxtLink>
-      <div class="site-header__actions">
-        <ThemeToggle />
-        <NuxtLink to="/admin" class="back-btn admin-entry">管理</NuxtLink>
-      </div>
-    </header>
+    <!-- ===== Header：全站统一导航 ===== -->
+    <SiteHeader width="960px" />
 
     <main v-if="board" class="wall-wrap">
       <!-- ===== 页头 ===== -->
@@ -151,48 +146,10 @@ usePageSeo({
   background: var(--c-bg-soft);
 }
 
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 16px 20px;
-}
-
-.brand {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--c-text);
-  text-decoration: none;
-
-  &:hover {
-    color: var(--c-primary);
-  }
-}
-
-.admin-entry {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 14px;
-  font-size: 13px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  background: var(--c-bg-card);
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: var(--c-primary);
-    border-color: var(--c-primary);
-  }
-}
-
 .wall-wrap {
   max-width: 960px;
   margin: 0 auto;
-  padding: 12px 20px 56px;
+  padding: 84px 20px 56px;
 }
 
 /* ===== 页头 ===== */

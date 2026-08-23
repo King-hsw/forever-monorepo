@@ -1,13 +1,7 @@
 <template>
   <div class="post-page">
-    <header class="site-header">
-      <NuxtLink to="/" class="brand">Forever</NuxtLink>
-      <div class="site-header__actions">
-        <ThemeToggle />
-        <NuxtLink to="/admin" class="back-btn admin-entry">管理</NuxtLink>
-        <button type="button" class="back-btn" @click="goBack">← 返回</button>
-      </div>
-    </header>
+    <!-- ===== Header：全站统一导航 ===== -->
+    <SiteHeader width="780px" />
 
     <main v-if="post" class="article-wrap">
       <article class="article-card">
@@ -97,15 +91,6 @@ const relatedPosts = computed(() =>
     .slice(0, 4),
 )
 
-function goBack() {
-  if (window.history.length > 1) {
-    useRouter().back()
-  }
-  else {
-    navigateTo('/')
-  }
-}
-
 function formatDate(value: string | number | null | undefined): string {
   if (!value) return ''
   return new Date(value).toLocaleDateString('zh-CN', {
@@ -134,60 +119,10 @@ usePageSeo({
   background: var(--c-bg-soft);
 }
 
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 16px 20px;
-}
-.site-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--c-text);
-  text-decoration: none;
-  letter-spacing: 0.01em;
-
-  &:hover {
-    color: var(--c-primary);
-  }
-}
-
-.back-btn {
-  padding: 6px 14px;
-  font-size: 13px;
-  color: var(--c-text-secondary);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  background: var(--c-bg-card);
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: var(--c-primary);
-    border-color: var(--c-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
-  }
-}
-
-.admin-entry {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
 .article-wrap {
   max-width: 780px;
   margin: 0 auto;
-  padding: 8px 20px 48px;
+  padding: 84px 20px 48px;
 }
 
 .article-card {
@@ -350,7 +285,6 @@ usePageSeo({
   .article-card,
   .related,
   .related__item,
-  .back-btn,
   .category-chip,
   .tag-chip,
   .related__link {

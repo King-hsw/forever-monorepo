@@ -1,21 +1,7 @@
 <template>
   <div class="posts-page">
-    <!-- ===== Header ===== -->
-    <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
-      <div class="site-header__inner">
-        <NuxtLink to="/" class="brand">
-          <span class="brand__mark" aria-hidden="true" />
-          <span class="brand__name">Forever</span>
-        </NuxtLink>
-        <nav class="site-nav">
-          <NuxtLink to="/" class="site-nav__link">首页</NuxtLink>
-          <NuxtLink to="/friends" class="site-nav__link">友链</NuxtLink>
-          <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
-          <NuxtLink class="site-nav__link" to="/admin">管理</NuxtLink>
-        </nav>
-        <div class="site-header__theme"><ThemeToggle /></div>
-      </div>
-    </header>
+    <!-- ===== Header：全站统一导航 ===== -->
+    <SiteHeader width="800px" />
 
     <main class="wrap">
       <!-- 页面标题 -->
@@ -234,17 +220,6 @@ onBeforeUnmount(() => {
   revealObserver?.disconnect()
 })
 
-// ===== Header 滚动态 =====
-
-const isScrolled = ref(false)
-
-onMounted(() => {
-  const onScroll = () => { isScrolled.value = window.scrollY > 24 }
-  onScroll()
-  window.addEventListener('scroll', onScroll, { passive: true })
-  onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
-})
-
 function formatDate(value: string | number): string {
   const ts = value
   return new Date(ts).toLocaleDateString('zh-CN', {
@@ -271,108 +246,6 @@ usePageSeo({
 }
 
 /* ===== Header ===== */
-.site-header {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 50;
-  border-bottom: 1px solid transparent;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.site-header--scrolled {
-  background: color-mix(in srgb, var(--c-bg-soft) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom-color: var(--c-border);
-  box-shadow: 0 4px 20px rgb(0 0 0 / 5%);
-}
-
-.site-header__inner {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 14px 20px;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-
-.brand__mark {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(244 114 182 / 35%);
-}
-
-.brand__mark::before {
-  content: '';
-  position: absolute;
-  top: 38%;
-  left: 28%;
-  width: 3.5px;
-  height: 5px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 11px 0 0 #fff;
-}
-
-.brand__mark::after {
-  content: '';
-  position: absolute;
-  bottom: 22%;
-  left: 50%;
-  width: 10px;
-  height: 6px;
-  border: 2px solid #fff;
-  border-top: none;
-  border-left-color: transparent;
-  border-right-color: transparent;
-  border-radius: 0 0 12px 12px;
-  transform: translateX(-50%);
-}
-
-.brand__name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--c-text);
-}
-
-.site-nav {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-}
-
-.site-nav__link {
-  padding: 7px 14px;
-  font-size: 14px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-  border-radius: 999px;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.site-nav__link:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-}
-
-@media (max-width: 560px) {
-  .site-nav {
-    display: none;
-  }
-}
-
 .wrap {
   flex: 1;
   width: 100%;

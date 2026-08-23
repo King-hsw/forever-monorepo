@@ -1,21 +1,8 @@
 <template>
   <div class="friends-page">
     <!-- ===== Header ===== -->
-    <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
-      <div class="site-header__inner">
-        <NuxtLink to="/" class="brand">
-          <span class="brand__mark" aria-hidden="true" />
-          <span class="brand__name">Forever</span>
-        </NuxtLink>
-        <nav class="site-nav">
-          <NuxtLink to="/" class="site-nav__link">首页</NuxtLink>
-          <NuxtLink to="/posts" class="site-nav__link">全部文章</NuxtLink>
-          <NuxtLink to="/message" class="site-nav__link">留言墙</NuxtLink>
-          <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
-        </nav>
-        <div class="site-header__theme"><ThemeToggle /></div>
-      </div>
-    </header>
+    <!-- ===== Header：全站统一导航 ===== -->
+    <SiteHeader width="800px" />
 
     <main class="wrap">
       <!-- 页面标题 -->
@@ -97,15 +84,6 @@ const { data: friends, pending } = await useAsyncData('public-friend-links', () 
   apiFetch<FriendLink[]>('/api/v1/friend-links'),
 )
 
-// 吸顶导航滚动后变玻璃拟态
-const isScrolled = ref(false)
-onMounted(() => {
-  const onScroll = () => { isScrolled.value = window.scrollY > 8 }
-  onScroll()
-  window.addEventListener('scroll', onScroll, { passive: true })
-  onUnmounted(() => window.removeEventListener('scroll', onScroll))
-})
-
 /** 展示用：取域名部分 */
 function hostOf(url: string): string {
   try {
@@ -126,61 +104,6 @@ function hostOf(url: string): string {
 }
 
 /* ===== Header ===== */
-.site-header {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 50;
-  border-bottom: 1px solid transparent;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.site-header--scrolled {
-  background: color-mix(in srgb, var(--c-bg-soft) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom-color: var(--c-border);
-  box-shadow: 0 4px 20px rgb(0 0 0 / 5%);
-}
-
-.site-header__inner {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 14px 20px;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-
-.brand__mark,
-.brand__name {
-  color: var(--c-text);
-}
-
-.site-nav {
-  display: flex;
-  gap: 18px;
-  margin-left: auto;
-}
-
-.site-nav__link {
-  font-size: 14px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.site-nav__link:hover {
-  color: var(--c-primary);
-}
-
-/* ===== 布局 ===== */
 .wrap {
   flex: 1;
   width: 100%;

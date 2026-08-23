@@ -1,15 +1,8 @@
 <template>
   <div class="apply-page">
     <!-- ===== Header ===== -->
-    <header class="site-header">
-      <div class="site-header__inner">
-        <NuxtLink to="/" class="brand">
-          <span class="brand__mark" aria-hidden="true" />
-          <span class="brand__name">Forever</span>
-        </NuxtLink>
-        <div class="site-header__theme"><ThemeToggle /></div>
-      </div>
-    </header>
+    <!-- ===== Header：全站统一导航 ===== -->
+    <SiteHeader width="800px" />
 
     <main class="wrap">
       <h1 class="apply-title fade-up">申请友链</h1>
@@ -177,37 +170,6 @@ async function submit() {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--c-bg-soft);
-}
-
-.site-header {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 50;
-  background: color-mix(in srgb, var(--c-bg-soft) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--c-border);
-}
-
-.site-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 14px 20px;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-
-.brand__mark,
-.brand__name {
-  color: var(--c-text);
 }
 
 .wrap {
