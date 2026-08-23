@@ -28,15 +28,17 @@
         >{{ cat.name }}</button>
       </nav>
 
-      <!-- 目录式文章列表 -->
+      <!-- 目录式文章列表：翻页/切分类时整组淡入淡出，避免生硬跳变 -->
       <section class="list">
-        <NuxtLink
-          v-for="(post, i) in pagedPosts"
-          :key="post.id"
-          :to="`/posts/${post.slug}`"
-          class="row reveal"
-          :style="{ '--reveal-delay': `${Math.min(i, 8) * 60}ms` }"
-        >
+        <Transition name="page-swap" mode="out-in">
+          <div v-if="filteredPosts.length" :key="`${activeCategory}-${currentPage}`" class="list__page">
+            <NuxtLink
+              v-for="(post, i) in pagedPosts"
+              :key="post.id"
+              :to="`/posts/${post.slug}`"
+              class="row reveal"
+              :style="{ '--reveal-delay': `${Math.min(i, 8) * 60}ms` }"
+            >
           <span class="row__num" aria-hidden="true">{{ String(startIndex + i + 1).padStart(2, '0') }}</span>
           <span class="row__main">
             <h2 class="row__title">{{ post.title }}</h2>
@@ -54,39 +56,39 @@
           </span>
           <span class="row__arrow" aria-hidden="true">→</span>
         </NuxtLink>
-
-        <div v-if="!filteredPosts.length" class="empty">
-          <span class="empty__icon">(˘•ω•˘)</span>
-          该分类下暂无文章
-        </div>
+          </div>
+          <div v-else key="empty" class="empty">
+            <span class="empty__icon">(˘•ω•˘)</span>
+            该分类下暂无文章
+          </div>
+        </Transition>
       </section>
-
-      <!-- 分页 -->
-      <nav v-if="totalPages > 1" class="pagination" aria-label="文章分页">
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage <= 1"
-          @click="changePage(currentPage - 1)"
-        >← 上一页</button>
-        <button
-          v-for="p in totalPages"
-          :key="p"
-          type="button"
-          class="page-btn"
-          :class="{ 'page-btn--active': p === currentPage }"
-          @click="changePage(p)"
-        >{{ p }}</button>
-        <button
-          type="button"
-          class="page-btn"
-          :disabled="currentPage >= totalPages"
-          @click="changePage(currentPage + 1)"
-        >下一页 →</button>
-      </nav>
     </main>
 
     <SiteFooter />
+
+    <!-- 悬浮翻页器：固定在视口底部，滚到哪儿都能直接翻页 -->
+    <Transition name="pager-pop">
+      <nav v-if="totalPages > 1" class="floating-pager" aria-label="文章分页">
+        <button
+          type="button"
+          class="page-btn page-btn--icon"
+          :disabled="currentPage <= 1"
+          aria-label="上一页"
+          @click="changePage(currentPage - 1)"
+        >←</button>
+        <span class="floating-pager__indicator">
+          {{ currentPage }}<small>/ {{ totalPages }}</small>
+        </span>
+        <button
+          type="button"
+          class="page-btn page-btn--icon"
+          :disabled="currentPage >= totalPages"
+          aria-label="下一页"
+          @click="changePage(currentPage + 1)"
+        >→</button>
+      </nav>
+    </Transition>
   </div>
 </template>
 
@@ -185,7 +187,7 @@ function setPage(page: number) {
 function changePage(page: number) {
   if (page === currentPage.value) return
   setPage(page)
-  document.querySelector('.filters')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // 悬浮翻页器始终可见，翻页后无需强制滚动打断阅读位置
 }
 
 // ===== 滚动渐显 =====
@@ -483,12 +485,82 @@ html.dark .row__num {
 }
 
 /* ===== 分页 ===== */
-.pagination {
+.list__page {
+  display: block;
+}
+
+/* 翻页 / 切分类时列表整组淡入淡出 */
+.page-swap-enter-active {
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.page-swap-leave-active {
+  transition: opacity 0.16s ease;
+}
+
+.page-swap-enter-from {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.page-swap-leave-to {
+  opacity: 0;
+}
+
+/* 悬浮翻页器：固定视口底部居中，毛玻璃胶囊 */
+.floating-pager {
+  position: fixed;
+  right: 0;
+  bottom: 22px;
+  left: 0;
+  z-index: 40;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 20px 48px;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-inline: auto;
+  padding: 5px;
+  background: color-mix(in srgb, var(--c-bg-card) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
+}
+
+.floating-pager__indicator {
+  min-width: 64px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+
+  small {
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--c-text-muted);
+  }
+}
+
+.page-btn--icon {
+  min-width: 34px;
+  padding: 7px 10px;
+}
+
+.pager-pop-enter-active {
+  transition: opacity 0.3s ease, transform 0.3s var(--ease-bounce);
+}
+
+.pager-pop-leave-active {
+  transition: opacity 0.18s ease;
+}
+
+.pager-pop-enter-from,
+.pager-pop-leave-to {
+  opacity: 0;
+  transform: translateY(18px);
 }
 
 .page-btn {
