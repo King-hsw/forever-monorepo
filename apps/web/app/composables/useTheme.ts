@@ -31,7 +31,7 @@ export function useTheme() {
     if (meta) meta.content = mode === 'dark' ? '#14161d' : '#6366f1'
   }
 
-  /** 切换主题；传入事件对象时，动画从点击位置向外扩散 */
+  /** 切换主题；传入事件对象时，动画以触发组件在页面中的位置为圆心向外扩散 */
   const toggle = async (event?: MouseEvent) => {
     if (import.meta.server) return
     syncFromDOM()
@@ -52,19 +52,19 @@ export function useTheme() {
       return
     }
 
-    // 在任何 await 之前同步读取点击位置：
-    // - 鼠标点击：直接用光标视口坐标
-    // - 键盘触发（Enter/空格）的 click 没有 clientX/Y（值为 0），改用按钮中心作为圆心
+    // 在任何 await 之前同步读取圆心位置（参考 nuxt3-blog 的 changeTheme）：
+    // 圆心取触发组件自身的布局中心，随组件在页面中的位置变化；
+    // 拿不到组件时退回光标坐标，两者都不可用才用右上角兜底
     const target = event?.currentTarget as HTMLElement | null
     let x: number
     let y: number
-    if (event && (event.clientX !== 0 || event.clientY !== 0)) {
-      x = event.clientX
-      y = event.clientY
-    } else if (target) {
+    if (target) {
       const rect = target.getBoundingClientRect()
       x = rect.left + rect.width / 2
       y = rect.top + rect.height / 2
+    } else if (event && (event.clientX !== 0 || event.clientY !== 0)) {
+      x = event.clientX
+      y = event.clientY
     } else {
       x = window.innerWidth - 48
       y = 48
