@@ -138,13 +138,15 @@
 }
 
 .markdown-view .md-code-block__bar {
+  /* 与 pre 预留的工具条带对齐：上下留白由主题变量 --prose-pre-padding 推导 */
+  --bar-gap: 6px;
   position: absolute;
-  top: 6px;
-  right: 8px;
+  top: calc(var(--prose-pre-padding) - 7px);
+  right: calc(var(--prose-pre-padding) - 7px);
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--bar-gap);
 }
 
 .markdown-view .md-code-block__lang,
@@ -165,6 +167,11 @@
 .markdown-view .md-code-block:hover .md-code-block__copy,
 .markdown-view .md-code-block__copy:focus-visible {
   opacity: 1;
+}
+
+/* pre 顶部预留一行工具条高度，代码内容永不与按钮重叠 */
+.markdown-view .md-code-block pre {
+  padding-top: calc(var(--prose-pre-padding) * 2 + 14px);
 }
 
 .markdown-view .md-code-block__lang {
