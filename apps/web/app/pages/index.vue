@@ -1,5 +1,8 @@
 <template>
   <div class="blog-home">
+    <!-- 周年庆：全站彩纸纷飞背景 -->
+    <CelebrationLayer />
+
     <!-- ===== 顶部滚动进度条 ===== -->
     <div
       class="scroll-progress"
@@ -13,22 +16,38 @@
 
     <!-- ===== Hero：头像 + 问候 + 眉题签名 + 引言（构图参考余白首页） ===== -->
     <section ref="heroEl" class="hero">
+      <!-- 彩旗：挂在 hero 顶边的一排小三角，随风轻摆 -->
+      <div class="hero__bunting" aria-hidden="true">
+        <span
+          v-for="i in 22"
+          :key="i"
+          class="hero__flag"
+          :style="{ '--fc': flagColors[(i - 1) % flagColors.length], '--fd': `${(i % 5) * 0.18}s` }"
+        />
+      </div>
+
       <div class="hero__bg" aria-hidden="true">
         <div class="hero__glow" />
       </div>
 
       <div ref="heroContent" class="hero__content">
-        <div class="hero__avatar fade-hero" style="--hd: 0ms" aria-hidden="true">F</div>
+        <p class="hero__anniv fade-hero" style="--hd: 0ms">
+          <span class="hero__anniv-icon">🎉</span>
+          博客两周年纪念
+          <span v-if="sinceDays" class="hero__anniv-days">· 已点亮 {{ sinceDays }} 天</span>
+        </p>
 
-        <h1 class="hero__title fade-hero" style="--hd: 90ms">
+        <div class="hero__avatar fade-hero" style="--hd: 90ms" aria-hidden="true">F</div>
+
+        <h1 class="hero__title fade-hero" style="--hd: 180ms">
           <span class="hero__title-light">Hi, I'm </span><span class="hero__title-name">Forever</span><span class="hero__title-wave">🥰</span><span class="hero__title-light">。</span>
         </h1>
 
-        <p class="hero__motto fade-hero" style="--hd: 180ms">记录技术与思考</p>
+        <p class="hero__motto fade-hero" style="--hd: 270ms">记录技术与思考</p>
 
-        <p class="hero__quote fade-hero" style="--hd: 270ms">「在这里沉淀代码之外的灵感，每一篇文字都是与时间的对话。」</p>
+        <p class="hero__quote fade-hero" style="--hd: 360ms">「在这里沉淀代码之外的灵感，每一篇文字都是与时间的对话。」</p>
 
-        <p class="hero__stats fade-hero" style="--hd: 360ms">
+        <p class="hero__stats fade-hero" style="--hd: 450ms">
           <span><strong>{{ publishedPosts.length }}</strong> 篇文章</span>
           <span class="hero__stats-dot">·</span>
           <span><strong>{{ categories?.length ?? 0 }}</strong> 个分类</span>
@@ -36,7 +55,7 @@
           <span><strong>{{ tags?.length ?? 0 }}</strong> 个标签</span>
         </p>
 
-        <div class="hero__actions fade-hero" style="--hd: 450ms">
+        <div class="hero__actions fade-hero" style="--hd: 540ms">
           <button type="button" class="hero__cta" @click="scrollToId('latest')">
             开始阅读
             <span class="hero__cta-arrow">↓</span>
@@ -344,6 +363,22 @@ function tick() {
 
 let revealObserver: IntersectionObserver | null = null
 
+/** 彩旗颜色：暖调五色轮换 */
+const flagColors = ['#ee8a3c', '#f2c14e', '#93b884', '#cd6f52', '#b98a5e']
+
+/** 上线天数：从最早一篇文章算起，客户端挂载后填充避免水合不一致 */
+const sinceDays = ref<number | null>(null)
+onMounted(() => {
+  let first = 0
+  for (const p of publishedPosts.value) {
+    const t = new Date(p.publishedAt ?? p.createdAt).getTime()
+    if (!Number.isNaN(t) && (first === 0 || t < first))
+      first = t
+  }
+  if (first > 0)
+    sinceDays.value = Math.max(1, Math.floor((Date.now() - first) / 86_400_000))
+})
+
 onMounted(() => {
   onScrollChrome()
   // 滚动监听始终注册：进度条/Header 态不依赖动效偏好
@@ -478,6 +513,77 @@ usePageSeo({
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+
+/* 彩旗：挂在 hero 顶边的一排小三角，随风轻摆 */
+.hero__bunting {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-evenly;
+  pointer-events: none;
+}
+
+/* 旗绳 */
+.hero__bunting::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: color-mix(in srgb, var(--c-primary) 30%, var(--c-border));
+}
+
+.hero__flag {
+  width: 20px;
+  height: 28px;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  background: var(--fc, var(--c-primary));
+  transform-origin: top center;
+  animation: flag-sway 3.2s ease-in-out infinite alternate;
+  animation-delay: var(--fd, 0s);
+  opacity: 0.85;
+}
+
+@keyframes flag-sway {
+  from { transform: rotate(-4deg); }
+  to { transform: rotate(4deg); }
+}
+
+/* 周年徽章：一枚会发光的小圆牌 */
+.hero__anniv {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 22px;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--c-primary);
+  background: var(--c-bg-card);
+  border: 1.5px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
+  border-radius: 999px;
+  box-shadow: var(--shadow-card);
+}
+
+.hero__anniv-icon {
+  display: inline-block;
+  animation: anniv-bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes anniv-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-3px) scale(1.12); }
+  60% { transform: translateY(1px) scale(0.96); }
+}
+
+.hero__anniv-days {
+  font-weight: 500;
+  color: var(--c-text-muted);
 }
 
 /* 居中暖光：糖果色的极淡光晕，托住头像与标题 */
