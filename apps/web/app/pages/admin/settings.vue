@@ -2,8 +2,8 @@
   <div class="settings-page">
     <header class="settings-page__header fade-up">
       <p class="settings-page__hint">
-        值为空的配置项表示未自定义、走后端 yml 默认值；数值型配置须为非负整数。共
-        {{ settingsStore.list.length }} 项，已修改 {{ dirtyKeys.length }} 项
+        修改落库并即时生效，重启不丢；带「默认」标记的项走服务端内置值。已修改
+        {{ dirtyKeys.length }} 项
       </p>
       <button
         v-if="dirtyKeys.length"
@@ -18,51 +18,102 @@
       <p v-if="successMsg" class="settings-page__success fade-up" role="status">{{ successMsg }}</p>
     </Transition>
 
-    <!-- 配置列表 -->
-    <div class="card settings-list fade-up" style="--stagger-index: 1">
+    <!-- 分组卡片 -->
+    <section
+      v-for="(group, gi) in groups"
+      :key="group.title"
+      class="card settings-group fade-up"
+      :style="{ '--stagger-index': gi + 1 }"
+    >
+      <header class="settings-group__head">
+        <span class="settings-group__icon" aria-hidden="true">{{ group.icon }}</span>
+        <div>
+          <h3>{{ group.title }}</h3>
+          <small v-if="group.desc">{{ group.desc }}</small>
+        </div>
+      </header>
+
       <div
-        v-for="(item, i) in settingsStore.list"
+        v-for="item in itemsOf(group)"
         :key="item.key"
-        class="settings-list__row"
+        class="settings-row"
         :class="{ 'is-dirty': isDirty(item.key) }"
-        :style="{ '--stagger-index': i + 2 }"
       >
-        <div class="settings-list__info">
-          <div class="settings-list__key">
-            <code>{{ item.key }}</code>
-            <span v-if="!item.value" class="badge badge--draft">默认值（未自定义）</span>
+        <div class="settings-row__info">
+          <div class="settings-row__label">
+            <strong>{{ meta(item.key).label }}</strong>
+            <code :title="item.key">{{ item.key }}</code>
+            <span v-if="!item.value" class="badge badge--draft">默认</span>
             <span v-else-if="isDirty(item.key)" class="badge badge--modified">已修改</span>
           </div>
-          <small class="settings-list__desc">{{ item.description }}</small>
+          <small class="settings-row__desc">{{ item.description }}</small>
         </div>
 
-        <div class="settings-list__editor">
-          <input
-            v-model="drafts[item.key]"
-            class="field-input"
-            :class="{ 'is-invalid': !!errors[item.key] }"
-            type="text"
-            :placeholder="item.value ? '' : '未设置，走默认值'"
-            :aria-label="`配置项 ${item.key}`"
-            @input="errors[item.key] = ''"
-          >
+        <div class="settings-row__control">
+          <!-- 布尔型：开关 -->
+          <template v-if="meta(item.key).type === 'boolean'">
+            <button
+              type="button"
+              class="switch"
+              :class="{ 'is-on': boolValue(item) }"
+              role="switch"
+              :aria-checked="boolValue(item)"
+              :aria-label="meta(item.key).label"
+              @click="toggleBool(item)"
+            >
+              <span class="switch__knob" />
+            </button>
+            <span class="switch__text">{{ boolValue(item) ? '开启' : '关闭' }}</span>
+          </template>
+
+          <!-- 数值型：数字输入 + 单位 -->
+          <template v-else-if="meta(item.key).type === 'number'">
+            <div class="input-wrap input-wrap--number">
+              <input
+                v-model="drafts[item.key]"
+                class="field-input"
+                :class="{ 'is-invalid': !!errors[item.key] }"
+                type="number"
+                min="0"
+                step="1"
+                :placeholder="String(meta(item.key).defaultValue ?? '')"
+                :aria-label="`${meta(item.key).label}（${meta(item.key).unit ?? ''}）`"
+                @input="errors[item.key] = ''"
+              >
+              <span v-if="meta(item.key).unit" class="input-wrap__unit">{{ meta(item.key).unit }}</span>
+            </div>
+          </template>
+
+          <!-- 邮箱 / URL / 文本 -->
+          <template v-else>
+            <div class="input-wrap">
+              <input
+                v-model="drafts[item.key]"
+                class="field-input"
+                :class="{ 'is-invalid': !!errors[item.key] }"
+                :type="meta(item.key).type === 'email' ? 'email' : 'text'"
+                :placeholder="placeholderOf(item)"
+                :aria-label="meta(item.key).label"
+                spellcheck="false"
+                @input="errors[item.key] = ''"
+              >
+            </div>
+          </template>
+
           <p v-if="errors[item.key]" class="field-error">{{ errors[item.key] }}</p>
+
           <button
             v-if="isDirty(item.key)"
             type="button"
-            class="settings-list__reset"
+            class="settings-row__reset"
             @click="resetItem(item)"
           >还原</button>
         </div>
       </div>
-
-      <p v-if="!settingsStore.list.length && !settingsStore.loading" class="settings-list__empty">
-        暂无配置项
-      </p>
-    </div>
+    </section>
 
     <!-- 底部统一保存 -->
-    <footer v-if="settingsStore.list.length" class="settings-page__footer fade-up" style="--stagger-index: 3">
+    <footer v-if="settingsStore.list.length" class="settings-page__footer fade-up" style="--stagger-index: 4">
       <button
         type="button"
         class="btn btn--primary"
@@ -85,13 +136,75 @@ useState('admin-page-title', () => '站点设置')
 
 const settingsStore = useSettingsStore()
 
-// 仅客户端拉取：登录令牌存在 localStorage，SSR 阶段拿不到（避免直接访问 URL 时 SSR 401 失败）
 await useAsyncData('admin-settings', async () => {
   await settingsStore.fetch(true)
 }, { server: false })
 
+/* ---------- 配置项元数据（与服务端 SiteConfigService 的登记表对应） ---------- */
+type SettingType = 'boolean' | 'number' | 'email' | 'url' | 'text'
+
+interface ItemMeta {
+  label: string
+  type: SettingType
+  /** 服务端内置默认值，仅用于占位提示 / 开关初始态 */
+  defaultValue?: string
+  unit?: string
+}
+
+const ITEM_META: Record<string, ItemMeta> = {
+  'site.url': { label: '站点地址', type: 'url' },
+  'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
+  'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },
+  'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },
+  'comment.owner-email': { label: '站长邮箱', type: 'email' },
+  'comment.from-email': { label: '发件人地址', type: 'email', defaultValue: 'noreply@example.com' },
+}
+
+const FALLBACK_META: ItemMeta = { label: '', type: 'text' }
+
+function meta(key: string): ItemMeta {
+  return ITEM_META[key] ?? FALLBACK_META
+}
+
+/* ---------- 分组：相关配置聚合展示 ---------- */
+interface Group {
+  title: string
+  icon: string
+  desc?: string
+  keys: string[]
+}
+
+const KNOWN_GROUPS: Group[] = [
+  { title: '站点', icon: '🌐', keys: ['site.url'] },
+  {
+    title: '评论',
+    icon: '💬',
+    keys: ['comment.auto-approve', 'comment.post-interval-seconds'],
+  },
+  {
+    title: '评论邮件通知',
+    icon: '📧',
+    desc: '需已在服务端配置 spring.mail.* SMTP 基础设施，通知失败不影响评论本身',
+    keys: ['comment.notify-mail', 'comment.owner-email', 'comment.from-email'],
+  },
+]
+
+/** 已登记配置按分组排列；未登记的归入「其他」，保证后端新增键也能显示 */
+const groups = computed<Group[]>(() => {
+  const known = new Set(KNOWN_GROUPS.flatMap(g => g.keys))
+  const rest = settingsStore.list.filter(s => !known.has(s.key))
+  const list = [...KNOWN_GROUPS]
+  if (rest.length) list.push({ title: '其他', icon: '🧩', keys: rest.map(s => s.key) })
+  return list
+})
+
+function itemsOf(group: Group): SettingItem[] {
+  return group.keys
+    .map(key => settingsStore.list.find(s => s.key === key))
+    .filter((s): s is SettingItem => !!s)
+}
+
 /* ---------- 编辑草稿 ---------- */
-/** key -> 输入框中的值；以 store 列表为基准做脏检查 */
 const drafts = reactive<Record<string, string>>({})
 const errors = reactive<Record<string, string>>({})
 
@@ -103,12 +216,20 @@ function syncDrafts(items: SettingItem[]) {
 }
 syncDrafts(settingsStore.list)
 
-// 拉取完成后（异步）同步一次草稿
+// 拉取完成后补齐新出现的 key（不覆盖用户正在编辑的草稿）
 watch(() => settingsStore.list, (list) => {
   for (const item of list) {
     if (!(item.key in drafts)) drafts[item.key] = item.value
   }
 })
+
+function isDirty(key: string) {
+  return key in drafts && drafts[key] !== settingsStore.list.find(s => s.key === key)?.value
+}
+
+const dirtyKeys = computed(() =>
+  settingsStore.list.filter(item => isDirty(item.key)).map(item => item.key),
+)
 
 function resetItem(item: SettingItem) {
   drafts[item.key] = item.value
@@ -119,38 +240,47 @@ function resetDrafts() {
   syncDrafts(settingsStore.list)
 }
 
-function isDirty(key: string) {
-  return key in drafts && drafts[key] !== settingsStore.list.find(s => s.key === key)?.value
+/* ---------- 各类型控件的读写 ---------- */
+
+/** 开关状态：未设置时展示服务端默认值；value 为空字符串表示「默认」 */
+function boolValue(item: SettingItem): boolean {
+  const raw = (drafts[item.key] ?? '').trim() || item.value
+  if (raw === '') return (meta(item.key).defaultValue ?? 'false') === 'true'
+  return raw === 'true'
 }
 
-const dirtyKeys = computed(() =>
-  settingsStore.list.filter(item => isDirty(item.key)).map(item => item.key),
-)
-
-/* ---------- 数值型配置校验 ----------
- * 后端仅对登记为数值型的键要求「>= 0 的整数」；
- * 前端按键名特征（MAX / LIMIT / DAYS / TIMEOUT 等词元）识别并先行校验。
- */
-const NUMERIC_TOKENS = [
-  'MAX', 'MIN', 'LIMIT', 'SIZE', 'COUNT', 'NUM', 'NUMBER',
-  'DAYS', 'HOURS', 'MINUTES', 'SECONDS', 'TIMEOUT',
-  'INTERVAL', 'THRESHOLD', 'RETRIES', 'PORT', 'LENGTH',
-]
-
-function isNumericKey(key: string): boolean {
-  // camelCase / PascalCase 归一化为下划线分隔后按词元匹配
-  const tokens = key
-    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-    .toUpperCase()
-    .split('_')
-  return tokens.some(t => NUMERIC_TOKENS.includes(t))
+function toggleBool(item: SettingItem) {
+  // 关闭→开启写 'true'；开启→关闭写 'false'；从默认态切换时与默认值相反即为目标态
+  drafts[item.key] = boolValue(item) ? 'false' : 'true'
+  errors[item.key] = ''
 }
+
+function placeholderOf(item: SettingItem): string {
+  if (item.value) return ''
+  if (item.key === 'comment.owner-email') return '未设置，不通知站长'
+  const d = meta(item.key).defaultValue
+  return d ? `默认 ${d}` : '未设置'
+}
+
+/* ---------- 校验（与服务端规则一致，提前拦截） ---------- */
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 function validate(key: string): string {
   const draft = (drafts[key] ?? '').trim()
   if (draft === '') return '' // 留空 = 恢复默认值
-  if (isNumericKey(key) && !/^\d+$/.test(draft)) {
-    return '该项为数值型配置，须为不小于 0 的整数'
+  switch (meta(key).type) {
+    case 'number':
+      if (!/^\d+$/.test(draft)) return '须为不小于 0 的整数'
+      break
+    case 'boolean':
+      if (draft !== 'true' && draft !== 'false') return '布尔型只接受 true/false'
+      break
+    case 'email':
+      if (!EMAIL_RE.test(draft)) return '邮箱格式不正确'
+      break
+    case 'url':
+      if (!draft.startsWith('http://') && !draft.startsWith('https://')) return '必须以 http:// 或 https:// 开头'
+      break
   }
   return ''
 }
@@ -234,26 +364,64 @@ onBeforeUnmount(() => {
   transform: translateY(-4px);
 }
 
-.settings-list {
-  padding: 6px 20px;
+/* ===== 分组卡片 ===== */
+.settings-group {
+  margin-bottom: 18px;
+  padding: 18px 20px 6px;
 }
 
-.settings-list__row {
+.settings-group__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--c-border);
+
+  h3 {
+    margin: 0;
+    font-size: 15px;
+  }
+
+  small {
+    display: block;
+    margin-top: 2px;
+    color: var(--c-text-muted);
+  }
+}
+
+.settings-group__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  font-size: 19px;
+  background: var(--c-bg-soft);
+  border-radius: 12px;
+}
+
+/* ===== 配置行 ===== */
+.settings-row {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  padding: 14px 0;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 15px 0;
 
   & + & {
-    border-top: 1px solid var(--c-border);
+    border-top: 1px dashed var(--c-border);
   }
 
   &.is-dirty .field-input {
     border-color: var(--c-primary);
   }
+
+  &.is-dirty .switch:not(.is-on) {
+    background: var(--c-primary);
+  }
 }
 
-.settings-list__info {
+.settings-row__info {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -261,17 +429,22 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.settings-list__key {
+.settings-row__label {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 
+  strong {
+    font-size: 14px;
+  }
+
   code {
     padding: 1px 8px;
-    font-size: 12.5px;
-    color: var(--c-primary);
-    background: var(--c-primary-light);
+    font-size: 11.5px;
+    font-weight: normal;
+    color: var(--c-text-muted);
+    background: var(--c-bg-soft);
     border-radius: 6px;
   }
 }
@@ -281,60 +454,118 @@ onBeforeUnmount(() => {
   background: rgb(59 130 246 / 10%);
 }
 
-.settings-list__desc {
+.settings-row__desc {
   font-size: 12px;
   line-height: 1.6;
   color: var(--c-text-muted);
 }
 
-.settings-list__editor {
+/* ===== 控件区 ===== */
+.settings-row__control {
   position: relative;
-  width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-shrink: 0;
+  width: 300px;
+
+  .field-error {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+  }
+}
+
+.input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
 
   .field-input {
     width: 100%;
   }
 
-  .field-error {
-    margin-top: 4px;
+  &.input-wrap--number .field-input {
+    padding-right: 44px;
   }
 }
 
-.settings-list__reset {
+.input-wrap__unit {
   position: absolute;
-  top: 7px;
-  right: 8px;
-  padding: 1px 6px;
+  top: 50%;
+  right: 12px;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* ===== 开关 ===== */
+.switch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+  padding: 0;
+  background: var(--c-border);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &.is-on {
+    background: var(--c-primary);
+  }
+}
+
+.switch__knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.switch.is-on .switch__knob {
+  transform: translateX(18px);
+}
+
+.switch__text {
+  width: 30px;
+  font-size: 13px;
+  color: var(--c-text-secondary);
+}
+
+.settings-row__reset {
+  padding: 2px 8px;
   font-size: 11.5px;
   color: var(--c-text-muted);
   background: none;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
   cursor: pointer;
-  transition: color 0.15s;
+  transition: color 0.15s, border-color 0.15s;
 
   &:hover {
     color: var(--c-danger);
+    border-color: var(--c-danger);
   }
-}
-
-.settings-list__empty {
-  width: 100%;
-  padding: 24px 0;
-  font-size: 13px;
-  color: var(--c-text-muted);
-  text-align: center;
 }
 
 .field-input.is-invalid {
   border-color: var(--c-danger);
 }
 
+/* ===== 底部保存 ===== */
 .settings-page__footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 18px;
+  margin-top: 4px;
 
   .btn {
     min-width: 140px;
@@ -342,13 +573,14 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 720px) {
-  .settings-list__row {
+  .settings-row {
     flex-direction: column;
     gap: 10px;
   }
 
-  .settings-list__editor {
+  .settings-row__control {
     width: 100%;
+    align-self: stretch;
   }
 
   .settings-page__header {
