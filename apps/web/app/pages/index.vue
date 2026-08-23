@@ -14,10 +14,8 @@
     <!-- ===== Hero：视差背景 + 逐字浮现的渐变标题 ===== -->
     <section ref="heroEl" class="hero">
       <div class="hero__bg" aria-hidden="true">
-        <div ref="orbA" class="hero__orb hero__orb--a" />
-        <div ref="orbB" class="hero__orb hero__orb--b" />
-        <div ref="orbC" class="hero__orb hero__orb--c" />
-        <div ref="gridEl" class="hero__grid" />
+        <!-- 单一居中光晕：纸面上方的一抹暖光 -->
+        <div class="hero__glow" />
       </div>
 
       <div ref="heroContent" class="hero__content">
@@ -38,7 +36,7 @@
               v-for="(ch, i) in TITLE_B"
               :key="`b${i}`"
               class="hero__char hero__char--grad"
-              :style="{ '--d': `${260 + i * 70}ms`, '--gi': i }"
+              :style="{ '--d': `${260 + i * 70}ms` }"
             >{{ ch }}</span>
           </span>
         </h1>
@@ -47,29 +45,13 @@
           每一篇文字都是与时间的对话。
         </p>
 
-        <div class="hero__stats">
-          <div class="hero__stat">
-            <span class="hero__stat-icon hero__stat-icon--pink" aria-hidden="true">✍️</span>
-            <div class="hero__stat-body">
-              <strong>{{ publishedPosts.length }}</strong>
-              <span>篇文章</span>
-            </div>
-          </div>
-          <div class="hero__stat">
-            <span class="hero__stat-icon hero__stat-icon--grape" aria-hidden="true">📚</span>
-            <div class="hero__stat-body">
-              <strong>{{ categories?.length ?? 0 }}</strong>
-              <span>个分类</span>
-            </div>
-          </div>
-          <div class="hero__stat">
-            <span class="hero__stat-icon hero__stat-icon--mint" aria-hidden="true">🏿</span>
-            <div class="hero__stat-body">
-              <strong>{{ tags?.length ?? 0 }}</strong>
-              <span>个标签</span>
-            </div>
-          </div>
-        </div>
+        <p class="hero__stats">
+          <span><strong>{{ publishedPosts.length }}</strong> 篇文章</span>
+          <span class="hero__stats-dot">·</span>
+          <span><strong>{{ categories?.length ?? 0 }}</strong> 个分类</span>
+          <span class="hero__stats-dot">·</span>
+          <span><strong>{{ tags?.length ?? 0 }}</strong> 个标签</span>
+        </p>
 
         <div class="hero__actions">
           <button type="button" class="hero__cta" @click="scrollToId('latest')">
@@ -132,7 +114,6 @@
               :to="`/posts/${featuredPost.slug}`"
               class="featured reveal"
             >
-              <div class="featured__glow" aria-hidden="true" />
               <span class="featured__badge">最新发布</span>
               <h3 class="featured__title">{{ featuredPost.title }}</h3>
               <p class="featured__excerpt">{{ featuredPost.summary }}</p>
@@ -151,27 +132,29 @@
               </div>
             </NuxtLink>
 
-            <NuxtLink
-              v-for="(post, i) in homeRows"
-              :key="post.id"
-              :to="`/posts/${post.slug}`"
-              class="row reveal"
-              :style="{ '--reveal-delay': `${Math.min(i + 1, 5) * 80}ms` }"
-            >
-              <span class="row__num" aria-hidden="true">{{ String(i + 2).padStart(2, '0') }}</span>
-              <span class="row__main">
-                <h3 class="row__title">{{ post.title }}</h3>
-                <p class="row__excerpt">{{ post.summary }}</p>
-                <span class="row__meta">
-                  <span class="chip">{{ categoryName(post.categoryId) }}</span>
-                  <span class="meta-dot">·</span>
-                  <time>{{ formatDate(post.createdAt) }}</time>
-                  <span class="meta-dot">·</span>
-                  <span>{{ post.viewCount.toLocaleString() }} 次阅读</span>
+            <!-- 编号时间线：左侧竖线贯穿，序号压在线上 -->
+            <div class="row-list">
+              <NuxtLink
+                v-for="(post, i) in homeRows"
+                :key="post.id"
+                :to="`/posts/${post.slug}`"
+                class="row reveal"
+                :style="{ '--reveal-delay': `${Math.min(i + 1, 5) * 80}ms` }"
+              >
+                <span class="row__num" aria-hidden="true">{{ String(i + 2).padStart(2, '0') }}</span>
+                <span class="row__main">
+                  <h3 class="row__title">{{ post.title }}</h3>
+                  <p class="row__excerpt">{{ post.summary }}</p>
+                  <span class="row__meta">
+                    <span class="chip">{{ categoryName(post.categoryId) }}</span>
+                    <span class="meta-dot">·</span>
+                    <time>{{ formatDate(post.createdAt) }}</time>
+                    <span class="meta-dot">·</span>
+                    <span>{{ post.viewCount.toLocaleString() }} 次阅读</span>
+                  </span>
                 </span>
-              </span>
-              <span class="row__arrow" aria-hidden="true">→</span>
-            </NuxtLink>
+              </NuxtLink>
+            </div>
 
             <div v-if="!publishedPosts.length" class="empty">
               <span class="empty__icon">(˘•ω•˘)</span>
@@ -199,7 +182,7 @@
                 :key="cat.id"
                 :to="`/posts?category=${cat.slug}`"
                 class="cat-card reveal"
-                :style="{ '--accent': catAccents[i % catAccents.length], '--reveal-delay': `${Math.min(i, 5) * 70}ms` }"
+                :style="{ '--reveal-delay': `${Math.min(i, 5) * 70}ms` }"
               >
                 <span class="cat-card__count">{{ cat.count }} 篇</span>
                 <h3 class="cat-card__name">{{ cat.name }}</h3>
@@ -225,11 +208,11 @@
           <div class="scene__body">
             <div class="tag-cloud reveal">
               <NuxtLink
-                v-for="(tag, i) in tagCloud"
+                v-for="tag in tagCloud"
                 :key="tag.id"
                 to="/posts"
                 class="tag-cloud__item"
-                :style="{ fontSize: `${tag.size}px`, '--tk': tagAccents[i % tagAccents.length] }"
+                :style="{ fontSize: `${tag.size}px` }"
               >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
             </div>
           </div>
@@ -255,15 +238,15 @@
         </div>
       </section>
 
-      <!-- 终幕：订阅，全屏居中像纪录片的结尾镜头 -->
+      <!-- 终幕：订阅，像书末的版权页一样素净收尾 -->
       <section id="subscribe" class="finale">
-        <div class="cta-banner reveal">
-          <div class="cta-banner__glow" aria-hidden="true" />
-          <h2 class="cta-banner__title">不错过任何一篇更新</h2>
-          <p class="cta-banner__text">订阅 RSS，新文章第一时间送达你的阅读器。</p>
-          <div class="cta-banner__actions">
-            <a class="cta-banner__btn" href="/rss.xml" target="_blank">订阅 RSS</a>
-            <NuxtLink class="cta-banner__btn cta-banner__btn--ghost" to="/posts">浏览全部文章</NuxtLink>
+        <div class="finale__inner reveal">
+          <p class="finale__eyebrow" aria-hidden="true">Stay Tuned</p>
+          <h2 class="finale__title">不错过任何一篇更新</h2>
+          <p class="finale__text">订阅 RSS，新文章第一时间送达你的阅读器。</p>
+          <div class="finale__actions">
+            <a class="finale__btn" href="/rss.xml" target="_blank">订阅 RSS</a>
+            <NuxtLink class="finale__btn finale__btn--ghost" to="/posts">浏览全部文章</NuxtLink>
           </div>
         </div>
       </section>
@@ -327,12 +310,6 @@ const categoryCards = computed(() =>
     }))
     .sort((a, b) => b.count - a.count)
 )
-
-/** 分类卡片的糖果色轮换 */
-const catAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#7cc7f7', '#ffc94d', '#fb923c']
-
-/** 标签贴纸的糖果色轮换 */
-const tagAccents = ['#f472b6', '#a78bfa', '#5fd4c4', '#ffc94d', '#7cc7f7']
 
 /** 标签云：按使用次数排序，字号随次数在 13~21px 间浮动 */
 const tagCloud = computed(() => {
@@ -399,17 +376,12 @@ function onScrollChrome() {
   progress.value = max > 0 ? Math.min(1, y / max) : 0
 }
 
-// ===== Hero 视差效果 =====
-// 单一 rAF 循环统一驱动：滚动视差（光斑/网格/内容以不同速率移动）+
-// 鼠标视差（光斑跟随光标轻微偏移），并用 lerp 平滑，避免生硬跳变。
+// ===== Hero 滚动淡出 =====
+// 内容随滚动缓慢上移并逐渐淡出，营造纵深；
 // 离开视口或用户偏好减少动效时停止循环。
 
 const heroEl = ref<HTMLElement | null>(null)
 const heroContent = ref<HTMLElement | null>(null)
-const orbA = ref<HTMLElement | null>(null)
-const orbB = ref<HTMLElement | null>(null)
-const orbC = ref<HTMLElement | null>(null)
-const gridEl = ref<HTMLElement | null>(null)
 
 let rafId = 0
 let heroVisible = true
@@ -418,10 +390,6 @@ let io: IntersectionObserver | null = null
 // 目标值与当前值分离，lerp 逼近实现惯性平滑
 let targetScroll = 0
 let currentScroll = 0
-let targetMX = 0
-let targetMY = 0
-let currentMX = 0
-let currentMY = 0
 
 function prefersReducedMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -431,25 +399,9 @@ function tick() {
   // 惯性逼近：帧率无关的平滑系数
   const ease = 1 - Math.pow(0.001, 1 / 60) // ≈ 每帧逼近 10%
   currentScroll += (targetScroll - currentScroll) * ease
-  currentMX += (targetMX - currentMX) * ease
-  currentMY += (targetMY - currentMY) * ease
 
   const s = currentScroll
-  const mx = currentMX
-  const my = currentMY
 
-  if (orbA.value) {
-    orbA.value.style.transform = `translate3d(${mx * 30}px, ${s * 0.18 + my * 24}px, 0)`
-  }
-  if (orbB.value) {
-    orbB.value.style.transform = `translate3d(${mx * -44}px, ${s * 0.32 + my * -30}px, 0)`
-  }
-  if (orbC.value) {
-    orbC.value.style.transform = `translate3d(${mx * 60}px, ${s * 0.5 + my * 40}px, 0)`
-  }
-  if (gridEl.value) {
-    gridEl.value.style.transform = `translate3d(0, ${s * 0.08}px, 0)`
-  }
   if (heroContent.value) {
     // 内容以较慢速率上移并逐渐淡出，营造纵深
     const fade = Math.max(0, 1 - s / 520)
@@ -460,13 +412,6 @@ function tick() {
   if (heroVisible) {
     rafId = requestAnimationFrame(tick)
   }
-}
-
-function onPointerMove(e: PointerEvent) {
-  if (!heroEl.value) return
-  // 归一化到 -1 ~ 1
-  targetMX = (e.clientX / window.innerWidth) * 2 - 1
-  targetMY = (e.clientY / window.innerHeight) * 2 - 1
 }
 
 // ===== 滚动渐显（IntersectionObserver）=====
@@ -483,7 +428,6 @@ onMounted(() => {
 
   if (!prefersReducedMotion() && heroEl.value) {
     targetScroll = currentScroll = window.scrollY
-    window.addEventListener('pointermove', onPointerMove, { passive: true })
 
     // 滚出视口后停掉 rAF，节省性能；滚回来再恢复
     io = new IntersectionObserver(([entry]) => {
@@ -531,7 +475,6 @@ onBeforeUnmount(() => {
   io?.disconnect()
   revealObserver?.disconnect()
   sectionIO?.disconnect()
-  window.removeEventListener('pointermove', onPointerMove)
 })
 
 function categoryName(categoryId: number | null): string {
@@ -582,8 +525,8 @@ usePageSeo({
   position: fixed;
   inset: 0 0 auto;
   z-index: 60;
-  height: 3px;
-  background: linear-gradient(90deg, var(--c-primary), var(--k-grape), var(--k-mint));
+  height: 2px;
+  background: var(--c-primary);
   transform-origin: left;
   transform: scaleX(0);
   opacity: 0;
@@ -615,54 +558,20 @@ usePageSeo({
   pointer-events: none;
 }
 
-.hero__orb {
+/* 纸面上方的一抹暖光：居中的极淡径向光晕 */
+.hero__glow {
   position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(560px, 80vw);
+  aspect-ratio: 1;
   border-radius: 50%;
-  filter: blur(70px);
-  will-change: transform;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse, rgb(197 100 115 / 9%) 0%, transparent 55%);
 }
 
-.hero__orb--a {
-  top: -12%;
-  left: -8%;
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, rgb(255 177 208 / 45%), transparent 68%); /* 草莓粉 */
-}
-
-.hero__orb--b {
-  top: 8%;
-  right: -10%;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(circle, rgb(196 181 253 / 40%), transparent 68%); /* 香芋紫 */
-}
-
-.hero__orb--c {
-  bottom: -18%;
-  left: 28%;
-  width: 360px;
-  height: 360px;
-  background: radial-gradient(circle, rgb(160 231 218 / 38%), transparent 70%); /* 薄荷绿 */
-}
-
-html.dark .hero__orb--a { background: radial-gradient(circle, rgb(244 114 182 / 16%), transparent 68%); }
-html.dark .hero__orb--b { background: radial-gradient(circle, rgb(167 139 250 / 15%), transparent 68%); }
-html.dark .hero__orb--c { background: radial-gradient(circle, rgb(95 212 196 / 13%), transparent 70%); }
-
-/* 点阵网格，随滚动缓慢漂移，向下淡出 */
-.hero__grid {
-  position: absolute;
-  inset: -60px 0;
-  background-image: radial-gradient(rgb(244 114 182 / 15%) 1px, transparent 1px);
-  background-size: 28px 28px;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 62%, transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 62%, transparent);
-  will-change: transform;
-}
-
-html.dark .hero__grid {
-  background-image: radial-gradient(rgb(255 157 198 / 12%) 1px, transparent 1px);
+html.dark .hero__glow {
+  background: radial-gradient(ellipse, rgb(224 149 164 / 6%) 0%, transparent 55%);
 }
 
 .hero__content {
@@ -672,35 +581,35 @@ html.dark .hero__grid {
   will-change: transform, opacity;
 }
 
+/* 眉题：小号大写字母 + 宽字距，像书页顶部的章节眉 */
 .hero__eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  padding: 6px 16px;
-  font-size: 13px;
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-  border: 1px solid color-mix(in srgb, var(--c-primary) 22%, transparent);
-  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .hero__eyebrow-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background: var(--c-primary);
   border-radius: 50%;
-  animation: pulse 2.2s ease-in-out infinite;
 }
 
-/* 标题：逐字从遮罩内升起；渐变字通过 background-size + 偏移拼成连续渐变 */
+/* 标题：衬线体、中等字重、宽字距，像书名的扉页 */
 .hero__title {
-  margin: 24px 0 0;
-  font-size: clamp(38px, 7vw, 68px);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  margin: 28px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 6vw, 58px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
   color: var(--c-text);
 }
 
@@ -719,12 +628,7 @@ html.dark .hero__grid {
 }
 
 .hero__char--grad {
-  background-image: linear-gradient(105deg, #f472b6 0%, #a78bfa 50%, #5fd4c4 100%); /* 草莓粉 → 香芋紫 → 薄荷绿 */
-  background-size: 500% 100%;
-  background-position: calc(var(--gi, 0) * 25%) 0;
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
+  color: var(--c-primary);
 }
 
 @keyframes char-rise {
@@ -732,71 +636,43 @@ html.dark .hero__grid {
   to { transform: translateY(0); }
 }
 
+/* 副标语：衬线斜体，像卷首的一句引言 */
 .hero__tagline {
-  margin: 20px 0 0;
-  font-size: clamp(15px, 2vw, 17px);
-  line-height: 1.85;
+  margin: 22px 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(15px, 2vw, 16.5px);
+  line-height: 1.9;
+  letter-spacing: 0.04em;
   color: var(--c-text-secondary);
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
 }
 
-/* 统计卡片：三张小玻璃卡 */
+/* 统计：一行素净的数字，像书前的版权页数据 */
 .hero__stats {
   display: flex;
   flex-wrap: wrap;
-  align-items: stretch;
+  align-items: baseline;
   justify-content: center;
-  gap: 12px;
-  margin-top: 32px;
+  gap: 10px;
+  margin: 34px 0 0;
+  font-size: 13.5px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
   animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
 }
 
-.hero__stat {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 118px;
-  padding: 10px 18px;
-  background: color-mix(in srgb, var(--c-bg-card) 72%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid var(--c-border);
-  border-radius: 16px;
-  box-shadow: var(--shadow-card);
-  text-align: left;
+.hero__stats strong {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--c-text-secondary);
 }
 
-.hero__stat-icon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  font-size: 16px;
-  border-radius: 10px;
+.hero__stats-dot {
+  opacity: 0.5;
 }
 
-.hero__stat-icon--pink { background: rgb(244 114 182 / 14%); }
-.hero__stat-icon--grape { background: rgb(167 139 250 / 14%); }
-.hero__stat-icon--mint { background: rgb(95 212 196 / 16%); }
-
-.hero__stat-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.hero__stat strong {
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.2;
-  color: var(--c-text);
-  font-variant-numeric: tabular-nums;
-}
-
-.hero__stat span {
-  font-size: 12px;
-  color: var(--c-text-muted);
-}
-
+/* 按钮：纸感实心 + 描边幽灵，去糖果渐变 */
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
@@ -810,26 +686,27 @@ html.dark .hero__grid {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 28px;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 11px 26px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border: none;
-  border-radius: 999px; /* 小软糖胶囊 */
+  background: var(--c-primary);
+  border: 1px solid var(--c-primary);
+  border-radius: var(--radius-control);
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(244 114 182 / 32%), inset 0 -3px 0 rgb(0 0 0 / 8%); /* 底部厚度像果冻 */
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
+  transition: background-color var(--dur-soft) ease, border-color var(--dur-soft) ease, transform var(--dur-soft) ease;
 }
 
 .hero__cta:hover {
-  transform: translateY(-3px) scale(1.04); /* 弹起 */
-  box-shadow: 0 10px 26px rgb(244 114 182 / 42%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  background: var(--c-primary-hover);
+  border-color: var(--c-primary-hover);
+  transform: translateY(-1px);
 }
 
 .hero__cta:active {
-  transform: translateY(0) scale(0.95); /* 按下压扁 */
+  transform: translateY(0);
 }
 
 .hero__cta-arrow {
@@ -841,16 +718,15 @@ html.dark .hero__grid {
 }
 
 .hero__cta--ghost {
-  color: var(--c-text);
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  box-shadow: var(--shadow-card);
+  color: var(--c-text-secondary);
+  background: transparent;
+  border-color: var(--c-border);
 }
 
 .hero__cta--ghost:hover {
-  border-color: var(--c-primary);
   color: var(--c-primary);
-  box-shadow: var(--shadow-card-hover);
+  border-color: var(--c-primary);
+  background: transparent;
 }
 
 /* 滚动提示：鼠标造型 + 滚轮动画 */
@@ -894,11 +770,6 @@ html.dark .hero__grid {
   0% { transform: translateY(0); opacity: 1; }
   70% { transform: translateY(10px); opacity: 0; }
   100% { transform: translateY(0); opacity: 0; }
-}
-
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-primary) 45%, transparent); }
-  55% { box-shadow: 0 0 0 6px transparent; }
 }
 
 /* ===== 标签跑马灯 ===== */
@@ -949,9 +820,9 @@ html.dark .hero__grid {
   padding: 100px 0;
 }
 
-/* 交替底色区分相邻场景，像翻到下一页 */
+/* 交替底色：相邻场景用一层极淡的纸色区分，像翻到下一页 */
 .scene--tinted {
-  background: color-mix(in srgb, var(--c-primary-light) 40%, transparent);
+  background: var(--c-bg-soft);
   border-top: 1px solid var(--c-border);
   border-bottom: 1px solid var(--c-border);
 }
@@ -973,48 +844,30 @@ html.dark .hero__grid {
 
 .scene__no {
   display: block;
-  font-size: 44px;
-  font-weight: 800;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.5px #f0b9d6; /* 描边空心章节号 */
-}
-
-html.dark .scene__no {
-  -webkit-text-stroke-color: #5a4a66;
-}
-
-@supports not (-webkit-text-stroke: 1px black) {
-  .scene__no { color: #f0b9d6; }
-  html.dark .scene__no { color: #5a4a66; }
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: var(--c-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .scene__title {
-  margin: 16px 0 0;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  margin: 14px 0 0;
+  font-family: var(--font-serif);
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   color: var(--c-text);
 }
 
 .scene__desc {
   margin: 10px 0 0;
   font-size: 13.5px;
-  line-height: 1.7;
-  color: var(--c-text-secondary);
+  line-height: 1.8;
+  color: var(--c-text-muted);
 }
 
-/* ===== 终幕：结尾镜头全屏居中 ===== */
-.finale {
-  display: grid;
-  place-items: center;
-  min-height: 78vh;
-  padding: 80px 24px;
-}
-
-.finale .cta-banner {
-  width: min(680px, 100%);
-}
+/* ===== 终幕样式见下方「书末版权页」区块 ===== */
 
 /* ===== 章节导航：固定右侧，始终告知用户身处故事何处，可点击跳转 ===== */
 .chapter-nav {
@@ -1116,11 +969,11 @@ html.dark .scene__no {
 }
 
 .chip {
-  padding: 2px 10px;
+  padding: 2px 9px;
   font-size: 12px;
   color: var(--c-primary);
   background: var(--c-primary-light);
-  border-radius: 999px;
+  border-radius: var(--radius-control);
 }
 
 .meta-dot {
@@ -1157,72 +1010,63 @@ html.dark .scene__no {
   position: relative;
   display: block;
   overflow: hidden;
-  margin-bottom: 30px;
-  padding: 34px 36px 30px;
+  margin-bottom: 26px;
+  padding: 32px 34px 28px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
-  border-radius: 18px;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
   text-decoration: none;
-}
-
-/* 卡内的氛围光斑，hover 时苏醒 */
-.featured__glow {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(420px 220px at 88% -10%, rgb(196 181 253 / 18%), transparent 70%),
-    radial-gradient(380px 240px at 0% 110%, rgb(255 177 208 / 20%), transparent 70%);
-  opacity: 0.5;
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  pointer-events: none;
+  transition: border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) ease;
 }
 
 .featured:hover {
-  border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
+  border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-3px);
-
-  .featured__glow {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-
-  .featured__cta-circle {
-    background: var(--c-primary);
-    color: var(--c-on-primary);
-    transform: rotate(0deg);
-  }
+  transform: translateY(-2px);
 }
 
+/* 「最新发布」眉批：一枚安静的强调色小字，不再做贴纸 */
 .featured__badge {
   position: relative;
   display: inline-block;
-  padding: 4px 14px;
+  padding: 0;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-radius: 999px;
-  transform: rotate(-3deg); /* 像随手贴上的贴纸 */
-  box-shadow: 0 3px 8px rgb(244 114 182 / 30%);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--c-primary);
+}
+
+.featured__badge::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 4px;
+  background: var(--c-primary);
+  opacity: 0.35;
 }
 
 .featured__title {
   position: relative;
-  margin: 18px 0 0;
-  font-size: clamp(23px, 3.4vw, 30px);
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.015em;
+  margin: 16px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 3.2vw, 28px);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
   color: var(--c-text);
+  transition: color 0.2s ease;
 
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.featured:hover .featured__title {
+  color: var(--c-primary);
 }
 
 .featured__excerpt {
@@ -1261,79 +1105,82 @@ html.dark .scene__no {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   color: var(--c-primary);
 }
 
 .featured__cta-circle {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  font-size: 15px;
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
   color: inherit;
-  background: var(--c-primary-light);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 40%, transparent);
   border-radius: 50%;
-  transform: rotate(-45deg);
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.25s ease, color 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---- 目录式列表行 ---- */
+.featured:hover .featured__cta-circle {
+  background: var(--c-primary);
+  color: var(--c-on-primary);
+  transform: rotate(0deg);
+}
+
+/* ---- 编号时间线：左侧一条竖线贯穿，序号压在线上，像目录的页码 ---- */
+.row-list {
+  position: relative;
+}
+
+.row-list::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 24px;
+  width: 1px;
+  /* 强调色自上而下淡出，暗示「越往下越旧」的时间方向 */
+  background: linear-gradient(to bottom, var(--c-primary), var(--c-border) 75%, transparent);
+}
+
 .row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 22px;
-  padding: 22px 10px;
-  border-bottom: 1px solid var(--c-border);
+  position: relative;
+  display: block;
+  padding: 20px 8px 20px 44px;
   text-decoration: none;
-  transition: background-color 0.25s ease, padding-left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 
-  &:hover {
-    background: color-mix(in srgb, var(--c-primary-light) 60%, transparent);
-    padding-left: 20px;
+  &:hover .row__num {
+    color: var(--c-primary);
+    font-weight: 600;
+  }
 
-    .row__num {
-      -webkit-text-stroke-color: var(--c-primary);
-      transform: scale(1.06);
-    }
-
-    .row__title {
-      color: var(--c-primary);
-    }
-
-    .row__arrow {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  &:hover .row__title {
+    color: var(--c-primary);
   }
 }
 
-/* 描边空心序号，hover 时点亮 */
+/* 序号压在竖线上，纸底遮住线段，像目录上的页码 */
 .row__num {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.3px #e8d0e2; /* 淡粉描边 */
+  position: absolute;
+  left: 0;
+  top: 20px;
+  width: 23px;
+  padding: 2px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--c-text-muted);
+  background: var(--c-bg);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s var(--ease-bounce);
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
 }
 
-html.dark .row__num {
-  -webkit-text-stroke-color: #5a4a66;
-}
-
-@supports not (-webkit-text-stroke: 1px black) {
-  .row__num {
-    color: #e8d0e2;
-  }
-
-  html.dark .row__num {
-    color: #5a4a66;
-  }
+.row:first-child .row__num {
+  color: var(--c-primary);
+  font-weight: 600;
 }
 
 .row__main {
@@ -1342,9 +1189,11 @@ html.dark .row__num {
 
 .row__title {
   margin: 0;
-  font-size: 16.5px;
-  font-weight: 650;
-  line-height: 1.4;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.5;
   color: var(--c-text);
   transition: color 0.2s ease;
   display: -webkit-box;
@@ -1376,14 +1225,6 @@ html.dark .row__num {
   color: var(--c-text-muted);
 }
 
-.row__arrow {
-  font-size: 18px;
-  color: var(--c-primary);
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
 .empty {
   padding: 56px 20px;
   text-align: center;
@@ -1398,29 +1239,25 @@ html.dark .row__num {
   opacity: 0.7;
 }
 
-/* 「查看全部」链接 */
+/* 「查看全部」：一枚安静的文字链接，不再做胶囊按钮 */
 .more-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 24px;
-  padding: 10px 22px;
-  font-size: 14px;
-  font-weight: 600;
+  margin-top: 26px;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   color: var(--c-primary);
-  background: var(--c-bg-card);
-  border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
-  border-radius: 999px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  border-bottom: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
+  padding-bottom: 3px;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .more-link:hover {
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-color: transparent;
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 20px rgb(244 114 182 / 32%);
+  color: var(--c-primary-hover);
+  border-color: currentcolor;
 
   .more-link__arrow {
     transform: translateX(4px);
@@ -1431,7 +1268,7 @@ html.dark .row__num {
   transition: transform 0.2s ease;
 }
 
-/* ---- 分类卡片墙 ---- */
+/* ---- 分类卡片：素净的抽屉，去掉彩色顶条与光斑 ---- */
 .cat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -1439,73 +1276,45 @@ html.dark .row__num {
 }
 
 .cat-card {
-  --accent: var(--c-primary);
   position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  padding: 22px 22px 46px;
+  padding: 22px 22px 44px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
-  border-radius: 16px;
+  border-radius: var(--radius-card);
   text-decoration: none;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 3px;
-    background: var(--accent);
-    opacity: 0.75;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: -40px;
-    right: -40px;
-    width: 130px;
-    height: 130px;
-    background: var(--accent);
-    filter: blur(52px);
-    opacity: 0.12;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-  }
+  transition: border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) ease;
 
   &:hover {
-    transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
     box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
 
-    &::after {
-      opacity: 0.28;
-      transform: scale(1.25);
+    .cat-card__name {
+      color: var(--c-primary);
     }
 
     .cat-card__go {
       opacity: 1;
       transform: translateX(0);
-      color: var(--accent);
-    }
-
-    .cat-card__name {
-      color: var(--accent);
     }
   }
 }
 
 .cat-card__count {
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--accent);
+  letter-spacing: 0.14em;
+  color: var(--c-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .cat-card__name {
   margin: 10px 0 0;
-  font-size: 19px;
-  font-weight: 750;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   color: var(--c-text);
   transition: color 0.2s ease;
 }
@@ -1513,7 +1322,7 @@ html.dark .row__num {
 .cat-card__desc {
   margin: 8px 0 0;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--c-text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1526,147 +1335,128 @@ html.dark .row__num {
   position: absolute;
   right: 18px;
   bottom: 14px;
-  font-size: 17px;
-  color: var(--accent);
+  font-size: 16px;
+  color: var(--c-primary);
   opacity: 0;
-  transform: translateX(-8px);
+  transform: translateX(-6px);
   transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---- 标签云：像一板彩色贴纸 ---- */
+/* ---- 标签云：一枚枚素净的小签，不再做歪斜的彩色贴纸 ---- */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 12px;
+  gap: 10px 10px;
   padding: 28px 30px;
   background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
+  border: 1px solid var(--c-border);
   border-radius: var(--radius-card);
 }
 
 .tag-cloud__item {
-  --tk: var(--c-primary);
-  padding: 7px 15px;
-  font-weight: 650;
+  padding: 6px 13px;
   line-height: 1;
-  color: color-mix(in srgb, var(--tk) 75%, var(--c-text));
-  background: color-mix(in srgb, var(--tk) 13%, transparent);
-  border: 1.5px solid color-mix(in srgb, var(--tk) 30%, transparent);
-  border-radius: 999px;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-control);
   text-decoration: none;
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
+  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 
   sup {
     margin-left: 3px;
     font-size: 0.6em;
-    opacity: 0.65;
+    opacity: 0.55;
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--tk) 22%, transparent);
-    transform: translateY(-3px) rotate(-2deg); /* 贴纸被轻轻掎起 */
-    box-shadow: 0 6px 14px color-mix(in srgb, var(--tk) 25%, transparent);
+    color: var(--c-primary);
+    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
+    background: var(--c-primary-light);
   }
 }
 
-/* 贴纸般的轻微歪斜，交替方向避免呆板 */
-.tag-cloud__item:nth-child(3n) { rotate: 1.2deg; }
-.tag-cloud__item:nth-child(3n + 1) { rotate: -1.5deg; }
-.tag-cloud__item:nth-child(4n) { rotate: -0.8deg; }
+/* ---- 终幕：像书末的版权页，素净居中收尾 ---- */
+.finale {
+  display: grid;
+  place-items: center;
+  min-height: 62vh;
+  padding: 80px 24px;
+}
 
-/* ---- CTA 横幅 ---- */
-.cta-banner {
-  position: relative;
-  overflow: hidden;
-  padding: 44px 32px;
+.finale__inner {
+  width: min(640px, 100%);
   text-align: center;
-  /* 草莓牛奶 → 香芋 → 薄荷的糖果渐变 */
-  background: linear-gradient(135deg, #f472b6, #b195f7 55%, #6fd4c3);
-  border-radius: 26px;
-  box-shadow: 0 12px 34px rgb(244 114 182 / 25%);
 }
 
-.cta-banner::before {
-  content: '✿';
-  position: absolute;
-  top: 16px;
-  left: 22px;
-  font-size: 22px;
-  color: rgb(255 255 255 / 45%);
-  transform: rotate(-12deg);
-}
-
-.cta-banner::after {
-  content: '✦';
-  position: absolute;
-  right: 26px;
-  bottom: 18px;
-  font-size: 20px;
-  color: rgb(255 255 255 / 40%);
-  transform: rotate(10deg);
-}
-
-.cta-banner__glow {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(300px 160px at 15% 20%, rgb(255 255 255 / 18%), transparent 70%),
-    radial-gradient(260px 180px at 85% 90%, rgb(255 255 255 / 12%), transparent 70%);
-  pointer-events: none;
-}
-
-.cta-banner__title {
-  position: relative;
+.finale__eyebrow {
   margin: 0;
-  font-size: clamp(20px, 3vw, 26px);
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.01em;
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
 }
 
-.cta-banner__text {
-  position: relative;
-  margin: 10px 0 0;
+.finale__title {
+  margin: 18px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--c-text);
+}
+
+.finale__text {
+  margin: 14px 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
   font-size: 14.5px;
-  color: rgb(255 255 255 / 82%);
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted);
 }
 
-.cta-banner__actions {
-  position: relative;
+.finale__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
-  margin-top: 26px;
+  gap: 14px;
+  margin-top: 32px;
 }
 
-.cta-banner__btn {
+.finale__btn {
   padding: 11px 26px;
   font-size: 14px;
-  font-weight: 700;
-  color: var(--c-primary);
-  background: #fff;
-  border-radius: 999px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #fff;
+  background: var(--c-primary);
+  border: 1px solid var(--c-primary);
+  border-radius: var(--radius-control);
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 26px rgb(0 0 0 / 26%);
+    background: var(--c-primary-hover);
+    border-color: var(--c-primary-hover);
+    transform: translateY(-1px);
   }
 }
 
-.cta-banner__btn--ghost {
-  color: #fff;
-  background: rgb(255 255 255 / 14%);
-  border: 1px solid rgb(255 255 255 / 45%);
-  backdrop-filter: blur(4px);
+.finale__btn--ghost {
+  color: var(--c-text-secondary);
+  background: transparent;
+  border-color: var(--c-border);
+
+  &:hover {
+    color: var(--c-primary);
+    background: transparent;
+    border-color: var(--c-primary);
+  }
 }
 
 
-/* ===== 回到顶部：小软糖 ===== */
+/* ===== 回到顶部 ===== */
 .back-top {
   position: fixed;
   right: 24px;
@@ -1674,25 +1464,25 @@ html.dark .row__num {
   z-index: 40;
   display: grid;
   place-items: center;
-  width: 46px;
-  height: 46px;
-  font-size: 18px;
+  width: 42px;
+  height: 42px;
+  font-size: 17px;
   color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  background: var(--c-primary);
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgb(244 114 182 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur-soft) ease, background-color var(--dur-soft) ease;
 }
 
 .back-top:hover {
-  transform: translateY(-4px) scale(1.08);
-  box-shadow: 0 12px 26px rgb(244 114 182 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  background: var(--c-primary-hover);
+  transform: translateY(-3px);
 }
 
 .back-top:active {
-  transform: scale(0.92);
+  transform: translateY(0);
 }
 
 .totop-enter-active,
@@ -1714,7 +1504,6 @@ html.dark .row__num {
   .hero__stats,
   .hero__actions,
   .hero__scroll-hint,
-  .hero__eyebrow-dot,
   .hero__scroll-wheel {
     animation: none !important;
   }
@@ -1723,8 +1512,6 @@ html.dark .row__num {
     transform: none;
   }
 
-  .hero__orb,
-  .hero__grid,
   .hero__content {
     transform: none !important;
   }

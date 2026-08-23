@@ -7,82 +7,86 @@
 
 body {
   margin: 0;
-  /* 奶油白 → 淡粉的柔和渐变，像干净的文具桌 */
-  background: linear-gradient(165deg, #fff6ef 0%, #fdf0f7 60%, #f6efff 100%) fixed;
+  /* 纯净暖米白，像一张摊开的稿纸 */
+  background: var(--c-bg);
 }
 
-/* ===== 设计令牌（Kawaii Minimal）=====
- * 糖果色只出现在按钮、标签、图标等小面积区域；
- * 背景与大块区域保持低饱和浅色维持平衡。
+/* ===== 设计令牌（Paper Editorial / 纸感编辑风）=====
+ * 参考余白 Yohaku 的设计语言：暖米白纸底 + 单一灰玫瑰强调色 +
+ * 暖调中性灰阶。衬线体负责标题的文学气质，装饰收敛到最少。
  */
 :root {
-  /* 糖果主色：草莓粉 */
-  --c-primary: #f472b6;
-  --c-primary-hover: #ec4899;
-  --c-primary-light: #ffeef6;
+  /* 强调色：灰玫瑰（dark 模式下提亮） */
+  --c-primary: #c56473;
+  --c-primary-hover: #ad5362;
+  --c-primary-light: rgb(197 100 115 / 8%);
 
-  /* 配角糖果色：薄荷 / 香芋紫 / 柠檬黄 / 天空蓝 */
-  --k-mint: #5fd4c4;
-  --k-grape: #a78bfa;
-  --k-lemon: #ffc94d;
-  --k-sky: #7cc7f7;
+  /* 辅助色：从糖果色降饱和而来的纸感配角（保留变量名兼容旧引用） */
+  --k-mint: #7a9e8e;
+  --k-grape: #8b7fa8;
+  --k-lemon: #c9a25e;
+  --k-sky: #7a94ad;
 
-  /* 暖调文字，避免纯黑带来的紧张感 */
-  --c-text: #574b62;
-  --c-text-secondary: #8b7d95;
-  --c-text-muted: #b3a6bd;
-  --c-border: #f5dfec;
-  --c-bg: #fdf6f1;
-  --c-bg-card: #fffdfb;
-  --c-bg-soft: #fdf6f1;
+  /* 暖调中性灰阶（参考 Yohaku neutral 体系） */
+  --c-text: #24231f;
+  --c-text-secondary: #5c5a55;
+  --c-text-muted: #a8a69f;
+  --c-border: #e3e1db;
+  --c-bg: #f9f8f5;
+  --c-bg-card: #fffefb;
+  --c-bg-soft: #f4f3ef;
   --c-on-primary: #fff;
-  --c-danger: #f0708f;
-  --c-success: #43c6a8;
-  --c-warning-text: #b07a1e;
-  --c-warning-bg: #fff3d6;
+  --c-danger: #a64953;
+  --c-success: #4a8a6d;
+  --c-warning-text: #8a6a2a;
+  --c-warning-bg: #f6ecd4;
 
-  /* 大圆角像贴在白板上的色纸；软糖按钮用胶囊 */
-  --radius-card: 20px;
-  --radius-control: 12px;
+  /* 圆角收敛：纸感的克制小圆角 */
+  --radius-card: 10px;
+  --radius-control: 6px;
 
-  /* 柔和带色温的投影，而非灰黑硬阴影 */
-  --shadow-card: 0 2px 6px rgb(244 114 182 / 6%), 0 10px 30px rgb(167 139 250 / 8%);
-  --shadow-card-hover: 0 4px 10px rgb(244 114 182 / 10%), 0 16px 40px rgb(167 139 250 / 14%);
+  /* 极轻的纸面投影 */
+  --shadow-card: 0 1px 2px rgb(36 35 31 / 4%), 0 6px 20px rgb(36 35 31 / 4%);
+  --shadow-card-hover: 0 2px 6px rgb(36 35 31 / 6%), 0 12px 32px rgb(36 35 31 / 8%);
 
-  /* 「轻、软、弹」交互：略长的时长 + 带回弹的缓动 */
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-soft: 260ms;
+  /* 交互缓动：去掉回弹，改为沉稳的淡入淡出 */
+  --ease-bounce: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-soft: 220ms;
+
+  /* 衬线字体栈：标题与引言的文学气质（本地字体，零外部依赖） */
+  --font-serif: 'Noto Serif SC', 'Source Han Serif SC', 'SongTi SC', 'STSong',
+    'SimSun', Georgia, 'Times New Roman', serif;
   color-scheme: light;
 }
 
-/* ===== 暗色主题：深梅子夜 ===== */
+/* ===== 暗色主题：墨夜纸 ===== */
 html.dark {
-  --c-primary: #ff9dc6;
-  --c-primary-hover: #ffb9d5;
-  --c-primary-light: rgb(255 157 198 / 14%);
-  --k-mint: #74ddcd;
-  --k-grape: #bfa6fc;
-  --k-lemon: #ffd77a;
-  --k-sky: #93d3f9;
-  --c-text: #f2e8f0;
-  --c-text-secondary: #c3b3cc;
-  --c-text-muted: #90809c;
-  --c-border: #40344b;
-  --c-bg: #211a27;
-  --c-bg-card: #2b2233;
-  --c-bg-soft: #211a27;
-  --c-on-primary: #42182e;
-  --c-danger: #ff8ba3;
-  --c-success: #5bd6bb;
-  --c-warning-text: #ffd77a;
-  --c-warning-bg: rgb(255 215 122 / 12%);
-  --shadow-card: 0 2px 6px rgb(0 0 0 / 25%), 0 10px 30px rgb(0 0 0 / 22%);
-  --shadow-card-hover: 0 4px 10px rgb(0 0 0 / 30%), 0 16px 40px rgb(0 0 0 / 32%);
+  --c-primary: #e095a4;
+  --c-primary-hover: #eaabb7;
+  --c-primary-light: rgb(224 149 164 / 12%);
+  --k-mint: #8fb3a2;
+  --k-grape: #a99cc4;
+  --k-lemon: #d4b478;
+  --k-sky: #93aac2;
+  --c-text: #f0efeb;
+  --c-text-secondary: #c9c7c0;
+  --c-text-muted: #787670;
+  --c-border: #3a3936;
+  --c-bg: #171614;
+  --c-bg-card: #1e1d1a;
+  --c-bg-soft: #171614;
+  --c-on-primary: #241417;
+  --c-danger: #c8767f;
+  --c-success: #6bb894;
+  --c-warning-text: #d4b478;
+  --c-warning-bg: rgb(212 180 120 / 12%);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 25%), 0 6px 20px rgb(0 0 0 / 20%);
+  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 30%), 0 12px 32px rgb(0 0 0 / 28%);
   color-scheme: dark;
 }
 
 html.dark body {
-  background: linear-gradient(165deg, #241c2b 0%, #2a2033 60%, #221a30 100%) fixed;
+  background: var(--c-bg);
 }
 
 /* ===== 动画 ===== */
@@ -170,16 +174,16 @@ html.dark body {
 }
 
 .btn--primary {
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  background: var(--c-primary);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 14px rgb(244 114 182 / 30%);
+  box-shadow: none;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--c-primary-hover), var(--k-grape));
+  background: var(--c-primary-hover);
   border-color: transparent;
-  box-shadow: 0 8px 20px rgb(244 114 182 / 38%);
+  box-shadow: var(--shadow-card);
 }
 
 .btn--danger {
@@ -229,7 +233,7 @@ html.dark body {
 
 .field-input:focus {
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 4px rgb(244 114 182 / 15%); /* 粉色柔光圈 */
+  box-shadow: 0 0 0 3px var(--c-primary-light); /* 玫瑰色柔光圈 */
 }
 
 .field-label {
