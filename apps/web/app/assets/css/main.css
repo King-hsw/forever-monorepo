@@ -8,7 +8,7 @@
 body {
   margin: 0;
   /* 奶油纸 → 淡杏的柔和渐变，像晒过太阳的文具桌 */
-  background: linear-gradient(165deg, #fffdfa 0%, #fbf1ea 55%, #f7ece1 100%) fixed;
+  background: linear-gradient(165deg, #f8f1e7 0%, #f3e9dc 55%, #efe3d3 100%) fixed;
 }
 
 /* ===== 设计令牌（橘子汽水 / 暖调文具）=====
@@ -32,9 +32,9 @@ body {
   --c-text-secondary: #857463;
   --c-text-muted: #b3a491;
   --c-border: #eee0d4;
-  --c-bg: #fdfaf5;
+  --c-bg: #f6efe4;
   --c-bg-card: #fffefb;
-  --c-bg-soft: #f9f1ea;
+  --c-bg-soft: #f1e7d8;
   --c-on-primary: #fff;
   --c-danger: #cd5f5f;
   --c-success: #7ba05b;
