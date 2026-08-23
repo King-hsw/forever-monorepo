@@ -30,7 +30,7 @@
 
       <!-- 目录式文章列表：翻页/切分类时整组淡入淡出，避免生硬跳变 -->
       <section class="list">
-        <Transition name="page-swap" mode="out-in">
+        <Transition name="page-swap" mode="out-in" @after-enter="observeReveals">
           <div v-if="filteredPosts.length" :key="`${activeCategory}-${currentPage}`" class="list__page">
             <NuxtLink
               v-for="(post, i) in pagedPosts"
@@ -77,9 +77,17 @@
           aria-label="上一页"
           @click="changePage(currentPage - 1)"
         >←</button>
-        <span class="floating-pager__indicator">
-          {{ currentPage }}<small>/ {{ totalPages }}</small>
-        </span>
+        <template v-for="(p, i) in pageItems" :key="`${p}-${i}`">
+          <span v-if="p === '…'" class="floating-pager__ellipsis">…</span>
+          <button
+            v-else
+            type="button"
+            class="page-btn page-btn--num"
+            :class="{ 'page-btn--active': p === currentPage }"
+            :aria-current="p === currentPage ? 'page' : undefined"
+            @click="changePage(p)"
+          >{{ p }}</button>
+        </template>
         <button
           type="button"
           class="page-btn page-btn--icon"
@@ -190,6 +198,24 @@ function changePage(page: number) {
   // 悬浮翻页器始终可见，翻页后无需强制滚动打断阅读位置
 }
 
+/** 页码列表：页数少时全部展示，多时首尾 + 当前页附近，中间用 … 省略 */
+const pageItems = computed<(number | '…')[]>(() => {
+  const last = totalPages.value
+  if (last <= 7) {
+    return Array.from({ length: last }, (_, i) => i + 1)
+  }
+  const near = new Set([1, 2, last - 1, last, currentPage.value - 1, currentPage.value, currentPage.value + 1])
+  const picked = [...near].filter(p => p >= 1 && p <= last).sort((a, b) => a - b)
+  const items: (number | '…')[] = []
+  let prev = 0
+  for (const p of picked) {
+    if (p - prev > 1) items.push('…')
+    items.push(p)
+    prev = p
+  }
+  return items
+})
+
 // ===== 滚动渐显 =====
 
 let revealObserver: IntersectionObserver | null = null
@@ -201,7 +227,9 @@ function observeReveals() {
   })
 }
 
-watch(pagedPosts, () => nextTick(observeReveals))
+// 翻页/切分类后的新行由 Transition 的 @after-enter 钩子触发观察：
+// out-in 模式下新节点要等旧列表淡出后才插入，watch + nextTick 会跑得太早，
+// 导致新行永远停在 opacity: 0（表现为「翻页后内容没加载出来」）
 
 onMounted(() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -528,20 +556,16 @@ html.dark .row__num {
   box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
 }
 
-.floating-pager__indicator {
-  min-width: 64px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--c-text);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
+.floating-pager__ellipsis {
+  padding: 0 2px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+  user-select: none;
+}
 
-  small {
-    margin-left: 4px;
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--c-text-muted);
-  }
+.page-btn--num {
+  min-width: 34px;
+  padding: 6px 8px;
 }
 
 .page-btn--icon {
