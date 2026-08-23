@@ -75,11 +75,12 @@ defineEmits<{ reply: [comment: CommentNode] }>()
   font-weight: 600;
   color: var(--c-text);
   text-decoration: none;
+}
 
-  &--link:hover {
-    color: var(--c-primary);
-    text-decoration: underline;
-  }
+/* 带主页链接的昵称：悬停提示可点击（&--xxx 后缀嵌套在原生 CSS 中不合法，需平铺） */
+.comment-item__name--link:hover {
+  color: var(--c-primary);
+  text-decoration: underline;
 }
 
 .comment-item__time {

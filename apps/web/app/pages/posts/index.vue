@@ -339,15 +339,15 @@ usePageSeo({
     transform: translateY(-1px);
   }
 
-  &--active {
-    color: var(--c-on-primary);
-    background: var(--c-primary);
-    border-color: var(--c-primary);
+}
 
-    &:hover {
-      color: var(--c-on-primary);
-    }
-  }
+/* 修饰符选择器不能嵌套拼接（&--active 是 Sass 语法，原生 CSS 嵌套不支持，
+ * 写在父级里会被浏览器整条丢弃），必须平铺为顶层规则 */
+.filter-btn--active,
+.filter-btn--active:hover {
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border-color: var(--c-primary);
 }
 
 /* ===== 目录式列表 ===== */
@@ -609,16 +609,14 @@ html.dark .row__num {
     cursor: not-allowed;
   }
 
-  &--active {
-    color: var(--c-on-primary);
-    background: var(--c-primary);
-    border-color: var(--c-primary);
+}
 
-    &:hover {
-      color: var(--c-on-primary);
-      transform: none;
-    }
-  }
+.page-btn--active,
+.page-btn--active:hover:not(:disabled) {
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  transform: none;
 }
 
 </style>

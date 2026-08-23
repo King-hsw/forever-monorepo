@@ -156,11 +156,11 @@ usePageSeo({
   &:hover {
     background: var(--c-primary-light);
   }
+}
 
-  &--none {
-    color: var(--c-text-muted);
-    background: var(--c-bg-soft);
-  }
+.category-chip--none {
+  color: var(--c-text-muted);
+  background: var(--c-bg-soft);
 }
 
 .article-meta {
