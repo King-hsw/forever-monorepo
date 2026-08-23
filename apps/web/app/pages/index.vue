@@ -581,10 +581,17 @@ useHead({ title: 'Forever - 记录技术与思考' })
 
 <style scoped>
 .blog-home {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--c-bg-soft);
   overflow-x: clip;
+}
+
+/* 内容不足一屏时，让 main 撑满剩余空间，footer 贴住视口底部 */
+.blog-home > main {
+  flex: 1;
 }
 
 ::selection {

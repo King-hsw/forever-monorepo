@@ -259,6 +259,8 @@ useHead({ title: '全部文章 - Forever' })
 
 <style scoped>
 .posts-page {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--c-bg-soft);
@@ -368,6 +370,8 @@ useHead({ title: '全部文章 - Forever' })
 }
 
 .wrap {
+  flex: 1;
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
   padding-top: 96px;
