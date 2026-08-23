@@ -18,6 +18,19 @@
       </div>
 
       <div class="site-footer__col">
+        <h3 class="site-footer__heading">站外链接</h3>
+        <p>
+          <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号</a>
+        </p>
+        <p>
+          <a href="https://www.travellings.cn/" target="_blank" rel="noopener" title="开往">开往</a>
+        </p>
+        <p>
+          <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约</a>
+        </p>
+      </div>
+
+      <div class="site-footer__col">
         <h3 class="site-footer__heading">关于本站</h3>
         <p><NuxtLink to="/friends/apply">申请友链</NuxtLink></p>
         <p><a href="/sitemap.xml" target="_blank" rel="noopener">站点地图</a></p>
