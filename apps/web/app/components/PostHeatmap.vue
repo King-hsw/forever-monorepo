@@ -248,6 +248,7 @@ const data = computed(() => {
 }
 
 .heatmap__cells .heatmap__cell:hover:not(.is-future) {
+  z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
   transform: scale(1.35); /* 悬停轻轻放大 */
   box-shadow: 0 2px 6px rgb(244 114 182 / 30%);
 }
