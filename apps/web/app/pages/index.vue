@@ -18,6 +18,7 @@
         <nav class="site-nav" aria-label="主导航">
           <a class="site-nav__link" href="#latest" @click.prevent="scrollToId('latest')">文章</a>
           <NuxtLink class="site-nav__link" to="/posts">全部文章</NuxtLink>
+          <NuxtLink to="/message" class="site-nav__link">留言墙</NuxtLink>
           <NuxtLink to="/friends" class="site-nav__link">友链</NuxtLink>
         </nav>
         <div class="site-header__actions">

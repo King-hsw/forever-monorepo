@@ -13,7 +13,6 @@
       <article class="article-card">
         <header class="article-head">
           <NuxtLink
-          <NuxtLink
             v-if="categorySlug"
             :to="`/posts?category=${categorySlug}`"
             class="category-chip"
@@ -42,6 +41,9 @@
           <span v-for="tag in post.tags" :key="tag.id" class="tag-chip"># {{ tag.name }}</span>
         </footer>
       </article>
+
+      <!-- 评论区 -->
+      <CommentSection :article-id="post.id" class="fade-up" />
 
       <section v-if="relatedPosts.length" class="related">
         <h2 class="related__title">相关文章</h2>

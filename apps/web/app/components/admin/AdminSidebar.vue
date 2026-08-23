@@ -51,6 +51,7 @@ const auth = useAuthStore()
 const navItems = [
   { label: '仪表盘', to: '/admin', icon: '📊' },
   { label: '文章管理', to: '/admin/posts', icon: '📝' },
+  { label: '评论管理', to: '/admin/comments', icon: '💬' },
   { label: '分类标签', to: '/admin/categories', icon: '🗂️' },
   { label: 'RSS 订阅', to: '/admin/rss', icon: '📡' },
   { label: '友链管理', to: '/admin/friends', icon: '🤝' },

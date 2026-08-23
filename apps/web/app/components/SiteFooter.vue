@@ -31,6 +31,7 @@
             <ul>
               <li><NuxtLink to="/">首页</NuxtLink></li>
               <li><NuxtLink to="/posts">全部文章</NuxtLink></li>
+              <li><NuxtLink to="/message">留言墙</NuxtLink></li>
               <li><NuxtLink to="/friends">友链</NuxtLink></li>
               <li><NuxtLink to="/friends/apply">申请友链</NuxtLink></li>
             </ul>

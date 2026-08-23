@@ -141,6 +141,47 @@ export interface FriendLinkUpdateInput {
   rejectReason?: string
 }
 
+export type CommentStatus = 'APPROVED' | 'PENDING' | 'REJECTED'
+
+/** 公开评论（对应 CommentResponse；两层楼结构，replies 为楼内回复） */
+export interface CommentNode {
+  id: number
+  nickname: string
+  /** 由邮箱哈希生成的头像 URL */
+  avatarUrl: string
+  /** 个人主页，可为 null */
+  site: string | null
+  content: string
+  createdAt: string
+  replies: CommentNode[] | null
+}
+
+/** 管理端评论（对应 CommentAdminResponse；比公开版多邮箱/IP/状态/所属文章） */
+export interface AdminComment {
+  id: number
+  articleId: number
+  articleTitle: string
+  parentId: number | null
+  rootId: number | null
+  nickname: string
+  email: string
+  site: string | null
+  content: string
+  status: CommentStatus
+  ip: string | null
+  createdAt: string
+}
+
+/** 发表评论请求（访客，无需登录） */
+export interface CommentInput {
+  articleId: number
+  parentId?: number
+  nickname: string
+  email: string
+  site?: string
+  content: string
+}
+
 /** 后端统一分页结构 */
 export interface PageResult<T> {
   list: T[]

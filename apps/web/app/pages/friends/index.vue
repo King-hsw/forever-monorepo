@@ -10,6 +10,7 @@
         <nav class="site-nav">
           <NuxtLink to="/" class="site-nav__link">首页</NuxtLink>
           <NuxtLink to="/posts" class="site-nav__link">全部文章</NuxtLink>
+          <NuxtLink to="/message" class="site-nav__link">留言墙</NuxtLink>
           <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
         </nav>
         <div class="site-header__theme"><ThemeToggle /></div>
