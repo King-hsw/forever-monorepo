@@ -30,14 +30,14 @@
 
       <!-- 目录式文章列表：翻页/切分类时整组淡入淡出，避免生硬跳变 -->
       <section class="list">
-        <Transition name="page-swap" mode="out-in" @after-enter="observeReveals">
+        <Transition name="page-swap" mode="out-in" @after-enter="afterListEnter">
           <div v-if="filteredPosts.length" :key="`${activeCategory}-${currentPage}`" class="list__page">
             <NuxtLink
               v-for="(post, i) in pagedPosts"
               :key="post.id"
               :to="`/posts/${post.slug}`"
               class="row reveal"
-              :style="{ '--reveal-delay': `${Math.min(i, 8) * 60}ms` }"
+              :style="{ '--reveal-delay': rowDelay(i) }"
             >
           <span class="row__num" aria-hidden="true">{{ String(startIndex + i + 1).padStart(2, '0') }}</span>
           <span class="row__main">
@@ -177,10 +177,12 @@ function postTagsOf(post: Post) {
 }
 
 function setCategory(slug: string) {
+  hasSwapped.value = true
   router.replace(slug ? { query: { category: slug } } : { query: {} })
 }
 
 function setPage(page: number) {
+  hasSwapped.value = true
   const clamped = Math.min(Math.max(1, page), totalPages.value)
   const query: Record<string, string> = {}
   if (activeCategory.value) {
@@ -196,6 +198,15 @@ function changePage(page: number) {
   if (page === currentPage.value) return
   setPage(page)
   // 悬浮翻页器始终可见，翻页后无需强制滚动打断阅读位置
+}
+
+// 是否已经发生过翻页 / 切分类。
+// 首次进入页面时逐行阶梯渐显（好看），之后翻页则整体平滑过渡，
+// 不再让每行各自带延迟淡入，避免「一行行挤牙膏」的割裂感。
+const hasSwapped = ref(false)
+
+function rowDelay(i: number): string {
+  return hasSwapped.value ? '0ms' : `${Math.min(i, 8) * 60}ms`
 }
 
 /** 页码列表：页数少时全部展示，多时首尾 + 当前页附近，中间用 … 省略 */
@@ -227,9 +238,21 @@ function observeReveals() {
   })
 }
 
-// 翻页/切分类后的新行由 Transition 的 @after-enter 钩子触发观察：
+// 新列表插入后由 Transition 的 @after-enter 钩子接管：
 // out-in 模式下新节点要等旧列表淡出后才插入，watch + nextTick 会跑得太早，
 // 导致新行永远停在 opacity: 0（表现为「翻页后内容没加载出来」）
+//
+// 首次进入走 IntersectionObserver 逐行渐显；
+// 翻页/切分类后直接整组显示，跟随容器一起平滑淡入，不做行级延迟。
+function afterListEnter(el: Element) {
+  if (hasSwapped.value && import.meta.client) {
+    el.querySelectorAll<HTMLElement>('.reveal').forEach((row) => {
+      row.classList.add('reveal--visible')
+    })
+    return
+  }
+  observeReveals()
+}
 
 onMounted(() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -517,22 +540,27 @@ html.dark .row__num {
   display: block;
 }
 
-/* 翻页 / 切分类时列表整组淡入淡出 */
+/* 翻页 / 切分类时列表整组平滑淡出、淡入，位移很小，衔接自然 */
 .page-swap-enter-active {
-  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 0.32s cubic-bezier(0.33, 1, 0.68, 1),
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .page-swap-leave-active {
-  transition: opacity 0.16s ease;
+  transition:
+    opacity 0.14s ease-in,
+    transform 0.14s ease-in;
 }
 
 .page-swap-enter-from {
   opacity: 0;
-  transform: translateY(14px);
+  transform: translateY(6px);
 }
 
 .page-swap-leave-to {
   opacity: 0;
+  transform: translateY(-4px);
 }
 
 /* 悬浮翻页器：固定视口底部居中，毛玻璃胶囊 */
