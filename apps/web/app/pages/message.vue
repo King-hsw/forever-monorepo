@@ -12,12 +12,14 @@
       </div>
 
       <!-- ===== 我要留言 ===== -->
-      <div class="card wall-form fade-up" style="--stagger-index: 1">
-        <h2 class="wall-form__title">留下你的足迹 ✍️</h2>
+      <div ref="formEl" class="card wall-form fade-up" style="--stagger-index: 1">
+        <h2 class="wall-form__title">{{ replyTo ? `回复 @${replyTo.nickname}` : '留下你的足迹 ✍️' }}</h2>
         <CommentForm
           :article-id="board.id"
+          :reply-to="replyTo"
           placeholder-suffix="（留言）"
           @success="onCreated"
+          @cancel-reply="replyTo = null"
         />
       </div>
 
@@ -51,6 +53,24 @@
               </div>
             </header>
             <p class="wall-card__content">{{ msg.content }}</p>
+
+            <!-- 楼内回复 -->
+            <ul v-if="msg.replies?.length" class="wall-card__replies" role="list">
+              <li v-for="reply in msg.replies" :key="reply.id" class="wall-reply">
+                <img :src="reply.avatarUrl" alt="" class="wall-reply__avatar" loading="lazy"
+                     @error="(e: Event) => ((e.target as HTMLImageElement).style.visibility = 'hidden')">
+                <div class="wall-reply__body">
+                  <span class="wall-reply__name">{{ reply.nickname }}</span>
+                  <time class="wall-reply__time">{{ formatDate(reply.createdAt) }}</time>
+                  <p class="wall-reply__content">{{ reply.content }}</p>
+                </div>
+              </li>
+            </ul>
+
+            <footer class="wall-card__foot">
+              <button type="button" class="wall-card__reply-btn" :class="{ 'is-active': replyTo?.id === msg.id }"
+                      @click="startReply(msg)">回复</button>
+            </footer>
           </article>
         </section>
 
@@ -121,14 +141,27 @@ function loadMore() {
 // 墙体用 ClientOnly 渲染，挂载后拉首页留言
 onMounted(() => load(1))
 
+/* ---------- 回复留言 ---------- */
+const formEl = ref<HTMLElement | null>(null)
+const replyTo = ref<CommentNode | null>(null)
+
+function startReply(msg: CommentNode) {
+  // 已处于回复状态再点则取消
+  replyTo.value = replyTo.value?.id === msg.id ? null : msg
+  if (replyTo.value) {
+    nextTick(() => formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+  }
+}
+
 /** 新留言插入墙顶；先审后显时提示等待审核 */
 async function onCreated(created: { status: string }) {
   justPosted.value = true
   postedTip.value = created.status === 'PENDING'
-    ? '留言已提交，审核通过后展示 ✓'
+    ? '已提交，审核通过后展示 ✓'
     : '留言已提交 ✓'
   total.value++
   setTimeout(() => (justPosted.value = false), 4000)
+  replyTo.value = null
   await load(1)
 }
 
@@ -274,6 +307,83 @@ usePageSeo({
   color: var(--c-text-secondary);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+/* ===== 楼内回复 ===== */
+.wall-card__replies {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  list-style: none;
+  border-top: 1px dashed var(--c-border);
+}
+
+.wall-reply {
+  display: flex;
+  gap: 8px;
+}
+
+.wall-reply__avatar {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.wall-reply__body {
+  min-width: 0;
+}
+
+.wall-reply__name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.wall-reply__time {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--c-text-muted);
+}
+
+.wall-reply__content {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--c-text-secondary);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* ===== 卡片底部操作 ===== */
+.wall-card__foot {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.wall-card__reply-btn {
+  padding: 3px 12px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    color: var(--c-primary);
+    background: var(--c-primary-light);
+  }
+
+  &.is-active {
+    font-weight: 600;
+    color: var(--c-primary);
+    background: var(--c-primary-light);
+  }
 }
 
 /* ===== 空态 / 加载更多 ===== */
