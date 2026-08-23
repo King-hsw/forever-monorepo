@@ -183,22 +183,35 @@ const data = computed(() => {
   }
 }
 
-/* 自适应宽度：以容器宽度为基准计算格子尺寸，53 列始终填满一行，
- * 不再出现横向滚动条；容器查询兼容性不足时回退到固定 13px 并允许横向滚动 */
+/* 自适应宽度：以容器宽度为基准计算格子尺寸，53 列始终填满一行；
+ * 窄容器（手机）下缩小间距、隐藏星期标签并放宽格子下限到 4px；
+ * 兜底允许横向滚动，避免撑破页面布局 */
 .heatmap__scroll {
   container-type: inline-size;
+  overflow-x: auto;
 }
 
 .heatmap__canvas {
-  --hm-cell: clamp(
-    6px,
-    calc((100cqw - 20px - 52 * 3px) / 53),
-    16px
+  --hm-gap: 3px;
+  --hm-cell: max(
+    4px,
+    calc((100cqw - 20px - 52 * var(--hm-gap)) / 53)
   ); /* 20px 为星期标签列 + 列间距，52 个列间距 */
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 4px;
   min-width: fit-content;
+}
+
+@container (max-width: 420px) {
+  .heatmap__canvas {
+    --hm-gap: 1.5px;
+  }
+
+  /* 手机上格子太小，星期标签没有存在的意义，隐藏后还能让格子更宽 */
+  .heatmap__weekdays {
+    display: none;
+  }
 }
 
 .heatmap__months,
@@ -207,7 +220,7 @@ const data = computed(() => {
   grid-auto-flow: column;
   grid-auto-columns: var(--hm-cell);
   grid-template-rows: repeat(7, var(--hm-cell));
-  gap: 3px;
+  gap: var(--hm-gap);
 }
 
 /* 月份标签单独一行，53 列对齐格子 */
@@ -226,7 +239,7 @@ const data = computed(() => {
 .heatmap__weekdays {
   display: grid;
   grid-template-rows: repeat(7, var(--hm-cell));
-  gap: 3px;
+  gap: var(--hm-gap);
   padding-top: 20px; /* 对齐月份行下方 */
   font-size: 10px;
   line-height: var(--hm-cell);
