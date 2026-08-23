@@ -1,71 +1,55 @@
 <template>
-  <div class="archive-page">
-    <!-- ===== Header：全站统一导航 ===== -->
+  <div class="arch-page">
     <SiteHeader width="800px" />
 
-    <main class="wrap">
-      <!-- 页面标题 -->
-      <div class="page-head fade-up">
-        <h1 class="page-head__cn">归档</h1>
-        <span class="page-head__en">Archive · 共 {{ items.length }} 篇文章</span>
-      </div>
+    <main class="arch-main">
+      <!-- 页头 -->
+      <header class="arch-head">
+        <h1 class="arch-head__title">归档</h1>
+        <p class="arch-head__sub">Archive · 共 {{ list.length }} 篇文章</p>
+      </header>
 
-      <p v-if="items.length" class="page-intro fade-up" style="--stagger-index: 1">
-        按时间倒序，回顾每一段记录的时光 ✍️
-      </p>
+      <template v-if="yearGroups.length">
+        <section
+          v-for="yg in yearGroups"
+          :key="yg.year"
+          class="arch-year"
+        >
+          <!-- 年份横幅 -->
+          <div class="arch-year__head">
+            <span class="arch-year__num">{{ yg.year }}</span>
+            <span class="arch-year__line" aria-hidden="true" />
+            <span class="arch-year__count">{{ countOf(yg) }} 篇</span>
+          </div>
 
-      <!-- 时间轴 -->
-      <section v-if="groups.length" class="timeline fade-up" style="--stagger-index: 2">
-        <div v-for="group in groups" :key="group.year" class="timeline__year-group">
-          <h2 class="timeline__year">
-            <span class="timeline__year-num">{{ group.year }}</span>
-            <span class="timeline__year-count">{{ countOfYear(group) }} 篇</span>
-          </h2>
+          <div v-for="mg in yg.months" :key="`${yg.year}-${mg.month}`" class="arch-month">
+            <p class="arch-month__label">{{ mg.month }} 月<small>· {{ mg.items.length }} 篇</small></p>
 
-          <div
-            v-for="monthGroup in group.months"
-            :key="`${group.year}-${monthGroup.month}`"
-            class="timeline__month-group"
-          >
-            <p class="timeline__month">
-              {{ monthGroup.month }} 月
-              <small>{{ monthGroup.items.length }} 篇</small>
-            </p>
-
-            <ul class="timeline__list">
-              <li
-                v-for="(item, i) in monthGroup.items"
-                :key="item.id"
-                class="timeline__item"
-                :style="{ '--stagger-index': monthGroup.start + i }"
-              >
-                <!-- 糖果色节点：按全站配角色轮换 -->
-                <span
-                  class="timeline__dot"
-                  :class="`timeline__dot--${CANDY[(monthGroup.start + i) % CANDY.length]}`"
-                  aria-hidden="true"
-                />
-                <NuxtLink :to="`/posts/${item.slug}`" class="timeline__card">
+            <ul class="arch-list">
+              <li v-for="item in mg.items" :key="item.id">
+                <NuxtLink :to="`/posts/${item.slug}`" class="arch-item">
+                  <span
+                    class="arch-item__dot"
+                    :class="`arch-item__dot--${CANDY[itemIndex(yg, mg, item) % CANDY.length]}`"
+                    aria-hidden="true"
+                  />
                   <time
-                    class="timeline__date"
+                    class="arch-item__date"
                     :datetime="item.publishedAt.slice(0, 10)"
                   >{{ formatDate(item.publishedAt) }}</time>
-                  <span class="timeline__title">{{ item.title }}</span>
-                  <span class="timeline__arrow" aria-hidden="true">→</span>
+                  <span class="arch-item__title">{{ item.title }}</span>
+                  <span class="arch-item__arrow" aria-hidden="true">→</span>
                 </NuxtLink>
               </li>
             </ul>
           </div>
-        </div>
-      </section>
+        </section>
+      </template>
 
       <!-- 空态 / 加载失败降级 -->
-      <p v-else class="archive-empty fade-up" style="--stagger-index: 2">
-        还没有公开的文章，先去别处逛逛吧 🍃
-      </p>
+      <p v-else class="arch-empty">还没有公开的文章，先去别处逛逛吧 🍃</p>
     </main>
 
-    <!-- ===== Footer ===== -->
     <SiteFooter />
   </div>
 </template>
@@ -90,21 +74,21 @@ const { data: items } = await useAsyncData('public-archive', async (): Promise<A
 
 const list = computed(() => items.value ?? [])
 
-interface MonthGroup {
+interface ArchMonth {
   month: number
-  /** 该月第一条在整个列表中的序号，用于糖果色轮换与交错动画 */
+  /** 全局起始序号（含当年之前所有月份），用于糖果色轮换 */
   start: number
   items: ArchiveItem[]
 }
 
-interface YearGroup {
+interface ArchYear {
   year: number
-  months: MonthGroup[]
+  months: ArchMonth[]
 }
 
 /** 按年 → 月两级分组（后端已按 publishedAt 倒序） */
-const groups = computed<YearGroup[]>(() => {
-  const result: YearGroup[] = []
+const yearGroups = computed<ArchYear[]>(() => {
+  const result: ArchYear[] = []
   let n = 0
   for (const item of list.value) {
     const d = new Date(item.publishedAt)
@@ -112,29 +96,33 @@ const groups = computed<YearGroup[]>(() => {
     const year = d.getFullYear()
     const month = d.getMonth() + 1
 
-    let yearGroup = result.at(-1)
-    if (!yearGroup || yearGroup.year !== year) {
-      yearGroup = { year, months: [] }
-      result.push(yearGroup)
+    let y = result.at(-1)
+    if (!y || y.year !== year) {
+      y = { year, months: [] }
+      result.push(y)
     }
 
-    let monthGroup = yearGroup.months.at(-1)
-    if (!monthGroup || monthGroup.month !== month) {
-      monthGroup = { month, start: n, items: [] }
-      yearGroup.months.push(monthGroup)
+    let m = y.months.at(-1)
+    if (!m || m.month !== month) {
+      m = { month, start: n, items: [] }
+      y.months.push(m)
     }
-    monthGroup.items.push(item)
+    m.items.push(item)
     n += 1
   }
   return result
 })
 
-function countOfYear(group: YearGroup): number {
-  return group.months.reduce((sum, m) => sum + m.items.length, 0)
+function countOf(yg: ArchYear): number {
+  return yg.months.reduce((sum, m) => sum + m.items.length, 0)
 }
 
-/** 糖果色轮换：薄荷 / 香芋紫 / 柠檬黄 / 天空蓝 / 草莓粉 */
-const CANDY = ['mint', 'grape', 'lemon', 'sky', 'primary'] as const
+function itemIndex(yg: ArchYear, mg: ArchMonth, item: ArchiveItem): number {
+  return mg.start + mg.items.indexOf(item)
+}
+
+/** 糖果色轮换：草莓粉 / 薄荷 / 香芋紫 / 柠檬黄 / 天空蓝 */
+const CANDY = ['primary', 'mint', 'grape', 'lemon', 'sky'] as const
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
@@ -146,7 +134,8 @@ function formatDate(dateStr: string): string {
 </script>
 
 <style scoped>
-.archive-page {
+/* ===== 页面骨架 ===== */
+.arch-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -154,63 +143,63 @@ function formatDate(dateStr: string): string {
   background: var(--c-bg-soft);
 }
 
-/* ===== 版心 ===== */
-.wrap {
+.arch-main {
   flex: 1;
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 96px 20px 48px;
+  padding: 96px 20px 56px;
 }
 
-.page-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
+/* ===== 页头 ===== */
+.arch-head {
+  margin-bottom: 36px;
 }
 
-.page-head__cn {
+.arch-head__title {
   margin: 0;
   font-size: 28px;
 }
 
-.page-head__en {
+.arch-head__sub {
+  margin: 6px 0 0;
   font-size: 13px;
   color: var(--c-text-muted);
 }
 
-.page-intro {
-  margin: 8px 0 36px;
-  font-size: 14px;
-  color: var(--c-text-secondary);
+/* ===== 年份 ===== */
+.arch-year + .arch-year {
+  margin-top: 40px;
 }
 
-/* ===== 时间轴 ===== */
-
-/* 年份：渐变大数字 + 篇数小徽章 */
-.timeline__year-group + .timeline__year-group {
-  margin-top: 44px;
-}
-
-.timeline__year {
+.arch-year__head {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin: 0 0 18px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.timeline__year-num {
-  font-size: 34px;
+.arch-year__num {
+  font-size: 32px;
   font-weight: 800;
-  letter-spacing: 0.02em;
   line-height: 1;
+  letter-spacing: 0.02em;
   background: linear-gradient(120deg, var(--c-primary), var(--k-grape));
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
-.timeline__year-count {
+/* 年份后的延伸细线 */
+.arch-year__line {
+  flex: 1;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--c-border), transparent);
+}
+
+.arch-year__count {
+  flex-shrink: 0;
   padding: 2px 10px;
   font-size: 12px;
   font-weight: 600;
@@ -219,13 +208,17 @@ function formatDate(dateStr: string): string {
   border-radius: 999px;
 }
 
-/* 月份小标 */
-.timeline__month {
+/* ===== 月份 ===== */
+.arch-month + .arch-month {
+  margin-top: 24px;
+}
+
+.arch-month__label {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 6px;
   margin: 0 0 10px;
-  padding-left: 32px;
+  padding-left: 34px;
   font-size: 13.5px;
   font-weight: 600;
   color: var(--c-text-secondary);
@@ -235,76 +228,31 @@ function formatDate(dateStr: string): string {
     font-weight: normal;
     color: var(--c-text-muted);
   }
-
-  /* 标签前的短横装饰 */
-  &::before {
-    content: '';
-    width: 14px;
-    height: 2px;
-    border-radius: 999px;
-    background: var(--c-border);
-  }
 }
 
-.timeline__month-group + .timeline__month-group {
-  margin-top: 22px;
-}
-
-/* 左侧虚线主轴 */
-.timeline__list {
+/* ===== 条目列表：grid 两列（节点列 + 卡片列），天然对齐不重叠 ===== */
+.arch-list {
   position: relative;
+  display: grid;
+  gap: 10px;
   margin: 0;
-  padding: 0 0 0 32px;
+  padding: 0 0 0 34px;
   list-style: none;
 }
 
-.timeline__list::before {
+/* 左侧虚线主轴 */
+.arch-list::before {
   content: '';
   position: absolute;
-  top: 6px;
-  bottom: 6px;
-  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  left: 11px;
   width: 0;
   border-left: 2px dashed var(--c-border);
 }
 
-/* 条目：软糖卡片 + 悬浮上浮 */
-.timeline__item {
+.arch-item {
   position: relative;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 35ms);
-
-  & + & {
-    margin-top: 10px;
-  }
-}
-
-/* 糖果色节点：白心彩圈，压在虚线上 */
-.timeline__dot {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 14px;
-  height: 14px;
-  background: var(--c-bg-card);
-  border: 3px solid var(--k-mint);
-  border-radius: 50%;
-  box-shadow: var(--shadow-card);
-  transform: translateY(-50%);
-  transition: transform var(--dur-soft) var(--ease-bounce);
-}
-
-.timeline__dot--mint { border-color: var(--k-mint); }
-.timeline__dot--grape { border-color: var(--k-grape); }
-.timeline__dot--lemon { border-color: var(--k-lemon); }
-.timeline__dot--sky { border-color: var(--k-sky); }
-.timeline__dot--primary { border-color: var(--c-primary); }
-
-.timeline__item:hover .timeline__dot {
-  transform: translateY(-50%) scale(1.25);
-}
-
-.timeline__card {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -314,27 +262,52 @@ function formatDate(dateStr: string): string {
   border-radius: var(--radius-control);
   box-shadow: var(--shadow-card);
   text-decoration: none;
-  transition: transform var(--dur-soft) var(--ease-bounce),
+  transition:
+    transform var(--dur-soft) var(--ease-bounce),
     box-shadow var(--dur-soft) ease,
     border-color var(--dur-soft) ease;
 }
 
-.timeline__card:hover {
+.arch-item:hover {
   border-color: color-mix(in srgb, var(--c-primary) 35%, var(--c-border));
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
 
-.timeline__date {
+/* 节点：绝对定位于卡片左缘外、压在主轴上（left 相对卡片自身，不依赖行高） */
+.arch-item__dot {
+  position: absolute;
+  top: 50%;
+  left: -29px; /* 34px 缩进 - 14px 半径 - 6px 主轴偏移 */
+  width: 12px;
+  height: 12px;
+  background: var(--c-bg-card);
+  border: 3px solid var(--c-primary);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  transition: transform var(--dur-soft) var(--ease-bounce);
+}
+
+.arch-item:hover .arch-item__dot {
+  transform: translateY(-50%) scale(1.25);
+}
+
+.arch-item__dot--primary { border-color: var(--c-primary); }
+.arch-item__dot--mint { border-color: var(--k-mint); }
+.arch-item__dot--grape { border-color: var(--k-grape); }
+.arch-item__dot--lemon { border-color: var(--k-lemon); }
+.arch-item__dot--sky { border-color: var(--k-sky); }
+
+.arch-item__date {
   flex-shrink: 0;
-  min-width: 46px;
+  min-width: 44px;
   font-size: 13px;
-  font-variant-numeric: tabular-nums;
   color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
   transition: color var(--dur-soft) ease;
 }
 
-.timeline__title {
+.arch-item__title {
   overflow: hidden;
   flex: 1;
   font-size: 15px;
@@ -344,7 +317,7 @@ function formatDate(dateStr: string): string {
   transition: color var(--dur-soft) ease;
 }
 
-.timeline__arrow {
+.arch-item__arrow {
   flex-shrink: 0;
   color: var(--c-primary);
   opacity: 0;
@@ -352,65 +325,62 @@ function formatDate(dateStr: string): string {
   transition: opacity var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce);
 }
 
-.timeline__card:hover .timeline__title {
+.arch-item:hover .arch-item__date,
+.arch-item:hover .arch-item__title {
   color: var(--c-primary-hover);
 }
 
-.timeline__card:hover .timeline__date {
-  color: var(--c-primary-hover);
-}
-
-.timeline__card:hover .timeline__arrow {
+.arch-item:hover .arch-item__arrow {
   opacity: 1;
   transform: translateX(0);
 }
 
 /* ===== 空态 ===== */
-.archive-empty {
+.arch-empty {
   padding: 48px 0;
   font-size: 14px;
   color: var(--c-text-muted);
   text-align: center;
 }
 
+/* ===== 移动端 ===== */
 @media (max-width: 640px) {
-  .wrap {
+  .arch-main {
     padding-top: 88px;
   }
 
-  .page-head {
-    flex-direction: column;
-    gap: 4px;
+  .arch-head__title {
+    font-size: 24px;
   }
 
-  .timeline__year-num {
-    font-size: 28px;
-  }
-
-  .timeline__month {
+  .arch-month__label {
     padding-left: 26px;
   }
 
-  .timeline__list {
-    padding-left: 24px;
+  .arch-list {
+    gap: 8px;
+    padding-left: 26px;
   }
 
-  /* 小屏收窄日期列，标题允许换行 */
-  .timeline__card {
+  /* 缩进变了，节点跟着挪 */
+  .arch-item__dot {
+    left: -23px;
+  }
+
+  .arch-item {
     gap: 10px;
     padding: 10px 12px;
   }
 
-  .timeline__date {
+  .arch-item__date {
     min-width: 0;
   }
 
-  .timeline__title {
+  .arch-item__title {
     white-space: normal;
   }
 
-  /* 小屏隐藏箭头，避免拥挤 */
-  .timeline__arrow {
+  .arch-item__arrow {
     display: none;
   }
 }
