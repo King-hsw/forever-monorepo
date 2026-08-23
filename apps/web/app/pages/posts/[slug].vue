@@ -3,7 +3,22 @@
     <!-- ===== Header：全站统一导航 ===== -->
     <SiteHeader width="780px" />
 
-    <main v-if="post" class="article-wrap">
+    <!-- 目录边栏：宽屏固定在正文左侧，窄屏隐藏 -->
+    <aside v-if="toc.length > 1" class="toc" aria-label="文章目录">
+      <p class="toc__title">目录</p>
+      <ul class="toc__list">
+        <li v-for="item in toc" :key="item.id">
+          <a
+            :href="`#${item.id}`"
+            class="toc__link"
+            :class="{ 'is-active': activeId === item.id, 'is-h3': item.level === 3 }"
+            @click.prevent="scrollToHeading(item.id)"
+          >{{ item.text }}</a>
+        </li>
+      </ul>
+    </aside>
+
+    <main v-if="post" ref="bodyEl" class="article-wrap">
       <article class="article-card">
         <header class="article-head">
           <NuxtLink
@@ -91,6 +106,53 @@ const relatedPosts = computed(() =>
     .slice(0, 4),
 )
 
+/** 从 Markdown 提取 h2/h3 标题生成目录（跳过围栏代码块；id 按出现顺序编号，渲染时按同样顺序写入 DOM） */
+// ponytail: 只识别 ATX 标题（# 形式），setext 标题（=== 下划线）极少用，需要时再支持
+const toc = computed(() => {
+  const items: { id: string; text: string; level: number }[] = []
+  let inCode = false
+  for (const line of (post.value?.content ?? '').split('\n')) {
+    if (/^(```|~~~)/.test(line.trim())) inCode = !inCode
+    if (inCode) continue
+    const m = line.match(/^(#{2,3})\s+(.+?)\s*#*\s*$/)
+    if (!m) continue
+    const text = m[2]
+      .replace(/!?!\[([^\]]*)\]\([^)]*\)/g, '$1') // 图片/链接只留文字
+      .replace(/[*_~`]/g, '')
+      .trim()
+    if (text) items.push({ id: `toc-${items.length}`, text, level: m[1].length })
+  }
+  return items
+})
+
+const bodyEl = ref<HTMLElement | null>(null)
+const activeId = ref('')
+
+/** 挂载后给正文中对应的 h2/h3 写入锚点 id（顺序与 toc 一致） */
+onMounted(() => {
+  const nodes = bodyEl.value?.querySelectorAll('.article-body h2, .article-body h3')
+  nodes?.forEach((el, i) => {
+    if (toc.value[i]) el.id = toc.value[i].id
+  })
+  updateActive()
+  window.addEventListener('scroll', updateActive, { passive: true })
+})
+onUnmounted(() => window.removeEventListener('scroll', updateActive))
+
+/** 高亮当前阅读位置：最后一个滚过顶部的标题 */
+function updateActive() {
+  let current = ''
+  for (const { id } of toc.value) {
+    const el = document.getElementById(id)
+    if (el && el.getBoundingClientRect().top <= 100) current = id
+  }
+  activeId.value = current
+}
+
+function scrollToHeading(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 function formatDate(value: string | number | null | undefined): string {
   if (!value) return ''
   return new Date(value).toLocaleDateString('zh-CN', {
@@ -123,6 +185,62 @@ usePageSeo({
   max-width: 780px;
   margin: 0 auto;
   padding: 84px 20px 48px;
+}
+
+/* ===== 目录边栏（仅宽屏） ===== */
+.toc {
+  position: fixed;
+  top: 110px;
+  left: calc(50% - 640px);
+  width: 220px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+@media (max-width: 1299px) {
+  .toc {
+    display: none;
+  }
+}
+
+.toc__title {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 2px solid var(--c-border);
+}
+
+.toc__link {
+  display: block;
+  padding: 5px 0 5px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  margin-left: -2px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: var(--c-primary);
+  }
+
+  &.is-h3 {
+    padding-left: 28px;
+    font-size: 12.5px;
+  }
+
+  &.is-active {
+    color: var(--c-primary);
+    border-left-color: var(--c-primary);
+  }
 }
 
 .article-card {
@@ -190,6 +308,12 @@ usePageSeo({
   margin-top: 24px;
   font-size: 15.5px;
   line-height: 1.85;
+}
+
+/* 锚点跳转时给固定 Header 留出空间 */
+.article-body :deep(h2),
+.article-body :deep(h3) {
+  scroll-margin-top: 90px;
 }
 
 .article-tags {
