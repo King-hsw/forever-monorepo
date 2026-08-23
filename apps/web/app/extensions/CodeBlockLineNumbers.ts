@@ -1,30 +1,8 @@
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
+import { copyText } from '../utils/clipboard'
 
 /** 复制成功后的反馈展示时长 */
 const COPY_FEEDBACK_MS = 1500
-
-/** 把文本写入剪贴板，优先用异步 Clipboard API，失败时退回 execCommand */
-function copyToClipboard(text: string): Promise<void> {
-  if (navigator.clipboard?.writeText) {
-    return navigator.clipboard.writeText(text)
-  }
-  return new Promise((resolve, reject) => {
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
-    document.body.appendChild(textarea)
-    textarea.select()
-    try {
-      document.execCommand('copy')
-      resolve()
-    } catch (error) {
-      reject(error)
-    } finally {
-      textarea.remove()
-    }
-  })
-}
 
 /**
  * 带行号、语法高亮及右上角工具条（语言选择 + 复制）的代码块。
@@ -101,7 +79,7 @@ export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
       copyButton.textContent = '复制'
       let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined
       copyButton.addEventListener('click', () => {
-        copyToClipboard(node.textContent ?? '')
+        copyText(node.textContent ?? '')
           .then(() => {
             copyButton.textContent = '已复制'
             copyButton.classList.add('is-copied')

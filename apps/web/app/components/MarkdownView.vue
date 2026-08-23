@@ -1,5 +1,5 @@
 <template>
-  <div class="markdown-view" v-html="html"></div>
+  <div ref="rootEl" class="markdown-view" v-html="html" @click="onCopyClick" />
 </template>
 
 <script setup lang="ts">
@@ -88,6 +88,33 @@ md.use(
   }),
 )
 
+/** 复制成功后的反馈展示时长（与编辑器代码块的复制反馈一致） */
+const COPY_FEEDBACK_MS = 1500
+
+/**
+ * 给每个高亮代码块包一层外壳：右上角工具条（语言标签 + 复制按钮），
+ * 与 Tiptap 编辑器的代码块工具条保持同一交互。
+ *
+ * marked-highlight 的产物固定为 <pre><code class="hljs[ language-x]">…</code></pre>，
+ * 正文已转义不会嵌套闭合标签，可安全地整块正则替换。
+ */
+const decorateCodeBlocks = (html: string): string =>
+  html.replace(
+    /<pre><code class="hljs(?: language-([\w+#.-]+))?">([\s\S]*?)<\/code><\/pre>/g,
+    (_, lang: string | undefined, body: string) => {
+      const langAttr = lang ? ` language-${lang}` : ''
+      return (
+        `<div class="md-code-block">`
+        + `<div class="md-code-block__bar">`
+        + `<span class="md-code-block__lang">${lang ?? '纯文本'}</span>`
+        + `<button type="button" class="md-code-block__copy">复制</button>`
+        + `</div>`
+        + `<pre><code class="hljs${langAttr}">${body}</code></pre>`
+        + `</div>`
+      )
+    },
+  )
+
 const props = defineProps<{
   /** Markdown 源码 */
   source?: string
@@ -97,6 +124,31 @@ const html = computed(() => {
   if (!props.source) {
     return ''
   }
-  return md.parse(props.source, { async: false })
+  return decorateCodeBlocks(md.parse(props.source, { async: false }))
 })
+
+/* ---------- 复制按钮：事件委托 + 已复制反馈 ---------- */
+const rootEl = ref<HTMLElement | null>(null)
+
+/** 每个按钮各自的恢复定时器（WeakMap 随节点回收） */
+const resetTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>()
+
+function onCopyClick(event: MouseEvent) {
+  const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.md-code-block__copy')
+  if (!btn || btn.disabled) return
+  const code = btn.closest('.md-code-block')?.querySelector('pre')?.textContent ?? ''
+  copyText(code)
+    .then(() => {
+      btn.textContent = '已复制 ✓'
+      btn.classList.add('is-copied')
+      btn.disabled = true
+      clearTimeout(resetTimers.get(btn))
+      resetTimers.set(btn, setTimeout(() => {
+        btn.textContent = '复制'
+        btn.classList.remove('is-copied')
+        btn.disabled = false
+      }, COPY_FEEDBACK_MS))
+    })
+    .catch(() => {})
+}
 </script>
