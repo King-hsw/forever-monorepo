@@ -69,13 +69,6 @@
       </button>
     </section>
 
-    <!-- ===== 标签跑马灯：无缝循环滚动 ===== -->
-    <div v-if="marqueeTags.length" class="marquee" aria-hidden="true">
-      <div class="marquee__track" :style="{ '--marquee-duration': `${Math.max(18, marqueeTags.length * 3)}s` }">
-        <span v-for="(tag, i) in marqueeLoop" :key="i" class="marquee__item"># {{ tag }}</span>
-      </div>
-    </div>
-
     <main>
       <!-- 章节导航：固定在右侧，随时告知用户身处故事哪个位置，可点击跳转 -->
       <nav class="chapter-nav" aria-label="页面章节">
@@ -93,22 +86,16 @@
         </button>
       </nav>
 
-      <!-- 分镜 01：最新文章 —— 左侧章节牌 sticky 固定，内容随滚动揭示 -->
-      <section id="latest" class="scene">
-        <div class="scene__inner">
-          <aside class="scene__aside">
-            <div class="scene__sticky reveal">
-              <span class="scene__no" aria-hidden="true">01</span>
-              <h2 class="scene__title">最新文章</h2>
-              <p class="scene__desc">刚刚写下的文字，还热乎着。</p>
-              <NuxtLink v-if="totalPosts > homeCount" to="/posts" class="more-link">
-                查看全部 {{ totalPosts }} 篇
-                <span class="more-link__arrow">→</span>
-              </NuxtLink>
-            </div>
-          </aside>
+      <!-- 01 近期笔墨：左主栏（头条 + 时间线），右边栏（分类清单 + 标签） -->
+      <section id="latest" class="writing">
+        <div class="writing__grid">
+          <div class="writing__main">
+            <header class="section-head reveal">
+              <p class="section-head__caption">Recent Writing</p>
+              <h2 class="section-head__title">近期笔墨</h2>
+              <p class="section-head__desc">刚刚写下的文字，还热乎着。</p>
+            </header>
 
-          <div class="scene__body">
             <NuxtLink
               v-if="featuredPost"
               :to="`/posts/${featuredPost.slug}`"
@@ -160,80 +147,54 @@
               <span class="empty__icon">(˘•ω•˘)</span>
               还没有发布文章
             </div>
+
+            <NuxtLink v-if="totalPosts > homeCount" to="/posts" class="more-link">
+              查看全部 {{ totalPosts }} 篇
+              <span class="more-link__arrow">→</span>
+            </NuxtLink>
           </div>
-        </div>
-      </section>
 
-      <!-- 分镜 02：探索分类 —— 交替底色区分场景，像翻到下一页 -->
-      <section v-if="categoryCards.length" id="categories" class="scene scene--tinted">
-        <div class="scene__inner">
-          <aside class="scene__aside">
-            <div class="scene__sticky reveal">
-              <span class="scene__no" aria-hidden="true">02</span>
-              <h2 class="scene__title">探索分类</h2>
-              <p class="scene__desc">按主题逛逛，每个抽屉里都收着不一样的宝贝。</p>
-            </div>
-          </aside>
-
-          <div class="scene__body">
-            <div class="cat-grid">
+          <aside class="writing__side">
+            <div v-if="categoryCards.length" class="side-block reveal">
+              <h3 class="side-block__title">探索分类</h3>
               <NuxtLink
-                v-for="(cat, i) in categoryCards"
+                v-for="cat in categoryCards"
                 :key="cat.id"
                 :to="`/posts?category=${cat.slug}`"
-                class="cat-card reveal"
-                :style="{ '--reveal-delay': `${Math.min(i, 5) * 70}ms` }"
+                class="side-row"
               >
-                <span class="cat-card__count">{{ cat.count }} 篇</span>
-                <h3 class="cat-card__name">{{ cat.name }}</h3>
-                <p class="cat-card__desc">{{ cat.latestTitle }}</p>
-                <span class="cat-card__go" aria-hidden="true">→</span>
+                <span class="side-row__name">{{ cat.name }}</span>
+                <span class="side-row__count">{{ cat.count }} 篇</span>
               </NuxtLink>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- 分镜 03：标签云 -->
-      <section v-if="tagCloud.length" id="tags" class="scene">
-        <div class="scene__inner">
-          <aside class="scene__aside">
-            <div class="scene__sticky reveal">
-              <span class="scene__no" aria-hidden="true">03</span>
-              <h2 class="scene__title">标签云</h2>
-              <p class="scene__desc">一枚枚小贴纸，标记出每篇文章的心情。</p>
+            <div v-if="tagCloud.length" class="side-block reveal">
+              <h3 class="side-block__title">标签云</h3>
+              <div class="tag-cloud">
+                <NuxtLink
+                  v-for="tag in tagCloud"
+                  :key="tag.id"
+                  to="/posts"
+                  class="tag-cloud__item"
+                  :style="{ fontSize: `${tag.size}px` }"
+                >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
+              </div>
             </div>
           </aside>
-
-          <div class="scene__body">
-            <div class="tag-cloud reveal">
-              <NuxtLink
-                v-for="tag in tagCloud"
-                :key="tag.id"
-                to="/posts"
-                class="tag-cloud__item"
-                :style="{ fontSize: `${tag.size}px` }"
-              >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
-            </div>
-          </div>
         </div>
       </section>
 
-      <!-- 分镜 04：创作足迹 —— 一年间的发文热力图 -->
+      <!-- 02 创作足迹：独立成章，居中标题 + 居中面板 -->
       <section id="heatmap" class="scene scene--tinted">
-        <div class="scene__inner">
-          <aside class="scene__aside">
-            <div class="scene__sticky reveal">
-              <span class="scene__no" aria-hidden="true">04</span>
-              <h2 class="scene__title">创作足迹</h2>
-              <p class="scene__desc">一年里的每一天都被折进这一格格小方块，颜色越深，那天写下的文字越多。</p>
-            </div>
-          </aside>
+        <div class="scene__inner scene__inner--center">
+          <header class="section-head section-head--center reveal">
+            <p class="section-head__caption">Footprints</p>
+            <h2 class="section-head__title">创作足迹</h2>
+            <p class="section-head__desc">一年里的每一天都被折进这一格格小方块，颜色越深，那天写下的文字越多。</p>
+          </header>
 
-          <div class="scene__body">
-            <div class="heatmap-panel reveal">
-              <PostHeatmap :posts="publishedPosts" />
-            </div>
+          <div class="heatmap-panel reveal">
+            <PostHeatmap :posts="publishedPosts" />
           </div>
         </div>
       </section>
@@ -330,14 +291,6 @@ const tagCloud = computed(() => {
     }))
 })
 
-/** 跑马灯标签：去重后取前 12 个 */
-const marqueeTags = computed(() =>
-  [...new Set((tags.value ?? []).map(t => t.name))].slice(0, 12),
-)
-
-/** 无缝循环需要重复一份轨道内容 */
-const marqueeLoop = computed(() => [...marqueeTags.value, ...marqueeTags.value])
-
 // ===== 平滑滚动辅助 =====
 
 function scrollToId(id: string) {
@@ -350,11 +303,9 @@ function scrollToTop() {
 
 // ===== 章节导航：追踪当前所处分镜 =====
 
-/** 首页分镜章节（顺序即叙事顺序） */
+/** 首页章节（顺序即叙事顺序） */
 const sections = [
-  { id: 'latest', label: '最新文章' },
-  { id: 'categories', label: '探索分类' },
-  { id: 'tags', label: '标签云' },
+  { id: 'latest', label: '近期笔墨' },
   { id: 'heatmap', label: '创作足迹' },
   { id: 'subscribe', label: '订阅更新' },
 ]
@@ -772,49 +723,7 @@ html.dark .hero__glow {
   100% { transform: translateY(0); opacity: 0; }
 }
 
-/* ===== 标签跑马灯 ===== */
-.marquee {
-  overflow: hidden;
-  padding: 18px 0;
-  background: var(--c-bg-card);
-  border-top: 1px solid var(--c-border);
-  border-bottom: 1px solid var(--c-border);
-  /* 两端淡出，衔接更柔和 */
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
-  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
-}
-
-.marquee__track {
-  display: flex;
-  gap: 44px;
-  width: max-content;
-  animation: marquee var(--marquee-duration, 30s) linear infinite;
-}
-
-.marquee:hover .marquee__track {
-  animation-play-state: paused;
-}
-
-.marquee__item {
-  flex-shrink: 0;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--c-text-muted);
-  white-space: nowrap;
-  transition: color 0.2s ease;
-}
-
-.marquee__item:hover {
-  color: var(--c-primary);
-}
-
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-/* ===== 滚动叙事分镜 ===== */
+/* ===== 纸面编排：主栏 + 边栏 ===== */
 .scene {
   scroll-margin-top: 56px;
   padding: 100px 0;
@@ -827,44 +736,111 @@ html.dark .hero__glow {
   border-bottom: 1px solid var(--c-border);
 }
 
-.scene__inner {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 56px;
+/* 热力图章节：居中收窄的面板 */
+.scene__inner--center {
   max-width: 980px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
-/* 章节牌：滚动时固定在视口左侧，像纪录片的章节字幕 */
-.scene__sticky {
-  position: sticky;
-  top: 110px;
+/* ---- 近期笔墨：左主栏 + 右边栏（参考余白首页的 1.6fr : 1fr 编排）---- */
+.writing {
+  scroll-margin-top: 56px;
+  padding: 100px 0 110px;
 }
 
-.scene__no {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  color: var(--c-primary);
-  font-variant-numeric: tabular-nums;
+.writing__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 64px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-.scene__title {
-  margin: 14px 0 0;
+.writing__side {
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+@media (min-width: 901px) {
+  /* 边栏与主栏之间用一道发丝线隔开，像杂志的栏间线 */
+  .writing__side {
+    border-left: 1px solid var(--c-border);
+    padding-left: 40px;
+  }
+}
+
+/* ---- 章节头：英文眉题 + 衬线标题，余白式的章节开场 ---- */
+.section-head__caption {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.section-head__title {
+  margin: 8px 0 0;
   font-family: var(--font-serif);
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: var(--c-text);
 }
 
-.scene__desc {
-  margin: 10px 0 0;
+.section-head__desc {
+  margin: 12px 0 0;
   font-size: 13.5px;
   line-height: 1.8;
+  letter-spacing: 0.02em;
   color: var(--c-text-muted);
+}
+
+.section-head--center {
+  text-align: center;
+}
+
+/* ---- 边栏区块：小标题 + 清单 ---- */
+.side-block__title {
+  margin: 0 0 14px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--c-text-secondary);
+}
+
+.side-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--c-border);
+  text-decoration: none;
+}
+
+.side-row:last-child {
+  border-bottom: none;
+}
+
+.side-row__name {
+  font-size: 14px;
+  color: var(--c-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.side-row:hover .side-row__name {
+  color: var(--c-primary);
+}
+
+.side-row__count {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ===== 终幕样式见下方「书末版权页」区块 ===== */
@@ -936,22 +912,22 @@ html.dark .hero__glow {
 }
 
 @media (max-width: 900px) {
-  /* 窄屏降级为静态分段布局：章节牌不再 sticky，导航点隐藏 */
+  /* 窄屏降级为单列：边栏移到主栏下方，导航点隐藏 */
   .chapter-nav {
     display: none;
   }
 
+  .writing {
+    padding: 64px 0 72px;
+  }
+
+  .writing__grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
   .scene {
     padding: 64px 0;
-  }
-
-  .scene__inner {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .scene__sticky {
-    position: static;
   }
 
   .finale {
@@ -1268,90 +1244,12 @@ html.dark .hero__glow {
   transition: transform 0.2s ease;
 }
 
-/* ---- 分类卡片：素净的抽屉，去掉彩色顶条与光斑 ---- */
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-}
-
-.cat-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 22px 22px 44px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
-  text-decoration: none;
-  transition: border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) ease;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
-
-    .cat-card__name {
-      color: var(--c-primary);
-    }
-
-    .cat-card__go {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-}
-
-.cat-card__count {
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  color: var(--c-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.cat-card__name {
-  margin: 10px 0 0;
-  font-family: var(--font-serif);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--c-text);
-  transition: color 0.2s ease;
-}
-
-.cat-card__desc {
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--c-text-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.cat-card__go {
-  position: absolute;
-  right: 18px;
-  bottom: 14px;
-  font-size: 16px;
-  color: var(--c-primary);
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* ---- 标签云：一枚枚素净的小签，不再做歪斜的彩色贴纸 ---- */
+/* ---- 边栏标签云：无框小签，不再是一整块卡片 ---- */
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px 10px;
-  padding: 28px 30px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
+  gap: 8px 8px;
 }
 
 .tag-cloud__item {
@@ -1514,10 +1412,6 @@ html.dark .hero__glow {
 
   .hero__content {
     transform: none !important;
-  }
-
-  .marquee__track {
-    animation: none !important;
   }
 }
 </style>
