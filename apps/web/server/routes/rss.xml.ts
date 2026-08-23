@@ -13,7 +13,8 @@ function escapeXml(value: string): string {
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
   const base = config.public.siteUrl.replace(/\/+$/, '')
-  const apiBase = config.apiBase
+  // 开发环境 public.apiBase 为空（浏览器走 devProxy），服务端直连用默认值兜底
+  const apiBase = config.public.apiBase || 'http://localhost:8080'
 
   /** 从 forever-server 拉取已发布文章（失败时降级为空列表） */
   let posts: Post[] = []

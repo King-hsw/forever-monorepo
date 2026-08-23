@@ -3,12 +3,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   runtimeConfig: {
-    // forever-server 后端地址（仅服务端使用，供 RSS / sitemap 调用，可通过 NUXT_API_BASE 覆盖）
-    apiBase: 'http://localhost:8080',
     public: {
       // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
       siteUrl: 'https://forever.example.com',
-      // 浏览器端 API 地址：开发环境为空（走 devProxy 代理），生产环境通过 NUXT_PUBLIC_API_BASE 指向后端
+      // forever-server 地址：开发环境为空（浏览器走 devProxy 代理，服务端用默认值兜底），
+      // 生产环境通过 NUXT_PUBLIC_API_BASE 指向后端
       apiBase: '',
     },
   },
