@@ -253,7 +253,8 @@ const data = computed(() => {
   box-shadow: 0 2px 6px rgb(244 114 182 / 30%);
 }
 
-/* 悬停信息气泡：替代原生 title，展示更及时、样式更精致 */
+/* 悬停信息气泡：替代原生 title，展示更及时、样式更精致。
+ * 背景必须不透明：气泡与箭头两个伪元素有重叠区，半透明会叠出更深的接缝 */
 .heatmap__cell[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
@@ -266,14 +267,14 @@ const data = computed(() => {
   white-space: nowrap;
   color: #fff;
   pointer-events: none;
-  background: rgb(23 23 33 / 92%);
+  background: #171721;
   border-radius: 6px;
   opacity: 0;
   transform: translateX(-50%) translateY(2px);
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-/* 气泡小箭头 */
+/* 气泡小箭头（旋转 45° 的方块，上半露出一角） */
 .heatmap__cell[data-tip]::before {
   content: '';
   position: absolute;
@@ -283,7 +284,7 @@ const data = computed(() => {
   width: 8px;
   height: 8px;
   pointer-events: none;
-  background: rgb(23 23 33 / 92%);
+  background: #171721;
   border-radius: 1.5px;
   opacity: 0;
   transform: translateX(-50%) rotate(45deg);
@@ -292,7 +293,7 @@ const data = computed(() => {
 
 html.dark .heatmap__cell[data-tip]::after,
 html.dark .heatmap__cell[data-tip]::before {
-  background: rgb(60 60 75 / 95%);
+  background: #3c3c4b;
 }
 
 .heatmap__cells .heatmap__cell:hover:not(.is-future)::after,
