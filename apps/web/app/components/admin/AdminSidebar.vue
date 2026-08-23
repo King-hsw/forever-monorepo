@@ -47,6 +47,7 @@ const navItems = [
   { label: '文章管理', to: '/admin/posts', icon: '📝' },
   { label: '分类标签', to: '/admin/categories', icon: '🗂️' },
   { label: 'RSS 订阅', to: '/admin/rss', icon: '📡' },
+  { label: '友链管理', to: '/admin/friends', icon: '🤝' },
 ]
 
 const avatarText = computed(() => (auth.username?.slice(0, 1) ?? 'A').toUpperCase())

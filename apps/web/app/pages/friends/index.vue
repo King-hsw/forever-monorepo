@@ -1,0 +1,359 @@
+<template>
+  <div class="friends-page">
+    <!-- ===== Header ===== -->
+    <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
+      <div class="site-header__inner">
+        <NuxtLink to="/" class="brand">
+          <span class="brand__mark" aria-hidden="true" />
+          <span class="brand__name">Forever</span>
+        </NuxtLink>
+        <nav class="site-nav">
+          <NuxtLink to="/" class="site-nav__link">首页</NuxtLink>
+          <NuxtLink to="/posts" class="site-nav__link">全部文章</NuxtLink>
+          <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
+        </nav>
+        <div class="site-header__theme"><ThemeToggle /></div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- 页面标题 -->
+      <div class="page-head fade-up">
+        <h1 class="page-head__cn">友情链接</h1>
+        <span class="page-head__en">Friends · {{ friends.length }} 个站点</span>
+      </div>
+
+      <p class="page-intro fade-up" style="--stagger-index: 1">
+        这里是朋友们的数字花园，欢迎串门 🌿
+      </p>
+
+      <!-- 友链卡片 -->
+      <section class="cards fade-up" style="--stagger-index: 2">
+        <a
+          v-for="(friend, i) in friends"
+          :key="friend.id"
+          :href="friend.siteUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="card friend-card"
+          :style="{ '--stagger-index': Math.min(i, 10) }"
+        >
+          <img
+            v-if="friend.iconUrl"
+            :src="friend.iconUrl"
+            :alt="`${friend.name} 图标`"
+            class="friend-card__icon"
+            loading="lazy"
+            @error="(e: Event) => ((e.target as HTMLImageElement).style.display = 'none')"
+          >
+          <span v-else class="friend-card__icon friend-card__icon--fallback" aria-hidden="true">
+            {{ friend.name.slice(0, 1).toUpperCase() }}
+          </span>
+          <span class="friend-card__body">
+            <strong class="friend-card__name">{{ friend.name }}</strong>
+            <span v-if="friend.description" class="friend-card__desc">{{ friend.description }}</span>
+            <span class="friend-card__url">{{ hostOf(friend.siteUrl) }}</span>
+          </span>
+        </a>
+      </section>
+
+      <p v-if="!friends.length && !pending" class="friends-empty fade-up" style="--stagger-index: 2">
+        还没有友链，快来申请第一个吧 👉
+      </p>
+
+      <!-- 申请要求 -->
+      <section id="apply-req" class="card apply-req fade-up" style="--stagger-index: 3">
+        <h2 class="apply-req__title">申请友链</h2>
+        <p class="apply-req__hint">申请前请确认你的站点满足以下要求：</p>
+        <ul class="apply-req__list">
+          <li>✅ 站点可正常访问，且为<b>独立博客 / 个人网站</b></li>
+          <li>✅ 有<b>原创内容</b>，非纯采集、非空站点</li>
+          <li>✅ 含合法内容，无违法违规信息</li>
+          <li>✅ 已在贵站添加本站友链（本站信息见下方）</li>
+        </ul>
+        <div class="apply-req__mine">
+          <code>&lt;a href="https://forever.example.com" target="_blank"&gt;Forever · 用心记录每一篇&lt;/a&gt;</code>
+        </div>
+        <NuxtLink to="/friends/apply" class="btn btn--primary apply-req__cta">申请友链 →</NuxtLink>
+      </section>
+    </main>
+
+    <!-- ===== Footer ===== -->
+    <footer class="site-footer">
+      <span>© {{ new Date().getFullYear() }} Forever · 记录技术与思考</span>
+    </footer>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { FriendLink } from '~/stores/types'
+
+useHead({ title: '友情链接 - Forever' })
+
+const { data: friends, pending } = await useAsyncData('public-friend-links', () =>
+  apiFetch<FriendLink[]>('/api/v1/friend-links'),
+)
+
+// 吸顶导航滚动后变玻璃拟态
+const isScrolled = ref(false)
+onMounted(() => {
+  const onScroll = () => { isScrolled.value = window.scrollY > 8 }
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onUnmounted(() => window.removeEventListener('scroll', onScroll))
+})
+
+/** 展示用：取域名部分 */
+function hostOf(url: string): string {
+  try {
+    return new URL(url).host
+  } catch {
+    return url
+  }
+}
+</script>
+
+<style scoped>
+.friends-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--c-bg-soft);
+}
+
+/* ===== Header ===== */
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.site-header--scrolled {
+  background: color-mix(in srgb, var(--c-bg-soft) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom-color: var(--c-border);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 5%);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 14px 20px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.brand__mark,
+.brand__name {
+  color: var(--c-text);
+}
+
+.site-nav {
+  display: flex;
+  gap: 18px;
+  margin-left: auto;
+}
+
+.site-nav__link {
+  font-size: 14px;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.site-nav__link:hover {
+  color: var(--c-primary);
+}
+
+/* ===== 布局 ===== */
+.wrap {
+  flex: 1;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 96px 20px 0;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.page-head__cn {
+  margin: 0;
+  font-size: 28px;
+}
+
+.page-head__en {
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.page-intro {
+  margin: 8px 0 24px;
+  font-size: 14px;
+  color: var(--c-text-secondary);
+}
+
+/* ===== 友链卡片 ===== */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.friend-card {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  text-decoration: none;
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
+}
+
+.friend-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 26px rgb(0 0 0 / 8%);
+}
+
+.friend-card__icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.friend-card__icon--fallback {
+  background: linear-gradient(135deg, var(--k-grape), var(--c-primary));
+}
+
+.friend-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.friend-card__name {
+  overflow: hidden;
+  font-size: 15px;
+  color: var(--c-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-card__desc {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--c-text-muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.friend-card__url {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--c-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friends-empty {
+  padding: 32px 0;
+  font-size: 14px;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+/* ===== 申请要求 ===== */
+.apply-req {
+  margin-top: 36px;
+  padding: 24px;
+}
+
+.apply-req__title {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.apply-req__hint {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  color: var(--c-text-secondary);
+}
+
+.apply-req__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  font-size: 13.5px;
+  color: var(--c-text-secondary);
+  list-style: none;
+
+  b {
+    color: var(--c-text);
+  }
+}
+
+.apply-req__mine {
+  margin-top: 14px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  font-size: 12px;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+  border-radius: 10px;
+
+  code {
+    white-space: nowrap;
+  }
+}
+
+.apply-req__cta {
+  margin-top: 16px;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+  display: flex;
+  justify-content: center;
+  padding: 24px 20px 32px;
+  margin-top: 48px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  border-top: 1px solid var(--c-border);
+  background: var(--c-bg-card);
+}
+
+@media (max-width: 640px) {
+  .page-head {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+</style>

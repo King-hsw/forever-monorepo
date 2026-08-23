@@ -104,6 +104,43 @@ export interface RssFeedInput {
   enabled?: boolean
 }
 
+export type FriendLinkStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+/** 友链（对应 FriendLinkResponse；公开接口不含 contact / rejectReason） */
+export interface FriendLink {
+  id: number
+  name: string
+  siteUrl: string
+  iconUrl: string | null
+  description: string | null
+  status: FriendLinkStatus
+  createdAt: string
+  reviewedAt: string | null
+  /** 仅管理端返回 */
+  contact?: string | null
+  /** 仅管理端返回 */
+  rejectReason?: string | null
+}
+
+/** 友链申请请求（访客提交） */
+export interface FriendLinkApplyInput {
+  name: string
+  siteUrl: string
+  iconUrl?: string
+  description?: string
+  contact?: string
+}
+
+/** 友链全量更新请求（管理端） */
+export interface FriendLinkUpdateInput {
+  name: string
+  siteUrl: string
+  iconUrl?: string
+  description?: string
+  status: FriendLinkStatus
+  rejectReason?: string
+}
+
 /** 后端统一分页结构 */
 export interface PageResult<T> {
   list: T[]
