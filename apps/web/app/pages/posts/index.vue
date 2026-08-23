@@ -446,22 +446,22 @@ usePageSeo({
   font-weight: 800;
   line-height: 1;
   color: transparent;
-  -webkit-text-stroke: 1.3px #e8d0e2;
+  -webkit-text-stroke: 1.3px #ecdcc4;
   font-variant-numeric: tabular-nums;
   transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s var(--ease-bounce);
 }
 
 html.dark .row__num {
-  -webkit-text-stroke-color: #5a4a66;
+  -webkit-text-stroke-color: #6b5842;
 }
 
 @supports not (-webkit-text-stroke: 1px black) {
   .row__num {
-    color: #e8d0e2;
+    color: #ecdcc4;
   }
 
   html.dark .row__num {
-    color: #5a4a66;
+    color: #6b5842;
   }
 }
 

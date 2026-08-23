@@ -7,37 +7,37 @@
 
 body {
   margin: 0;
-  /* 奶油白 → 淡粉的柔和渐变，像干净的文具桌 */
-  background: linear-gradient(165deg, #fff6ef 0%, #fdf0f7 60%, #f6efff 100%) fixed;
+  /* 奶油纸 → 淡杏的柔和渐变，像晒过太阳的文具桌 */
+  background: linear-gradient(165deg, #fffdf6 0%, #fdf3e6 55%, #faedd9 100%) fixed;
 }
 
-/* ===== 设计令牌（Kawaii Minimal）=====
- * 糖果色只出现在按钮、标签、图标等小面积区域；
- * 背景与大块区域保持低饱和浅色维持平衡。
+/* ===== 设计令牌（橘子汽水 / 暖调文具）=====
+ * 柿子橙主色 + 蜂蜜黄/抹茶绿配角，避开粉紫蓝的 AI 默认审美；
+ * 糖果色只出现在按钮、标签等小面积区域。
  */
 :root {
-  /* 糖果主色：草莓粉 */
-  --c-primary: #f472b6;
-  --c-primary-hover: #ec4899;
-  --c-primary-light: #ffeef6;
+  /* 主色：柿子橙 */
+  --c-primary: #ee8a3c;
+  --c-primary-hover: #dd7726;
+  --c-primary-light: #fdeedd;
 
-  /* 配角糖果色：薄荷 / 香芋紫 / 柠檬黄 / 天空蓝 */
-  --k-mint: #5fd4c4;
-  --k-grape: #a78bfa;
-  --k-lemon: #ffc94d;
-  --k-sky: #7cc7f7;
+  /* 配角：蜂蜜黄 / 抹茶绿 / 柠檬黄 / 陶土红（保留变量名兼容旧引用） */
+  --k-mint: #93b884;
+  --k-grape: #f2c14e;
+  --k-lemon: #f4c84e;
+  --k-sky: #cf7a58;
 
   /* 暖调文字，避免纯黑带来的紧张感 */
-  --c-text: #574b62;
-  --c-text-secondary: #8b7d95;
-  --c-text-muted: #b3a6bd;
-  --c-border: #f5dfec;
-  --c-bg: #fdf6f1;
-  --c-bg-card: #fffdfb;
-  --c-bg-soft: #fdf6f1;
+  --c-text: #4a4036;
+  --c-text-secondary: #857463;
+  --c-text-muted: #b3a491;
+  --c-border: #f0e2cc;
+  --c-bg: #fdf8ef;
+  --c-bg-card: #fffdf8;
+  --c-bg-soft: #faf3e6;
   --c-on-primary: #fff;
-  --c-danger: #f0708f;
-  --c-success: #43c6a8;
+  --c-danger: #cd5f5f;
+  --c-success: #7ba05b;
   --c-warning-text: #b07a1e;
   --c-warning-bg: #fff3d6;
 
@@ -46,8 +46,8 @@ body {
   --radius-control: 12px;
 
   /* 柔和带色温的投影，而非灰黑硬阴影 */
-  --shadow-card: 0 2px 6px rgb(244 114 182 / 6%), 0 10px 30px rgb(167 139 250 / 8%);
-  --shadow-card-hover: 0 4px 10px rgb(244 114 182 / 10%), 0 16px 40px rgb(167 139 250 / 14%);
+  --shadow-card: 0 2px 6px rgb(238 138 60 / 6%), 0 10px 30px rgb(213 168 82 / 8%);
+  --shadow-card-hover: 0 4px 10px rgb(238 138 60 / 10%), 0 16px 40px rgb(213 168 82 / 14%);
 
   /* 「轻、软、弹」交互：略长的时长 + 带回弹的缓动 */
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -55,25 +55,25 @@ body {
   color-scheme: light;
 }
 
-/* ===== 暗色主题：深梅子夜 ===== */
+/* ===== 暗色主题：焦糖夜 ===== */
 html.dark {
-  --c-primary: #ff9dc6;
-  --c-primary-hover: #ffb9d5;
-  --c-primary-light: rgb(255 157 198 / 14%);
-  --k-mint: #74ddcd;
-  --k-grape: #bfa6fc;
-  --k-lemon: #ffd77a;
-  --k-sky: #93d3f9;
-  --c-text: #f2e8f0;
-  --c-text-secondary: #c3b3cc;
-  --c-text-muted: #90809c;
-  --c-border: #40344b;
-  --c-bg: #211a27;
-  --c-bg-card: #2b2233;
-  --c-bg-soft: #211a27;
-  --c-on-primary: #42182e;
-  --c-danger: #ff8ba3;
-  --c-success: #5bd6bb;
+  --c-primary: #f2a35e;
+  --c-primary-hover: #f6b67c;
+  --c-primary-light: rgb(242 163 94 / 14%);
+  --k-mint: #a3c494;
+  --k-grape: #f6cd6e;
+  --k-lemon: #f6d27a;
+  --k-sky: #d98d68;
+  --c-text: #f3ece0;
+  --c-text-secondary: #cfc2ad;
+  --c-text-muted: #9a8b76;
+  --c-border: #45392a;
+  --c-bg: #251e15;
+  --c-bg-card: #2d251a;
+  --c-bg-soft: #251e15;
+  --c-on-primary: #3d2410;
+  --c-danger: #e08585;
+  --c-success: #96c17a;
   --c-warning-text: #ffd77a;
   --c-warning-bg: rgb(255 215 122 / 12%);
   --shadow-card: 0 2px 6px rgb(0 0 0 / 25%), 0 10px 30px rgb(0 0 0 / 22%);
@@ -82,7 +82,7 @@ html.dark {
 }
 
 html.dark body {
-  background: linear-gradient(165deg, #241c2b 0%, #2a2033 60%, #221a30 100%) fixed;
+  background: linear-gradient(165deg, #251e15 0%, #2a2117 60%, #231c12 100%) fixed;
 }
 
 /* ===== 动画 ===== */
@@ -173,13 +173,13 @@ html.dark body {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 14px rgb(244 114 182 / 30%);
+  box-shadow: 0 4px 14px rgb(238 138 60 / 30%);
 }
 
 .btn--primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--c-primary-hover), var(--k-grape));
   border-color: transparent;
-  box-shadow: 0 8px 20px rgb(244 114 182 / 38%);
+  box-shadow: 0 8px 20px rgb(238 138 60 / 38%);
 }
 
 .btn--danger {
@@ -229,7 +229,7 @@ html.dark body {
 
 .field-input:focus {
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 4px rgb(244 114 182 / 15%); /* 粉色柔光圈 */
+  box-shadow: 0 0 0 4px rgb(238 138 60 / 15%); /* 粉色柔光圈 */
 }
 
 .field-label {

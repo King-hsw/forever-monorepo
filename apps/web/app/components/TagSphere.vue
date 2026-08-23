@@ -214,38 +214,38 @@ onBeforeUnmount(() => {
 
 /* 糖果色轮换：粉 / 紫 / 薄荷 / 柠檬 / 天空蓝 */
 .tag-sphere__item:nth-child(5n + 1) {
-  color: color-mix(in srgb, #f472b6 75%, var(--c-text));
-  background: color-mix(in srgb, #f472b6 13%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #f472b6 30%, transparent);
+  color: color-mix(in srgb, #ee8a3c 75%, var(--c-text));
+  background: color-mix(in srgb, #ee8a3c 13%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #ee8a3c 30%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 2) {
-  color: color-mix(in srgb, #a78bfa 75%, var(--c-text));
-  background: color-mix(in srgb, #a78bfa 13%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #a78bfa 30%, transparent);
+  color: color-mix(in srgb, #f2c14e 80%, var(--c-text));
+  background: color-mix(in srgb, #f2c14e 15%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #f2c14e 32%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 3) {
-  color: color-mix(in srgb, #5fd4c4 75%, var(--c-text));
-  background: color-mix(in srgb, #5fd4c4 13%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #5fd4c4 30%, transparent);
+  color: color-mix(in srgb, #93b884 75%, var(--c-text));
+  background: color-mix(in srgb, #93b884 13%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #93b884 30%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 4) {
-  color: color-mix(in srgb, #ffc94d 80%, var(--c-text));
-  background: color-mix(in srgb, #ffc94d 15%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #ffc94d 32%, transparent);
+  color: color-mix(in srgb, #cd6f52 75%, var(--c-text));
+  background: color-mix(in srgb, #cd6f52 13%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #cd6f52 30%, transparent);
 }
 
 .tag-sphere__item:nth-child(5n + 5) {
-  color: color-mix(in srgb, #7cc7f7 75%, var(--c-text));
-  background: color-mix(in srgb, #7cc7f7 13%, var(--c-bg-card));
-  border: 1.5px solid color-mix(in srgb, #7cc7f7 30%, transparent);
+  color: color-mix(in srgb, #b98a5e 75%, var(--c-text));
+  background: color-mix(in srgb, #b98a5e 13%, var(--c-bg-card));
+  border: 1.5px solid color-mix(in srgb, #b98a5e 30%, transparent);
 }
 
 .tag-sphere__item:hover {
   border-color: currentcolor;
-  box-shadow: 0 4px 12px rgb(244 114 182 / 20%);
+  box-shadow: 0 4px 12px rgb(238 138 60 / 20%);
 }
 
 .tag-sphere__item sup {
