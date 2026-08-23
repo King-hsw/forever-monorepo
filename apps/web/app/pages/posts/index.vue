@@ -11,6 +11,7 @@
           <NuxtLink to="/" class="site-nav__link">首页</NuxtLink>
           <NuxtLink to="/friends" class="site-nav__link">友链</NuxtLink>
           <a class="site-nav__link" href="/rss.xml" target="_blank">RSS</a>
+          <NuxtLink class="site-nav__link" to="/admin">管理</NuxtLink>
         </nav>
         <div class="site-header__theme"><ThemeToggle /></div>
       </div>

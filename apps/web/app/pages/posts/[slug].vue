@@ -4,6 +4,7 @@
       <NuxtLink to="/" class="brand">Forever</NuxtLink>
       <div class="site-header__actions">
         <ThemeToggle />
+        <NuxtLink to="/admin" class="back-btn admin-entry">管理</NuxtLink>
         <button type="button" class="back-btn" @click="goBack">← 返回</button>
       </div>
     </header>
@@ -166,6 +167,12 @@ useHead(() => ({
     transform: translateY(-1px);
     box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   }
+}
+
+.admin-entry {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .article-wrap {
