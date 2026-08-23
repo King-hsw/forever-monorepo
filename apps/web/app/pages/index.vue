@@ -963,46 +963,83 @@ html.dark .hero__glow {
   }
 }
 
-/* ---- 头条大卡 ---- */
+/* ---- 头条大卡：草莓牛奶色纸，缀两颗漂浮泡泡 ---- */
 .featured {
   position: relative;
   display: block;
   overflow: hidden;
   margin-bottom: 26px;
-  padding: 32px 34px 28px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
+  padding: 30px 34px 26px;
+  /* 白卡上叠一层极淡的粉→紫渐变，像一张带色的信纸 */
+  background:
+    linear-gradient(135deg, rgb(244 114 182 / 7%) 0%, rgb(167 139 250 / 7%) 100%),
+    var(--c-bg-card);
+  border: 1.5px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
   text-decoration: none;
-  transition: border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) ease;
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, border-color var(--dur-soft) ease;
+}
+
+/* 两颗模糊泡泡：右上粉、左下紫，缓慢漂浮 */
+.featured::before,
+.featured::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(38px);
+  pointer-events: none;
+}
+
+.featured::before {
+  top: -46px;
+  right: -38px;
+  width: 150px;
+  height: 150px;
+  background: rgb(244 114 182 / 22%);
+  animation: featured-float 7s ease-in-out infinite;
+}
+
+.featured::after {
+  bottom: -52px;
+  left: -30px;
+  width: 130px;
+  height: 130px;
+  background: rgb(167 139 250 / 20%);
+  animation: featured-float 9s ease-in-out 1.2s infinite reverse;
+}
+
+@keyframes featured-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-12px, 14px) scale(1.08); }
 }
 
 .featured:hover {
-  border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
+  border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
 }
 
-/* 「最新发布」眉批：一枚安静的强调色小字，不再做贴纸 */
+/* 「最新发布」贴纸徽章：渐变胶囊微倾斜，缀一颗小星星 */
 .featured__badge {
   position: relative;
-  display: inline-block;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 15px;
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  color: var(--c-primary);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 999px;
+  transform: rotate(-2deg); /* 像随手贴上的贴纸 */
+  box-shadow: 0 3px 10px rgb(244 114 182 / 35%);
 }
 
-.featured__badge::after {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 1px;
-  margin-top: 4px;
-  background: var(--c-primary);
-  opacity: 0.35;
+.featured__badge::before {
+  content: '✦';
+  font-size: 11px;
 }
 
 .featured__title {
@@ -1046,7 +1083,10 @@ html.dark .hero__glow {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 22px;
+  margin-top: 20px;
+  padding-top: 16px;
+  /* 虚线分隔，像手账里的一页 */
+  border-top: 1.5px dashed var(--c-border);
 }
 
 .featured__meta {
@@ -1063,7 +1103,7 @@ html.dark .hero__glow {
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--c-primary);
 }
@@ -1071,19 +1111,23 @@ html.dark .hero__glow {
 .featured__cta-circle {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  font-size: 14px;
-  color: inherit;
-  border: 1px solid color-mix(in srgb, var(--c-primary) 40%, transparent);
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
   border-radius: 50%;
-  transition: background-color 0.25s ease, color 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    background var(--dur-soft) ease,
+    color var(--dur-soft) ease,
+    transform 0.3s var(--ease-bounce);
 }
 
 .featured:hover .featured__cta-circle {
-  background: var(--c-primary);
-  color: var(--c-on-primary);
-  transform: rotate(0deg);
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  transform: rotate(-45deg) scale(1.12);
+  box-shadow: 0 4px 12px rgb(244 114 182 / 35%);
 }
 
 /* ---- 编号时间线：左侧一条竖线贯穿，序号压在线上，像目录的页码 ---- */
