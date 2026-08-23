@@ -196,6 +196,44 @@ export interface MeInfo {
   username: string
 }
 
+/** 站点配置项（对应 SettingResponse；value 为空表示未在数据库设置，走 yml 默认值） */
+export interface SettingItem {
+  key: string
+  value: string
+  description: string
+}
+
+/** 修改站点配置请求（对应 SettingUpdateRequest） */
+export interface SettingUpdateInput {
+  key: string
+  value: string
+}
+
+/** 审计日志条目（对应 ActionLogResponse） */
+export interface ActionLog {
+  id: number
+  /** 操作人；匿名请求为 null */
+  username: string | null
+  method: string
+  path: string
+  /** HTTP 响应码 */
+  status: number
+  ip: string
+  /** 耗时（毫秒） */
+  durationMs: number
+  createdAt: string
+}
+
+/** 审计日志分页查询参数 */
+export interface ActionLogQuery {
+  page?: number
+  size?: number
+  /** 操作人，精确匹配 */
+  username?: string
+  /** 路径关键词，模糊匹配 */
+  path?: string
+}
+
 /** 公开文章列表查询参数 */
 export interface PublicArticleQuery {
   page?: number

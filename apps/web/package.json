@@ -27,6 +27,8 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
-    "@vite-pwa/nuxt": "^1.1.1"
+    "@vite-pwa/nuxt": "^1.1.1",
+    "typescript": "^5.9.2",
+    "vue-tsc": "^3.3.11"
   }
 }
