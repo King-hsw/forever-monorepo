@@ -148,7 +148,7 @@ const rssStore = useRssStore()
 
 await useAsyncData('admin-rss-feeds', async () => {
   await rssStore.fetch(true)
-})
+}, { server: false })
 
 const saving = ref(false)
 const refreshingId = ref<number | null>(null)

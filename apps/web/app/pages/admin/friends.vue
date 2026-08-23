@@ -158,9 +158,10 @@ useState('admin-page-title', () => '友链管理')
 
 const friendsStore = useFriendsStore()
 
+// 仅客户端拉取：登录令牌存在 localStorage，SSR 阶段拿不到（避免直接访问 URL 时 SSR 401 失败）
 await useAsyncData('admin-friend-links', async () => {
   await friendsStore.fetch(true)
-})
+}, { server: false })
 
 const saving = ref(false)
 const acting = ref(false)

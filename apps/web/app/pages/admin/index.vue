@@ -91,12 +91,13 @@ const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
 
 // 进入后台时拉取文章（取足够大的一页用于统计）与分类数据
+// 登录令牌存在 localStorage，SSR 阶段拿不到，仅客户端拉取（避免直接访问 URL 时 SSR 401 失败）
 await useAsyncData('admin-dashboard', async () => {
   await Promise.all([
     postsStore.fetchAdmin({ page: 1, size: 1000 }),
     categoriesStore.fetch(),
   ])
-})
+}, { server: false })
 
 const stats = computed(() => [
   {

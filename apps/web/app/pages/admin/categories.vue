@@ -161,7 +161,7 @@ const tagsStore = useTagsStore()
 
 await useAsyncData('admin-cats-tags', async () => {
   await Promise.all([categoriesStore.fetch(true), tagsStore.fetch(true)])
-})
+}, { server: false })
 
 const saving = ref(false)
 

@@ -30,8 +30,10 @@ const postsStore = usePostsStore()
 const id = String(route.params.id)
 
 // 拉取文章详情（含 content），id 不存在 → 弹回列表页
+// 仅客户端拉取：登录令牌存在 localStorage，SSR 阶段拿不到
 const { data: post, error } = await useAsyncData(`admin-article-${id}`, () =>
   postsStore.getById(id),
+  { server: false },
 )
 if (error.value || !post.value) {
   await navigateTo('/admin/posts')
