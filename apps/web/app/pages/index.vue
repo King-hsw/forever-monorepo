@@ -724,12 +724,14 @@ html.dark .hero__glow {
 .hero__scroll-hint {
   position: absolute;
   bottom: 30px;
-  left: 50%;
+  left: 0;
+  right: 0;
+  width: max-content;
+  margin-inline: auto;
   padding: 8px;
   background: none;
   border: none;
   cursor: pointer;
-  transform: translateX(-50%);
   opacity: 0.65;
   transition: opacity 0.2s ease;
   animation: fade-up 0.6s ease 1s both;
