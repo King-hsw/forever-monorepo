@@ -46,6 +46,7 @@
       <nav v-if="menuOpen" class="mobile-menu" aria-label="移动端导航">
         <NuxtLink class="mobile-menu__link" to="/" @click="menuOpen = false">首页</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/posts" @click="menuOpen = false">全部文章</NuxtLink>
+        <NuxtLink class="mobile-menu__link" to="/archive" @click="menuOpen = false">归档</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/message" @click="menuOpen = false">留言墙</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/friends" @click="menuOpen = false">友链</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
@@ -64,6 +65,7 @@ const router = useRouter()
 
 const navItems = [
   { label: '全部文章', to: '/posts' },
+  { label: '归档', to: '/archive' },
   { label: '留言墙', to: '/message' },
   { label: '友链', to: '/friends' },
 ]

@@ -251,3 +251,11 @@ export interface AdminArticleQuery {
   keyword?: string
   categoryId?: number | null
 }
+
+/** 归档条目（公开归档接口；按 publishedAt 倒序） */
+export interface ArchiveItem {
+  id: number
+  title: string
+  slug: string
+  publishedAt: string
+}

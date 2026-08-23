@@ -5,6 +5,7 @@
 export type {
   AdminArticleQuery,
   ApiResponse,
+  ArchiveItem,
   Category,
   CategoryInput,
   FriendLink,
