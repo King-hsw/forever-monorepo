@@ -153,15 +153,7 @@
 
             <div v-if="tagCloud.length" class="side-block reveal">
               <h3 class="side-block__title">标签云</h3>
-              <div class="tag-cloud">
-                <NuxtLink
-                  v-for="tag in tagCloud"
-                  :key="tag.id"
-                  to="/posts"
-                  class="tag-cloud__item"
-                  :style="{ fontSize: `${tag.size}px` }"
-                >{{ tag.name }}<sup>{{ tag.count }}</sup></NuxtLink>
-              </div>
+              <TagSphere :tags="tagCloud" />
             </div>
           </aside>
         </div>
@@ -1235,36 +1227,9 @@ html.dark .hero__glow {
   transition: transform 0.2s ease;
 }
 
-/* ---- 边栏标签云：无框小签，不再是一整块卡片 ---- */
-.tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 8px;
-}
-
-.tag-cloud__item {
-  padding: 6px 13px;
-  line-height: 1;
-  color: var(--c-text-secondary);
-  background: var(--c-bg-soft);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-control);
-  text-decoration: none;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-
-  sup {
-    margin-left: 3px;
-    font-size: 0.6em;
-    opacity: 0.55;
-  }
-
-  &:hover {
-    color: var(--c-primary);
-    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    background: var(--c-primary-light);
-  }
-}
+/* ---- 边栏标签云：已替换为 TagSphere 环绕云组件 ----
+ * 样式见 components/TagSphere.vue
+ */
 
 /* ---- 终幕：像书末的版权页，素净居中收尾 ---- */
 .finale {
