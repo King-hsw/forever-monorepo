@@ -110,9 +110,9 @@ import { fileToImageSrc, isSupportedImage } from '../utils/imageUpload'
 
 const props = withDefaults(
   defineProps<{
-    /** 编辑器 HTML 内容（支持 v-model） */
+    /** 编辑器内容：初始化时为 Markdown，编辑后回传 HTML（支持 v-model） */
     modelValue?: string
-    /** 编辑器内容对应的 Markdown（支持 v-model:markdown） */
+    /** 编辑器内容对应的 Markdown（支持 v-model:markdown）；初始化时优先生效 */
     markdown?: string
     /** 撑满父容器高度（用于分栏布局） */
     fluid?: boolean
@@ -134,7 +134,11 @@ const lowlight = createLowlight()
 lowlight.register(codeLanguages as Record<string, LanguageFn>)
 
 const editor = useEditor({
-  content: props.modelValue,
+  // 初始内容优先取 Markdown（后端存储格式），并声明 contentType: 'markdown'，
+  // 这样 Markdown 扩展会在初始化时先解析为文档；否则字符串会按 HTML 处理，
+  // 导致 Markdown 源码原样显示、不渲染
+  content: props.markdown || props.modelValue,
+  contentType: 'markdown',
   // 给 Markdown 扩展单独的 marked 实例，避免它把自定义 tokenizer（如 underline 的 ++text++）
   // 注册到全局 marked 上，污染页面里其他用 marked 做渲染的地方
   // StarterKit 自带的 CodeBlock 没有语法高亮，禁用它；换用继承自
@@ -235,11 +239,13 @@ watch(
     if (!ed) {
       return
     }
-    const isSame = ed.getHTML() === value
+    // 编辑器自身回传的是 HTML、父组件可能直接喂回 Markdown，两者都视为相同内容跳过
+    const isSame = ed.getHTML() === value || ed.getMarkdown() === value
     if (isSame) {
       return
     }
-    ed.commands.setContent(value, { emitUpdate: false })
+    // 外部传入的正文是 Markdown，需声明 contentType 让扩展先解析再写入
+    ed.commands.setContent(value, { contentType: 'markdown', emitUpdate: false })
     emit('update:markdown', ed.getMarkdown())
   },
 )

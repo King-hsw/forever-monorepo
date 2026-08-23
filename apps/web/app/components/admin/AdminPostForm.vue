@@ -104,7 +104,7 @@ const form = reactive({
   summary: props.initial?.summary ?? '',
   categoryId: (props.initial?.categoryId ?? null) as number | null,
   tagIds: [...(props.initial?.tags.map(t => t.id) ?? [])],
-  // 编辑时后端返回 Markdown 正文；Tiptap 的 Markdown 扩展可直接解析渲染
+  // 编辑时后端返回 Markdown 正文，交给 TiptapEditor 的 Markdown 扩展解析渲染
   contentHtml: props.initial?.content ?? '',
   markdown: props.initial?.content ?? '',
 })
