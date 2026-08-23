@@ -27,11 +27,14 @@ body {
   --k-lemon: #e3b766;
   --k-sky: #cf7a58;
 
-  /* 暖调文字，避免纯黑带来的紧张感 */
+  /* 暖调文字，避免纯黑带来的紧张感；
+   * 明度需与米灰底色（--c-bg / --c-bg-soft）拉开足够对比：
+   * secondary ≥ 5:1、muted ≥ 3.5:1，保证正文和辅助信息清晰可读 */
   --c-text: #4a4036;
-  --c-text-secondary: #857463;
-  --c-text-muted: #b3a491;
-  --c-border: #eee0d4;
+  --c-text-secondary: #6d5c4a;
+  --c-text-muted: #8a7760;
+  /* 边框同样要和米灰底色区分开（原 #eee0d4 与底色几乎同色） */
+  --c-border: #e0cdb6;
   --c-bg: #f6efe4;
   --c-bg-card: #fffefb;
   --c-bg-soft: #f1e7d8;
