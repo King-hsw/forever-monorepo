@@ -126,6 +126,8 @@ const html = computed(() => {
     return ''
   }
   return decorateCodeBlocks(md.parse(props.source, { async: false }))
+    // 防盗链站点会拒给带 Referer 的图片，补上 no-referrer（已手动写过的跳过）
+    .replace(/<img(?![^>]*\sreferrerpolicy=)/g, '<img referrerpolicy="no-referrer"')
 })
 
 /* ---------- 复制按钮：事件委托 + 已复制反馈 ---------- */

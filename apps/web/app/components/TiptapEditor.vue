@@ -145,8 +145,17 @@ const editor = useEditor({
   // CodeBlockLowlight 的 CodeBlockLineNumbers，同时提供高亮和外挂式行号栏
   extensions: [
     StarterKit.configure({ codeBlock: false }),
-    // 图片：本项目无后端，上传后以 data URL 内嵌，必须开启 allowBase64 才能解析回显
-    Image.configure({ allowBase64: true }),
+    // 图片：本项目无后端，上传后以 data URL 内嵌，必须开启 allowBase64 才能解析回显；
+    // 补充 referrerpolicy=no-referrer，避免防盗链站点拒给图片（Markdown 序列化会丢，
+    // 展示端 MarkdownView 会再补）
+    Image.extend({
+      addAttributes() {
+        return {
+          ...this.parent?.(),
+          referrerpolicy: { default: 'no-referrer' },
+        }
+      },
+    }).configure({ allowBase64: true }),
     // 代码块内启用 Tab 缩进：Tab 插入缩进、Shift-Tab 反向缩进（支持多行选区）
     CodeBlockLineNumbers.configure({ lowlight, enableTabIndentation: true, tabSize: 2 }),
     Markdown.configure({ marked: new Marked() }),
