@@ -140,9 +140,9 @@ function onBrandClick() {
   place-items: center;
   width: 32px;
   height: 32px;
-  background: var(--c-primary);
-  border-radius: 8px;
-  box-shadow: none;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 12px; /* 圆润的小方块，像一颗软糖 */
+  box-shadow: 0 4px 12px rgb(244 114 182 / 35%);
 }
 
 /* 笑脸：两颗眼睛 + 微笑嘴 */

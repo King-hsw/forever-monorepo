@@ -156,20 +156,20 @@ const data = computed(() => {
 
 <style scoped>
 .heatmap {
-  /* 热力图专属色阶：灰玫瑰由浅到深；暗色模式单独覆盖 */
+  /* 热力图专属色阶：草莓粉由浅到深；暗色模式单独覆盖 */
   --hm-0: var(--c-bg-soft);
-  --hm-1: #eed9d3;
-  --hm-2: #dcaab0;
-  --hm-3: #c56473;
-  --hm-4: #9d4653;
+  --hm-1: #ffd9ec;
+  --hm-2: #fda4cf;
+  --hm-3: #f472b6;
+  --hm-4: #db2777;
 }
 
 :global(html.dark) .heatmap {
   --hm-0: rgb(255 255 255 / 5%);
-  --hm-1: rgb(224 149 164 / 28%);
-  --hm-2: rgb(224 149 164 / 48%);
-  --hm-3: rgb(224 149 164 / 75%);
-  --hm-4: #e095a4;
+  --hm-1: rgb(244 114 182 / 28%);
+  --hm-2: rgb(244 114 182 / 48%);
+  --hm-3: rgb(244 114 182 / 75%);
+  --hm-4: #ff9dc6;
 }
 
 .heatmap__summary {
@@ -250,7 +250,7 @@ const data = computed(() => {
 .heatmap__cells .heatmap__cell:hover:not(.is-future) {
   z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
   transform: scale(1.35); /* 悬停轻轻放大 */
-  box-shadow: 0 2px 6px rgb(197 100 115 / 30%);
+  box-shadow: 0 2px 6px rgb(244 114 182 / 30%);
 }
 
 /* 悬停信息气泡：替代原生 title，展示更及时、样式更精致。

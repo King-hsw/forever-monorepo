@@ -184,9 +184,9 @@ function backToTop() {
   place-items: center;
   width: 34px;
   height: 34px;
-  background: var(--c-primary);
-  border-radius: 8px;
-  box-shadow: none;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgb(244 114 182 / 35%);
 }
 
 .site-footer__mark::before {

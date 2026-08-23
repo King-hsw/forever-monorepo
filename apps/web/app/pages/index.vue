@@ -11,41 +11,24 @@
     <!-- ===== Header：吸顶导航，滚动后变为玻璃拟态 ===== -->
     <SiteHeader />
 
-    <!-- ===== Hero：视差背景 + 逐字浮现的渐变标题 ===== -->
+    <!-- ===== Hero：头像 + 问候 + 眉题签名 + 引言（构图参考余白首页） ===== -->
     <section ref="heroEl" class="hero">
       <div class="hero__bg" aria-hidden="true">
-        <!-- 单一居中光晕：纸面上方的一抹暖光 -->
         <div class="hero__glow" />
       </div>
 
       <div ref="heroContent" class="hero__content">
-        <p class="hero__eyebrow">
-          <span class="hero__eyebrow-dot" />
-          欢迎来到我的数字花园
-        </p>
-        <h1 class="hero__title">
-          <span class="hero__word">
-            <span
-              v-for="(ch, i) in TITLE_A"
-              :key="`a${i}`"
-              class="hero__char"
-              :style="{ '--d': `${120 + i * 70}ms` }"
-            >{{ ch }}</span>
-          </span><span class="hero__word hero__word--grad">
-            <span
-              v-for="(ch, i) in TITLE_B"
-              :key="`b${i}`"
-              class="hero__char hero__char--grad"
-              :style="{ '--d': `${260 + i * 70}ms` }"
-            >{{ ch }}</span>
-          </span>
-        </h1>
-        <p class="hero__tagline">
-          在这里沉淀代码之外的灵感，<br class="hero__tagline-br">
-          每一篇文字都是与时间的对话。
-        </p>
+        <div class="hero__avatar fade-hero" style="--hd: 0ms" aria-hidden="true">F</div>
 
-        <p class="hero__stats">
+        <h1 class="hero__title fade-hero" style="--hd: 90ms">
+          <span class="hero__title-light">Hi, I'm </span><span class="hero__title-name">Forever</span><span class="hero__title-wave">🥰</span><span class="hero__title-light">。</span>
+        </h1>
+
+        <p class="hero__motto fade-hero" style="--hd: 180ms">记录技术与思考</p>
+
+        <p class="hero__quote fade-hero" style="--hd: 270ms">「在这里沉淀代码之外的灵感，每一篇文字都是与时间的对话。」</p>
+
+        <p class="hero__stats fade-hero" style="--hd: 360ms">
           <span><strong>{{ publishedPosts.length }}</strong> 篇文章</span>
           <span class="hero__stats-dot">·</span>
           <span><strong>{{ categories?.length ?? 0 }}</strong> 个分类</span>
@@ -53,7 +36,7 @@
           <span><strong>{{ tags?.length ?? 0 }}</strong> 个标签</span>
         </p>
 
-        <div class="hero__actions">
+        <div class="hero__actions fade-hero" style="--hd: 450ms">
           <button type="button" class="hero__cta" @click="scrollToId('latest')">
             开始阅读
             <span class="hero__cta-arrow">↓</span>
@@ -441,10 +424,6 @@ function formatDate(value: string | number): string {
   })
 }
 
-/** Hero 标题拆字（确定性数据，SSR 安全） */
-const TITLE_A = ['记', '录']
-const TITLE_B = ['技', '术', '与', '思', '考']
-
 usePageSeo({
   title: 'Forever - 记录技术与思考',
   path: '/',
@@ -476,8 +455,8 @@ usePageSeo({
   position: fixed;
   inset: 0 0 auto;
   z-index: 60;
-  height: 2px;
-  background: var(--c-primary);
+  height: 3px;
+  background: linear-gradient(90deg, var(--c-primary), var(--k-grape), var(--k-mint));
   transform-origin: left;
   transform: scaleX(0);
   opacity: 0;
@@ -509,7 +488,7 @@ usePageSeo({
   pointer-events: none;
 }
 
-/* 纸面上方的一抹暖光：居中的极淡径向光晕 */
+/* 居中暖光：糖果色的极淡光晕，托住头像与标题 */
 .hero__glow {
   position: absolute;
   left: 50%;
@@ -518,11 +497,11 @@ usePageSeo({
   aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgb(197 100 115 / 9%) 0%, transparent 55%);
+  background: radial-gradient(ellipse, rgb(244 114 182 / 12%) 0%, transparent 55%);
 }
 
 html.dark .hero__glow {
-  background: radial-gradient(ellipse, rgb(224 149 164 / 6%) 0%, transparent 55%);
+  background: radial-gradient(ellipse, rgb(255 157 198 / 8%) 0%, transparent 55%);
 }
 
 .hero__content {
@@ -532,71 +511,83 @@ html.dark .hero__glow {
   will-change: transform, opacity;
 }
 
-/* 眉题：小号大写字母 + 宽字距，像书页顶部的章节眉 */
-.hero__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--c-text-muted);
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* 入场：自下而上逐层浮现（延迟由 --hd 控制） */
+.fade-hero {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--hd, 0ms) both;
 }
 
-.hero__eyebrow-dot {
-  width: 5px;
-  height: 5px;
-  background: var(--c-primary);
+/* 头像：渐变圆徽 + 内圈描边，替代真实头像图 */
+.hero__avatar {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  font-size: 40px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 25%),
+    0 8px 24px rgb(244 114 182 / 30%);
 }
 
-/* 标题：衬线体、中等字重、宽字距，像书名的扉页 */
+/* 标题：细体问候 + 中等字重名字，像余白首页的 Hi, I'm Vinking。 */
 .hero__title {
   margin: 28px 0 0;
-  font-family: var(--font-serif);
-  font-size: clamp(36px, 6vw, 58px);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.08em;
+  font-size: clamp(34px, 6vw, 52px);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
   color: var(--c-text);
 }
 
-.hero__word {
+.hero__title-light {
+  font-weight: 300;
+}
+
+.hero__title-name {
+  font-weight: 600;
+  margin: 0 6px;
+  color: var(--c-text);
+}
+
+.hero__title-wave {
   display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
-  padding-bottom: 0.08em; /* 避免降部字母被遮罩裁掉 */
-  margin-bottom: -0.08em;
+  font-weight: 300;
+  transform-origin: 70% 70%;
+  animation: wave 2.4s ease-in-out 1s infinite;
 }
 
-.hero__char {
-  display: inline-block;
-  transform: translateY(115%);
-  animation: char-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+@keyframes wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  65% { transform: rotate(14deg); }
+  70% { transform: rotate(-8deg); }
+  75% { transform: rotate(12deg); }
+  80% { transform: rotate(-4deg); }
+  85% { transform: rotate(8deg); }
+  90% { transform: rotate(0deg); }
 }
 
-.hero__char--grad {
-  color: var(--c-primary);
+/* 眉题签名：小号宽字距，余白式的「愿星光永远偏爱你的梦境」位 */
+.hero__motto {
+  margin: 18px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
 }
 
-@keyframes char-rise {
-  from { transform: translateY(115%); }
-  to { transform: translateY(0); }
-}
-
-/* 副标语：衬线斜体，像卷首的一句引言 */
-.hero__tagline {
-  margin: 22px 0 0;
+/* 引言：衬线斜体，卷首的一句引言 */
+.hero__quote {
+  margin: 26px auto 0;
+  max-width: 32em;
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: clamp(15px, 2vw, 16.5px);
+  font-size: 15px;
   line-height: 1.9;
   letter-spacing: 0.04em;
   color: var(--c-text-secondary);
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
 }
 
 /* 统计：一行素净的数字，像书前的版权页数据 */
@@ -623,7 +614,7 @@ html.dark .hero__glow {
   opacity: 0.5;
 }
 
-/* 按钮：纸感实心 + 描边幽灵，去糖果渐变 */
+/* 按钮：软糖胶囊，糖果渐变 */
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
@@ -637,27 +628,26 @@ html.dark .hero__glow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 11px 26px;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
   color: #fff;
-  background: var(--c-primary);
-  border: 1px solid var(--c-primary);
-  border-radius: var(--radius-control);
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border: none;
+  border-radius: 999px; /* 小软糖胶囊 */
   cursor: pointer;
   text-decoration: none;
-  transition: background-color var(--dur-soft) ease, border-color var(--dur-soft) ease, transform var(--dur-soft) ease;
+  box-shadow: 0 6px 18px rgb(244 114 182 / 32%), inset 0 -3px 0 rgb(0 0 0 / 8%); /* 底部厚度像果冻 */
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .hero__cta:hover {
-  background: var(--c-primary-hover);
-  border-color: var(--c-primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-3px) scale(1.04); /* 弹起 */
+  box-shadow: 0 10px 26px rgb(244 114 182 / 42%), inset 0 -3px 0 rgb(0 0 0 / 8%);
 }
 
 .hero__cta:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.95); /* 按下压扁 */
 }
 
 .hero__cta-arrow {
@@ -669,15 +659,16 @@ html.dark .hero__glow {
 }
 
 .hero__cta--ghost {
-  color: var(--c-text-secondary);
-  background: transparent;
-  border-color: var(--c-border);
+  color: var(--c-text);
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  box-shadow: var(--shadow-card);
 }
 
 .hero__cta--ghost:hover {
-  color: var(--c-primary);
   border-color: var(--c-primary);
-  background: transparent;
+  color: var(--c-primary);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* 滚动提示：鼠标造型 + 滚轮动画 */
@@ -731,7 +722,7 @@ html.dark .hero__glow {
 
 /* 交替底色：相邻场景用一层极淡的纸色区分，像翻到下一页 */
 .scene--tinted {
-  background: var(--c-bg-soft);
+  background: color-mix(in srgb, var(--c-primary-light) 40%, transparent);
   border-top: 1px solid var(--c-border);
   border-bottom: 1px solid var(--c-border);
 }
@@ -772,21 +763,21 @@ html.dark .hero__glow {
   }
 }
 
-/* ---- 章节头：英文眉题 + 衬线标题，余白式的章节开场 ---- */
+/* ---- 章节头：英文眉题 + 粗黑标题 ---- */
 .section-head__caption {
   margin: 0;
   font-size: 12px;
+  font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--c-text-muted);
+  color: var(--c-primary);
 }
 
 .section-head__title {
   margin: 8px 0 0;
-  font-family: var(--font-serif);
   font-size: 26px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   color: var(--c-text);
 }
 
@@ -805,10 +796,9 @@ html.dark .hero__glow {
 /* ---- 边栏区块：小标题 + 清单 ---- */
 .side-block__title {
   margin: 0 0 14px;
-  font-family: var(--font-serif);
   font-size: 15px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   color: var(--c-text-secondary);
 }
 
@@ -945,11 +935,11 @@ html.dark .hero__glow {
 }
 
 .chip {
-  padding: 2px 9px;
+  padding: 2px 10px;
   font-size: 12px;
   color: var(--c-primary);
   background: var(--c-primary-light);
-  border-radius: var(--radius-control);
+  border-radius: 999px;
 }
 
 .meta-dot {
@@ -1026,11 +1016,10 @@ html.dark .hero__glow {
 .featured__title {
   position: relative;
   margin: 16px 0 0;
-  font-family: var(--font-serif);
   font-size: clamp(22px, 3.2vw, 28px);
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: 0.03em;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
   color: var(--c-text);
   transition: color 0.2s ease;
 
@@ -1165,11 +1154,9 @@ html.dark .hero__glow {
 
 .row__title {
   margin: 0;
-  font-family: var(--font-serif);
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1.5;
+  font-size: 16.5px;
+  font-weight: 650;
+  line-height: 1.4;
   color: var(--c-text);
   transition: color 0.2s ease;
   display: -webkit-box;
@@ -1215,25 +1202,29 @@ html.dark .hero__glow {
   opacity: 0.7;
 }
 
-/* 「查看全部」：一枚安静的文字链接，不再做胶囊按钮 */
+/* 「查看全部」：软糖胶囊按钮 */
 .more-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: 26px;
-  font-size: 13.5px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--c-primary);
+  background: var(--c-bg-card);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
+  border-radius: 999px;
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
-  padding-bottom: 3px;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .more-link:hover {
-  color: var(--c-primary-hover);
-  border-color: currentcolor;
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-color: transparent;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 20px rgb(244 114 182 / 32%);
 
   .more-link__arrow {
     transform: translateX(4px);
@@ -1298,20 +1289,17 @@ html.dark .hero__glow {
 
 .finale__title {
   margin: 18px 0 0;
-  font-family: var(--font-serif);
   font-size: clamp(22px, 3vw, 28px);
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   color: var(--c-text);
 }
 
 .finale__text {
   margin: 14px 0 0;
-  font-family: var(--font-serif);
-  font-style: italic;
   font-size: 14.5px;
-  letter-spacing: 0.04em;
-  color: var(--c-text-muted);
+  line-height: 1.7;
+  color: var(--c-text-secondary);
 }
 
 .finale__actions {
@@ -1325,36 +1313,35 @@ html.dark .hero__glow {
 .finale__btn {
   padding: 11px 26px;
   font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
+  font-weight: 600;
   color: #fff;
-  background: var(--c-primary);
-  border: 1px solid var(--c-primary);
-  border-radius: var(--radius-control);
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 999px;
   text-decoration: none;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 6px 18px rgb(244 114 182 / 30%);
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 
   &:hover {
-    background: var(--c-primary-hover);
-    border-color: var(--c-primary-hover);
-    transform: translateY(-1px);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 10px 26px rgb(244 114 182 / 40%);
   }
 }
 
 .finale__btn--ghost {
-  color: var(--c-text-secondary);
-  background: transparent;
-  border-color: var(--c-border);
+  color: var(--c-text);
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  box-shadow: var(--shadow-card);
 
   &:hover {
     color: var(--c-primary);
-    background: transparent;
-    border-color: var(--c-primary);
+    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
+    box-shadow: var(--shadow-card-hover);
   }
 }
 
 
-/* ===== 回到顶部 ===== */
+/* ===== 回到顶部：小软糖 ===== */
 .back-top {
   position: fixed;
   right: 24px;
@@ -1362,25 +1349,25 @@ html.dark .hero__glow {
   z-index: 40;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  font-size: 17px;
+  width: 46px;
+  height: 46px;
+  font-size: 18px;
   color: #fff;
-  background: var(--c-primary);
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: var(--shadow-card);
-  transition: transform var(--dur-soft) ease, background-color var(--dur-soft) ease;
+  box-shadow: 0 8px 20px rgb(244 114 182 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .back-top:hover {
-  background: var(--c-primary-hover);
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 12px 26px rgb(244 114 182 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
 }
 
 .back-top:active {
-  transform: translateY(0);
+  transform: scale(0.92);
 }
 
 .totop-enter-active,
@@ -1396,18 +1383,11 @@ html.dark .hero__glow {
 
 /* ===== 减少动效 ===== */
 @media (prefers-reduced-motion: reduce) {
-  .hero__eyebrow,
-  .hero__char,
-  .hero__tagline,
-  .hero__stats,
-  .hero__actions,
+  .fade-hero,
+  .hero__title-wave,
   .hero__scroll-hint,
   .hero__scroll-wheel {
     animation: none !important;
-  }
-
-  .hero__char {
-    transform: none;
   }
 
   .hero__content {
