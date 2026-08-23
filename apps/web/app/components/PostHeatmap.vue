@@ -6,7 +6,8 @@
     </p>
 
     <div class="heatmap__scroll">
-      <div class="heatmap__canvas">
+      <!-- 完整版：近一年，宽屏展示 -->
+      <div class="heatmap__canvas heatmap__canvas--full">
         <!-- 左上角占位 -->
         <div class="heatmap__corner" />
 
@@ -40,6 +41,34 @@
           />
         </div>
       </div>
+
+      <!-- 紧凑版：只看最近几个月，手机上格子保持可读尺寸、无需滚动 -->
+      <div class="heatmap__canvas heatmap__canvas--mini" aria-hidden="true">
+        <div class="heatmap__corner" />
+        <div class="heatmap__months">
+          <span
+            v-for="m in mini.monthLabels"
+            :key="`m${m.col}-${m.text}`"
+            class="heatmap__month"
+            :style="{ gridColumnStart: m.col + 1 }"
+          >
+            {{ m.text }}
+          </span>
+        </div>
+        <div class="heatmap__weekdays">
+          <span>一</span>
+          <span>三</span>
+          <span>五</span>
+        </div>
+        <div class="heatmap__cells">
+          <span
+            v-for="(cell, i) in mini.cells"
+            :key="i"
+            class="heatmap__cell"
+            :class="[`is-l${cell.level}`, { 'is-future': cell.future }]"
+          />
+        </div>
+      </div>
     </div>
 
     <footer class="heatmap__legend">
@@ -68,6 +97,9 @@ const props = defineProps<{
 
 /** 展示近一年的格子（53 周 × 7 天） */
 const WEEKS = 53
+
+/** 紧凑版（窄屏）只展示最近几周 */
+const MINI_WEEKS = 18
 
 interface HeatCell {
   count: number
@@ -152,6 +184,14 @@ const data = computed(() => {
 
   return { cells, monthLabels, yearTotal, streak }
 })
+
+/** 紧凑版数据：完整版的末尾 MINI_WEEKS 周，月份标签列号同步平移 */
+const mini = computed(() => ({
+  cells: data.value.cells.slice(-MINI_WEEKS * 7),
+  monthLabels: data.value.monthLabels
+    .filter(m => m.col >= WEEKS - MINI_WEEKS)
+    .map(m => ({ ...m, col: m.col - (WEEKS - MINI_WEEKS) })),
+}))
 </script>
 
 <style scoped>
@@ -203,15 +243,25 @@ const data = computed(() => {
   min-width: fit-content;
 }
 
-@container (max-width: 420px) {
-  .heatmap__canvas {
-    --hm-gap: 1.5px;
-  }
-
-  /* 手机上格子太小，星期标签没有存在的意义，隐藏后还能让格子更宽 */
-  .heatmap__weekdays {
+/* 按容器宽度二选一：宽屏看全年，窄屏看近几个月的紧凑版 */
+@container (max-width: 480px) {
+  .heatmap__canvas--full {
     display: none;
   }
+}
+
+@container (min-width: 481px) {
+  .heatmap__canvas--mini {
+    display: none;
+  }
+}
+
+/* 紧凑版只有 18 列，格子能保持可读尺寸，无需压缩或滚动 */
+.heatmap__canvas--mini {
+  --hm-cell: min(
+    13px,
+    calc((100cqw - 24px - 17 * var(--hm-gap)) / 18)
+  ); /* 24px 为星期标签列 + 列间距，17 个列间距 */
 }
 
 .heatmap__months,
