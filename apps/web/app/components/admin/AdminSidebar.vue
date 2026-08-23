@@ -22,6 +22,12 @@
       </NuxtLink>
     </nav>
 
+    <!-- 前往博客前台：外链新标签页打开，避免打断后台会话 -->
+    <a class="sidenav__link sidenav__blog-link" href="/" target="_blank" rel="noopener">
+      <span class="sidenav__icon" aria-hidden="true">🌐</span>
+      前往博客
+    </a>
+
     <div class="sidenav__footer">
       <p class="sidenav__user" title="当前登录用户">
         <span class="sidenav__avatar" aria-hidden="true">{{ avatarText }}</span>
@@ -158,6 +164,11 @@ function isActive(to: string): boolean {
   width: 22px;
   text-align: center;
   font-size: 15px;
+}
+
+.sidenav__blog-link {
+  /* 位于侧边栏底部、footer 之上，横向留白与 footer 对齐 */
+  margin: 0 4px 8px;
 }
 
 .sidenav__footer {
