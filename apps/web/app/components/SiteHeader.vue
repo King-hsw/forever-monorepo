@@ -35,19 +35,21 @@
       </nav>
 
       <div class="site-header__actions">
-        <!-- 全局搜索：防抖下拉实时结果，回车进搜索页 -->
-        <div class="site-search" :class="{ 'is-open': searchOpen }">
-          <input
-            v-model="kw"
-            class="site-search__input"
-            type="search"
-            placeholder="搜索文章…"
-            aria-label="搜索文章"
-            @focus="searchOpen = true"
-            @input="onSearchInput"
-            @keydown.enter.prevent="goSearch"
-            @keydown.esc="closeSearch"
-          >
+        <!-- 全局搜索：icon 打开顶部居中弹层，防抖实时结果，回车进搜索页 -->
+        <button
+          type="button"
+          ref="searchTriggerRef"
+          class="site-header__icon-btn"
+          aria-label="搜索"
+          title="搜索"
+          @click="openSearch"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.8-3.8" />
+          </svg>
+        </button>
+        <a
           <Transition name="menu">
             <div v-if="searchOpen && kw.trim()" class="site-search__panel">
               <p v-if="searching" class="site-search__hint">搜索中…</p>
@@ -126,13 +128,62 @@
             {{ child.label }}
           </NuxtLink>
         </template>
-        <NuxtLink class="mobile-menu__link mobile-menu__link--search" to="/search" @click="menuOpen = false">🔍 搜索文章</NuxtLink>
         <NuxtLink v-if="auth.isAuthenticated" class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
         <NuxtLink v-else class="mobile-menu__link" to="/admin/login" @click="menuOpen = false">登录</NuxtLink>
         <a class="mobile-menu__link" href="/rss.xml" target="_blank" rel="noopener" @click="menuOpen = false">RSS 订阅</a>
       </nav>
     </Transition>
   </header>
+
+  <!-- 全局搜索弹层：遮罩 + 顶部居中搜索栏，Teleport 到 body 脱离 header 层叠 -->
+  <Teleport to="body">
+    <Transition name="search-overlay">
+      <div v-if="searchOpen" class="global-search" @click.self="closeSearch">
+        <div class="global-search__panel" role="dialog" aria-modal="true" aria-label="全局搜索">
+          <div class="global-search__bar">
+            <svg class="global-search__glass" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.8-3.8" />
+            </svg>
+            <input
+              ref="searchInputRef"
+              v-model="kw"
+              class="global-search__input"
+              type="search"
+              placeholder="搜索文章…"
+              aria-label="搜索文章"
+              @input="onSearchInput"
+              @keydown.enter.prevent="goSearch"
+            >
+            <button type="button" class="global-search__esc" aria-label="关闭搜索" @click="closeSearch">Esc</button>
+          </div>
+
+          <Transition name="menu">
+            <div v-if="kw.trim()" class="global-search__results">
+              <p v-if="searching" class="global-search__hint">搜索中…</p>
+              <template v-else-if="results.length">
+                <!-- highlights 由后端转义后只包 <em> 标记，这里才用 v-html -->
+                <NuxtLink
+                  v-for="r in results"
+                  :key="r.id"
+                  :to="`/posts/${r.slug}`"
+                  class="global-search__item"
+                  @click="closeSearch()"
+                >
+                  <span class="global-search__item-title" v-html="r.highlights?.title || r.title" />
+                  <span v-if="r.highlights?.excerpt" class="global-search__item-excerpt" v-html="r.highlights.excerpt" />
+                </NuxtLink>
+                <NuxtLink :to="`/search?kw=${encodeURIComponent(kw.trim())}`" class="global-search__all" @click="closeSearch()">
+                  查看全部 {{ total }} 条结果 →
+                </NuxtLink>
+              </template>
+              <p v-else class="global-search__hint">没有找到「{{ kw.trim() }}」相关内容</p>
+            </div>
+          </Transition>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -198,12 +249,14 @@ watch(() => route.fullPath, () => {
   closeSearch()
 })
 
-/* ---- 全局搜索：防抖 300ms 实时下拉，回车进 /search 页 ---- */
+/* ---- 全局搜索：icon 打开弹层，防抖 300ms 实时结果，回车进 /search 页 ---- */
 const kw = ref('')
 const results = ref<SearchItem[]>([])
 const total = ref(0)
 const searching = ref(false)
 const searchOpen = ref(false)
+const searchTriggerRef = ref<HTMLButtonElement | null>(null)
+const searchInputRef = ref<HTMLInputElement | null>(null)
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 let searchSeq = 0
 
@@ -237,21 +290,35 @@ function onSearchInput() {
 function goSearch() {
   const k = kw.value.trim()
   if (!k) return
-  closeSearch()
   router.push(`/search?kw=${encodeURIComponent(k)}`)
+  // 路由变化由 watcher 收起，不在此处直接关，避免跳转前闪一下遮罩
+}
+
+/** 打开弹层：锁滚动并聚焦输入框，关闭时归还焦点到触发 icon */
+async function openSearch() {
+  searchOpen.value = true
+  document.body.style.overflow = 'hidden'
+  await nextTick()
+  searchInputRef.value?.focus()
 }
 
 function closeSearch() {
+  if (!searchOpen.value) return
   searchOpen.value = false
+  document.body.style.overflow = ''
+  searchTriggerRef.value?.focus()
 }
 
-/** 点击面板外关闭下拉 */
-function onDocClick(e: MouseEvent) {
-  if (!(e.target as HTMLElement).closest('.site-search')) closeSearch()
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeSearch()
 }
 
-onMounted(() => document.addEventListener('click', onDocClick))
-onUnmounted(() => document.removeEventListener('click', onDocClick))
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeydown)
+  // 组件卸载时兜底解锁，避免滚动被永久锁死
+  document.body.style.overflow = ''
+})
 
 /** 已在首页时点品牌回到顶部，否则跳回首页 */
 function onBrandClick() {
@@ -446,63 +513,86 @@ function onBrandClick() {
   margin-left: auto;
 }
 
-/* ---- 全局搜索 ---- */
-.site-search {
-  position: relative;
+/* ---- 全局搜索弹层：遮罩 + 顶部居中面板 ---- */
+.global-search {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--c-bg) 55%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.site-search__input {
-  width: 130px;
-  padding: 6px 14px;
-  font-size: 13px;
-  color: var(--c-text);
+.global-search__panel {
+  width: min(600px, calc(100vw - 32px));
+  margin: 16vh auto 0;
+  overflow: hidden;
   background: var(--c-bg-card);
   border: 1.5px solid var(--c-border);
-  border-radius: 999px;
+  border-radius: 18px;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.global-search__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 18px;
+}
+
+.global-search__glass {
+  flex-shrink: 0;
+  color: var(--c-text-muted);
+}
+
+.global-search__input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 0;
+  font-size: 15.5px;
+  color: var(--c-text);
+  background: none;
+  border: none;
   outline: none;
-  transition: width 0.25s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &::placeholder {
     color: var(--c-text-muted);
   }
 
-  &:focus {
-    width: 210px;
-    border-color: color-mix(in srgb, var(--c-primary) 55%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary) 12%, transparent);
+  /* 隐藏原生清空按钮，Esc 键即可 */
+  &::-webkit-search-cancel-button {
+    display: none;
   }
 }
 
-/* 聚焦或展开时面板盖在下方 */
-.site-search.is-open .site-search__input {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.global-search__esc {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    color: var(--c-primary);
+    border-color: var(--c-primary);
+  }
 }
 
-.site-search__panel {
-  position: absolute;
-  top: calc(100% + 1px);
-  right: 0;
-  z-index: 60;
-  width: max(320px, 100%);
-  max-height: 60vh;
-  overflow-y: auto;
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-card-hover);
-}
-
-.site-search__hint {
-  padding: 14px 16px;
+.global-search__hint {
+  padding: 14px 18px;
   margin: 0;
   font-size: 13px;
   color: var(--c-text-muted);
 }
 
-.site-search__item {
+.global-search__item {
   display: block;
-  padding: 10px 16px;
+  padding: 11px 18px;
   text-decoration: none;
   transition: background-color 0.15s ease;
 
@@ -515,9 +605,9 @@ function onBrandClick() {
   }
 }
 
-.site-search__item-title {
+.global-search__item-title {
   display: block;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--c-text);
   overflow: hidden;
@@ -525,7 +615,7 @@ function onBrandClick() {
   white-space: nowrap;
 }
 
-.site-search__item-excerpt {
+.global-search__item-excerpt {
   display: -webkit-box;
   margin-top: 2px;
   font-size: 12.5px;
@@ -537,27 +627,55 @@ function onBrandClick() {
 }
 
 /* 后端高亮标记 */
-.site-search :deep(em),
-.site-search__panel em {
+.global-search :deep(em),
+.global-search__results em {
   font-style: normal;
   font-weight: 700;
   color: var(--c-primary-hover);
 }
 
-.site-search__all {
+.global-search__all {
   display: block;
-  padding: 10px 16px;
+  padding: 11px 18px;
   font-size: 13px;
   text-align: center;
   color: var(--c-primary-hover);
+  text-decoration: none;
   background: var(--c-primary-light);
   border-top: 1px solid var(--c-border);
-  border-radius: 0 0 12px 12px;
-  text-decoration: none;
 
   &:hover {
     text-decoration: underline;
   }
+}
+
+/* 弹层过渡：遮罩淡入淡出，面板从上方缩放滑入（icon → 顶部居中） */
+.search-overlay-enter-active {
+  transition: opacity 0.28s ease;
+}
+
+.search-overlay-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.search-overlay-enter-active .global-search__panel,
+.search-overlay-leave-active .global-search__panel {
+  transition:
+    transform 0.34s var(--ease-bounce),
+    opacity 0.24s ease;
+}
+
+.search-overlay-enter-from,
+.search-overlay-leave-to {
+  opacity: 0;
+}
+
+.search-overlay-enter-from .global-search__panel {
+  transform: translateY(-40px) scale(0.94);
+}
+
+.search-overlay-leave-to .global-search__panel {
+  transform: translateY(-20px) scale(0.97);
 }
 
 .site-header__divider {
@@ -690,9 +808,7 @@ function onBrandClick() {
 @media (max-width: 640px) {
   .site-nav,
   .site-nav__link--quiet,
-  .site-header__divider,
-  /* 窄屏收起顶栏输入框，用菜单里的「搜索文章」入口 */
-  .site-search {
+  .site-header__divider {
     display: none;
   }
 
