@@ -164,7 +164,7 @@ onMounted(() => {
 
   // 滚出视口暂停，滚回来恢复
   io = new IntersectionObserver(([entry]) => {
-    if (entry.isIntersecting)
+    if (entry?.isIntersecting)
       start()
     else
       stop()

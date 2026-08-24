@@ -201,7 +201,7 @@ async function addTag() {
   try {
     // 已存在则复用，不存在则现场创建
     const existing = tagsStore.list.find(t => t.name === name)
-    const tag = existing ?? await tagsStore.create(name)
+    const tag = existing ?? await tagsStore.create({ name })
     if (!form.tagIds.includes(tag.id)) form.tagIds.push(tag.id)
     tagDraft.value = ''
   } catch (err) {

@@ -448,15 +448,6 @@ function categoryName(categoryId: number | null): string {
   return categories.value?.find(c => c.id === categoryId)?.name ?? '未分类'
 }
 
-function formatDate(value: string | number): string {
-  const ts = value as number | string // new Date 同时兼容时间戳与 ISO 字符串
-  return new Date(ts).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-
 usePageSeo({
   title: 'Forever - 记录技术与思考',
   path: '/',

@@ -103,7 +103,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import Image from '@tiptap/extension-image'
-import { Marked } from 'marked'
+import { Marked, marked } from 'marked'
 import { createLowlight } from 'lowlight'
 import type { LanguageFn } from 'highlight.js'
 import { codeLanguages } from '../utils/codeLanguages'
@@ -161,9 +161,12 @@ const editor = useEditor({
     }).configure({ allowBase64: true }),
     // 代码块内启用 Tab 缩进：Tab 插入缩进、Shift-Tab 反向缩进（支持多行选区）
     CodeBlockLineNumbers.configure({ lowlight, enableTabIndentation: true, tabSize: 2 }),
-    Markdown.configure({ marked: new Marked() }),
+    // @tiptap/markdown 的类型声明要求 marked 单例（含 getDefaults），
+    // 实际只需要 Marked 实例能力，这里收窄为声明类型
+    Markdown.configure({ marked: new Marked() as unknown as typeof marked }),
   ],
   // Nuxt 使用 SSR，禁止在服务器端渲染，仅在客户端 hydration 后渲染
+  // @ts-expect-error tiptap vue-3 类型未收录 immediatelyRender，运行时仍支持
   immediatelyRender: false,
   onUpdate: ({ editor }) => {
     emit('update:modelValue', editor.getHTML())

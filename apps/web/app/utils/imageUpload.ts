@@ -1,10 +1,8 @@
 /**
- * 编辑器图片上传（纯前端方案）
+ * 编辑器图片上传（纯前端方案）：图片在客户端压缩后转成 data URL
+ * 直接内嵌进文档，离线（PWA）也能正常显示。
  *
- * 本项目没有后端，文章数据存 localStorage，因此这里把图片在客户端
- * 压缩后转成 data URL 直接内嵌进文档，离线（PWA）也能正常显示。
- *
- * 将来对接真实上传接口时，只需把 fileToDataUrl 换成
+ * 将来对接 forever-server 的上传接口时，只需把 fileToImageSrc 换成
  * `async (file) => (await fetch('/api/upload', { method: 'POST', body: formData })).json().url`
  * 之类的实现，其余逻辑不用动。
  */

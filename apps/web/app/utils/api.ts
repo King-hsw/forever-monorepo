@@ -105,8 +105,11 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   return res.data
 }
 
-/** 过滤掉 null / undefined / 空字符串的查询参数 */
-export function cleanQuery(query: Record<string, unknown>): Record<string, unknown> {
+/**
+ * 过滤掉 null / undefined / 空字符串的查询参数。
+ * 入参用 object 而非 Record<string, unknown>，接口定义的查询类型（如 AdminArticleQuery）可直接传入。
+ */
+export function cleanQuery(query: object): Record<string, unknown> {
   const result: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(query)) {
     if (value === null || value === undefined || value === '') continue

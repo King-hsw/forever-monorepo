@@ -253,12 +253,6 @@ export interface SettingItem {
   description: string
 }
 
-/** 修改站点配置请求（对应 SettingUpdateRequest） */
-export interface SettingUpdateInput {
-  key: string
-  value: string
-}
-
 /** 审计日志条目（对应 ActionLogResponse） */
 export interface ActionLog {
   id: number

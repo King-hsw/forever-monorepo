@@ -103,10 +103,6 @@ async function toggle(post: Post) {
   }
 }
 
-function formatShortDate(value: string): string {
-  return new Date(value).toLocaleDateString('zh-CN')
-}
-
 const pendingDelete = ref<Post | null>(null)
 
 function askRemove(post: Post) {

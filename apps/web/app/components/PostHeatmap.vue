@@ -168,7 +168,8 @@ const data = computed(() => {
     if (monday.getMonth() !== prevMonth) {
       prevMonth = monday.getMonth()
       // 与上一个标签至少隔 2 列，否则文字会挤在一起（如月初落在周末时）
-      if (monthLabels.length === 0 || w - monthLabels[monthLabels.length - 1].col >= 2)
+      const lastCol = monthLabels.at(-1)?.col
+      if (lastCol === undefined || w - lastCol >= 2)
         monthLabels.push({ col: w, text: `${monday.getMonth() + 1}月` })
     }
   }

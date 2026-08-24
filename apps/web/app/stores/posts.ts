@@ -20,7 +20,7 @@ export const usePostsStore = defineStore('admin-posts', () => {
     loading.value = true
     try {
       const data = await apiFetch<PageResult<Post>>('/api/admin/articles', {
-        query: cleanQuery({ ...params }),
+        query: cleanQuery(params),
       })
       list.value = data.list
       total.value = data.total
@@ -32,7 +32,7 @@ export const usePostsStore = defineStore('admin-posts', () => {
   /** 公开分页查询（仅已发布） */
   async function fetchPublic(params: PublicArticleQuery = {}) {
     return apiFetch<PageResult<Post>>('/api/v1/articles', {
-      query: cleanQuery({ ...params }),
+      query: cleanQuery(params),
     })
   }
 

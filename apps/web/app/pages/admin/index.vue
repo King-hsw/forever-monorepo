@@ -137,10 +137,6 @@ function categoryName(categoryId: number | null): string {
   return categoriesStore.list.find(c => c.id === categoryId)?.name ?? '未分类'
 }
 
-function formatShortDate(value: string): string {
-  return new Date(value).toLocaleDateString('zh-CN')
-}
-
 const categoryDist = computed(() => {
   const counts = new Map<string, number>()
   for (const post of postsStore.list) {

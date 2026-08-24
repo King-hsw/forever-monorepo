@@ -247,9 +247,9 @@ async function saveTagForm() {
   saving.value = true
   try {
     if (editingTagId.value !== null) {
-      await tagsStore.update(editingTagId.value, name)
+      await tagsStore.update(editingTagId.value, { name })
     } else {
-      await tagsStore.create(name)
+      await tagsStore.create({ name })
     }
     tagFormOpen.value = false
   } catch (err) {
