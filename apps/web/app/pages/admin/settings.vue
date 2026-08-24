@@ -295,7 +295,8 @@ function placeholderOf(item: SettingItem): string {
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 function validate(key: string): string {
-  const draft = (drafts[key] ?? '').trim()
+  // 数字输入框的 v-model 会把草稿转成 number，统一转回字符串再处理
+  const draft = String(drafts[key] ?? '').trim()
   if (draft === '') return '' // 留空 = 恢复默认值
   switch (meta(key).type) {
     case 'number':
@@ -323,6 +324,14 @@ function reportError(err: unknown) {
   alert(err instanceof Error ? err.message : '操作失败')
 }
 
+/** 把已保存项的草稿回写为列表里的字符串值 */
+function syncSaved(keys: string[]) {
+  for (const key of keys) {
+    const item = settingsStore.list.find(s => s.key === key)
+    if (item) drafts[key] = item.value
+  }
+}
+
 async function saveAll() {
   const targets = dirtyKeys.value
   for (const key of targets) {
@@ -335,18 +344,16 @@ async function saveAll() {
   try {
     // 逐项提交；某项失败时中断，但保留前面已成功项的同步
     for (const key of targets) {
-      await settingsStore.update(key, (drafts[key] ?? '').trim())
+      await settingsStore.update(key, String(drafts[key] ?? '').trim())
       savedKeys.push(key)
     }
+    // 回写字符串草稿，避免数字输入的 number 草稿与列表值不等而一直显示「已修改」
+    syncSaved(savedKeys)
     successMsg.value = `已保存 ${savedKeys.length} 项配置`
     if (successTimer) clearTimeout(successTimer)
     successTimer = setTimeout(() => (successMsg.value = ''), 3000)
   } catch (err) {
-    // 同步已保存成功的项，避免草稿与实际状态不一致
-    for (const key of savedKeys) {
-      const item = settingsStore.list.find(s => s.key === key)
-      if (item) drafts[key] = item.value
-    }
+    syncSaved(savedKeys)
     reportError(err)
   } finally {
     saving.value = false
