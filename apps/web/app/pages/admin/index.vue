@@ -84,7 +84,7 @@ import type { Post } from '#shared/types'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '仪表盘 - Forever 后台' })
+useHead({ title: '仪表盘 - 补陋阁 后台' })
 useState('admin-page-title', () => '仪表盘')
 
 const postsStore = usePostsStore()

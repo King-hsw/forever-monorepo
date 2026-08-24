@@ -1,8 +1,8 @@
 import type { MaybeRefOrGetter } from 'vue'
 
 /** 站点名称与默认描述（与 nuxt.config.ts 的 PWA manifest 保持一致） */
-export const SITE_NAME = 'Forever'
-export const SITE_DESCRIPTION = 'Forever - 记录技术与思考'
+export const SITE_NAME = '补陋阁'
+export const SITE_DESCRIPTION = '补陋阁 - 记录技术与思考'
 
 /**
  * 页面级 SEO 统一入口：

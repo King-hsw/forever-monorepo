@@ -60,7 +60,7 @@
           <li>✅ 已在贵站添加本站友链（本站信息见下方）</li>
         </ul>
         <div class="apply-req__mine">
-          <code>&lt;a href="https://forever.example.com" target="_blank"&gt;Forever · 用心记录每一篇&lt;/a&gt;</code>
+          <code>&lt;a href="https://forever.example.com" target="_blank"&gt;补陋阁 · 用心记录每一篇&lt;/a&gt;</code>
         </div>
         <NuxtLink to="/friends/apply" class="btn btn--primary apply-req__cta">申请友链 →</NuxtLink>
       </section>
@@ -75,8 +75,8 @@
 import type { FriendLink } from '#shared/types'
 
 usePageSeo({
-  title: '友情链接 - Forever',
-  description: 'Forever 的朋友们 —— 收录的友链博客一览，欢迎申请交换友情链接。',
+  title: '友情链接 - 补陋阁',
+  description: '补陋阁 的朋友们 —— 收录的友链博客一览，欢迎申请交换友情链接。',
   path: '/friends',
 })
 

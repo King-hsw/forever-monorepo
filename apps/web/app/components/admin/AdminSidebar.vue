@@ -1,9 +1,9 @@
 <template>
   <aside class="sidenav" :class="{ 'is-open': open, 'is-collapsed': collapsed }">
-    <div class="sidenav__logo" :title="collapsed ? 'Forever 后台' : undefined">
+    <div class="sidenav__logo" :title="collapsed ? '补陋阁 后台' : undefined">
       <span class="sidenav__mark" aria-hidden="true">F</span>
       <div class="sidenav__brand sidenav__text">
-        <strong>Forever</strong>
+        <strong>补陋阁</strong>
         <small>后台管理系统</small>
       </div>
     </div>

@@ -77,7 +77,7 @@ import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '日志审计 - Forever 后台' })
+useHead({ title: '日志审计 - 补陋阁 后台' })
 useState('admin-page-title', () => '日志审计')
 
 /** 日志状态与查询（原 useLogsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */

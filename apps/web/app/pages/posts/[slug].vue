@@ -177,7 +177,7 @@ function formatDate(value: string | number | null | undefined): string {
 }
 
 usePageSeo({
-  title: () => (post.value ? `${post.value.title} - Forever` : 'Forever'),
+  title: () => (post.value ? `${post.value.title} - 补陋阁` : '补陋阁'),
   description: () => post.value?.summary,
   // 关键词直接用标签名，无需后端新增字段
   keywords: () => post.value?.tags.map(t => t.name) ?? [],

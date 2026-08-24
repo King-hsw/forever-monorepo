@@ -13,7 +13,7 @@
         <div class="site-footer__brand">
           <div class="site-footer__logo">
             <span class="site-footer__mark" aria-hidden="true" />
-            <span class="site-footer__name">Forever</span>
+            <span class="site-footer__name">补陋阁</span>
           </div>
           <p class="site-footer__desc">
             记录技术与思考，<br>
@@ -68,7 +68,7 @@
 
       <!-- ===== 底部信息条 ===== -->
       <div class="site-footer__bottom">
-        <span>© {{ year }} Forever · 用 <span class="site-footer__heart" aria-hidden="true">♥</span> 书写</span>
+        <span>© {{ year }} 补陋阁 · 用 <span class="site-footer__heart" aria-hidden="true">♥</span> 书写</span>
         <button type="button" class="site-footer__totop" @click="backToTop">回到顶部 ↑</button>
       </div>
     </div>

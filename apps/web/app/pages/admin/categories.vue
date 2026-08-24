@@ -151,7 +151,7 @@ import type { Category, Tag } from '#shared/types'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '分类 & 标签 - Forever 后台' })
+useHead({ title: '分类 & 标签 - 补陋阁 后台' })
 useState('admin-page-title', () => '分类 & 标签')
 
 const tab = ref<'cats' | 'tags'>('cats')

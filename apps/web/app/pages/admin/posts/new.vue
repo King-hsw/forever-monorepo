@@ -9,7 +9,7 @@ import type { PostInput, PostStatus } from '#shared/types'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '新建文章 - Forever 后台' })
+useHead({ title: '新建文章 - 补陋阁 后台' })
 useState('admin-page-title', () => '新建文章')
 
 const postsStore = usePostsStore()

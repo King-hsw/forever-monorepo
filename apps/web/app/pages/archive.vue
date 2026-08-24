@@ -58,8 +58,8 @@
 import type { ArchiveItem } from '#shared/types'
 
 usePageSeo({
-  title: '归档 - Forever',
-  description: 'Forever 的全部文章归档 —— 按时间倒序排列，回顾每一段记录的时光。',
+  title: '归档 - 补陋阁',
+  description: '补陋阁 的全部文章归档 —— 按时间倒序排列，回顾每一段记录的时光。',
   path: '/archive',
 })
 

@@ -74,8 +74,8 @@ import type { PageResult, RssFeed, RssItem } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
 
 usePageSeo({
-  title: '订阅 - Forever',
-  description: 'Forever 订阅的朋友们博客最新文章，定期抓取汇总。',
+  title: '订阅 - 补陋阁',
+  description: '补陋阁 订阅的朋友们博客最新文章，定期抓取汇总。',
   path: '/rss',
 })
 

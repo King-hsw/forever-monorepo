@@ -208,7 +208,7 @@ async function onCreated(created: { status: string }) {
 }
 
 usePageSeo({
-  title: () => (board.value ? `${board.value.title} - Forever` : '留言板 - Forever'),
+  title: () => (board.value ? `${board.value.title} - 补陋阁` : '留言板 - 补陋阁'),
   description: () => board.value?.summary,
   type: 'website',
 })

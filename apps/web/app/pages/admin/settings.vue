@@ -132,7 +132,7 @@ import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '站点设置 - Forever 后台' })
+useHead({ title: '站点设置 - 补陋阁 后台' })
 useState('admin-page-title', () => '站点设置')
 
 /** 配置状态与操作（原 useSettingsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */

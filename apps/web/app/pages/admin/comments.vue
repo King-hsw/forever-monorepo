@@ -88,7 +88,7 @@ import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '评论管理 - Forever 后台' })
+useHead({ title: '评论管理 - 补陋阁 后台' })
 useState('admin-page-title', () => '评论管理')
 
 const commentsStore = useCommentsStore()

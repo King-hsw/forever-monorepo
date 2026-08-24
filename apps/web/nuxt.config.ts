@@ -34,9 +34,9 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'Forever',
-      short_name: 'Forever',
-      description: 'Forever - 离线可用的 Web 应用',
+      name: '补陋阁',
+      short_name: '补陋阁',
+      description: '补陋阁 - 离线可用的 Web 应用',
       start_url: '/',
       display: 'standalone',
       orientation: 'any',
@@ -107,7 +107,7 @@ export default defineNuxtConfig({
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
-        { rel: 'alternate', type: 'application/rss+xml', title: 'Forever', href: '/rss.xml' }
+        { rel: 'alternate', type: 'application/rss+xml', title: '补陋阁', href: '/rss.xml' }
       ]
     }
   }

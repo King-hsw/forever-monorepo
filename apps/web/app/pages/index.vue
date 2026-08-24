@@ -18,17 +18,13 @@
       </div>
 
       <div ref="heroContent" class="hero__content">
-        <div class="hero__avatar fade-hero" style="--hd: 90ms" aria-hidden="true">F</div>
+        <p class="hero__motto fade-hero" style="--hd: 90ms">记 录 技 术 与 思 考</p>
 
-        <h1 class="hero__title fade-hero" style="--hd: 180ms">
-          <span class="hero__title-light">Hi, I'm </span><span class="hero__title-name">Forever</span><span class="hero__title-wave">🥰</span><span class="hero__title-light">。</span>
-        </h1>
+        <h1 class="hero__title fade-hero" style="--hd: 180ms">补陋阁</h1>
 
-        <p class="hero__motto fade-hero" style="--hd: 270ms">记录技术与思考</p>
+        <p class="hero__quote fade-hero" style="--hd: 270ms">「斯是陋室，惟吾德馨。」<span class="hero__quote-from">—— 刘禹锡《陋室铭》</span></p>
 
-        <p class="hero__quote fade-hero" style="--hd: 360ms">「在这里沉淀代码之外的灵感，每一篇文字都是与时间的对话。」</p>
-
-        <p class="hero__stats fade-hero" style="--hd: 450ms">
+        <p class="hero__stats fade-hero" style="--hd: 360ms">
           <span><strong>{{ publishedPosts.length }}</strong> 篇文章</span>
           <span class="hero__stats-dot">·</span>
           <span><strong>{{ categories?.length ?? 0 }}</strong> 个分类</span>
@@ -36,12 +32,11 @@
           <span><strong>{{ tags?.length ?? 0 }}</strong> 个标签</span>
         </p>
 
-        <div class="hero__actions fade-hero" style="--hd: 540ms">
+        <div class="hero__actions fade-hero" style="--hd: 450ms">
           <button type="button" class="hero__cta" @click="scrollToId('latest')">
             开始阅读
             <span class="hero__cta-arrow">↓</span>
           </button>
-          <a class="hero__cta hero__cta--ghost" href="/rss.xml" target="_blank">RSS 订阅</a>
         </div>
       </div>
 
@@ -449,7 +444,7 @@ function categoryName(categoryId: number | null): string {
 }
 
 usePageSeo({
-  title: 'Forever - 记录技术与思考',
+  title: '补陋阁 - 记录技术与思考',
   path: '/',
 })
 </script>
@@ -539,65 +534,24 @@ html.dark .hero__glow {
   animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--hd, 0ms) both;
 }
 
-/* 头像：渐变圆徽 + 内圈描边，替代真实头像图 */
-.hero__avatar {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  margin: 0 auto;
-  font-size: 40px;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-radius: 50%;
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 25%),
-    0 8px 24px rgb(229 111 67 / 30%);
-}
-
-/* 标题：细体问候 + 中等字重名字，像余白首页的 Hi, I'm Vinking。 */
+/* 标题：衬线大字，阁名居中，宽字距显文气 */
 .hero__title {
-  margin: 28px 0 0;
-  font-size: clamp(34px, 6vw, 52px);
-  line-height: 1.25;
-  letter-spacing: 0.01em;
-  color: var(--c-text);
-}
-
-.hero__title-light {
-  font-weight: 300;
-}
-
-.hero__title-name {
+  margin: 20px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(46px, 8vw, 68px);
   font-weight: 600;
-  margin: 0 6px;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em; /* 平衡末字字距带来的视觉偏移 */
   color: var(--c-text);
 }
 
-.hero__title-wave {
-  display: inline-block;
-  font-weight: 300;
-  transform-origin: 70% 70%;
-  animation: wave 2.4s ease-in-out 1s infinite;
-}
-
-@keyframes wave {
-  0%, 60%, 100% { transform: rotate(0deg); }
-  65% { transform: rotate(14deg); }
-  70% { transform: rotate(-8deg); }
-  75% { transform: rotate(12deg); }
-  80% { transform: rotate(-4deg); }
-  85% { transform: rotate(8deg); }
-  90% { transform: rotate(0deg); }
-}
-
-/* 眉题签名：小号宽字距，余白式的「愿星光永远偏爱你的梦境」位 */
+/* 眉题：标题上方的宽字距小字 */
 .hero__motto {
-  margin: 18px 0 0;
+  margin: 0;
   font-size: 12px;
   letter-spacing: 0.3em;
-  text-transform: uppercase;
+  text-indent: 0.3em;
   color: var(--c-text-muted);
 }
 
@@ -611,6 +565,12 @@ html.dark .hero__glow {
   line-height: 1.9;
   letter-spacing: 0.04em;
   color: var(--c-text-secondary);
+}
+
+.hero__quote-from {
+  margin-left: 10px;
+  font-size: 13px;
+  color: var(--c-text-muted);
 }
 
 /* 统计：一行素净的数字，像书前的版权页数据 */
@@ -637,40 +597,36 @@ html.dark .hero__glow {
   opacity: 0.5;
 }
 
-/* 按钮：软糖胶囊，糖果渐变 */
+/* 按钮：素净描边胶囊，悬停时才染上主题色 */
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
   margin-top: 36px;
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.82s both;
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
 }
 
 .hero__cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 28px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border: none;
-  border-radius: 999px; /* 小软糖胶囊 */
+  padding: 11px 26px;
+  font-size: 14.5px;
+  font-weight: 550;
+  color: var(--c-text-secondary);
+  background: transparent;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(229 111 67 / 32%), inset 0 -3px 0 rgb(0 0 0 / 8%); /* 底部厚度像果冻 */
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
+  transition: all 0.2s ease;
 }
 
 .hero__cta:hover {
-  transform: translateY(-3px) scale(1.04); /* 弹起 */
-  box-shadow: 0 10px 26px rgb(229 111 67 / 42%), inset 0 -3px 0 rgb(0 0 0 / 8%);
-}
-
-.hero__cta:active {
-  transform: translateY(0) scale(0.95); /* 按下压扁 */
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-color: transparent;
 }
 
 .hero__cta-arrow {
@@ -679,19 +635,6 @@ html.dark .hero__glow {
 
 .hero__cta:hover .hero__cta-arrow {
   transform: translateY(2px);
-}
-
-.hero__cta--ghost {
-  color: var(--c-text);
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  box-shadow: var(--shadow-card);
-}
-
-.hero__cta--ghost:hover {
-  border-color: var(--c-primary);
-  color: var(--c-primary);
-  box-shadow: var(--shadow-card-hover);
 }
 
 /* 滚动提示：鼠标造型 + 滚轮动画 */
@@ -1502,7 +1445,6 @@ html.dark .hero__glow {
 /* ===== 减少动效 ===== */
 @media (prefers-reduced-motion: reduce) {
   .fade-hero,
-  .hero__title-wave,
   .hero__scroll-hint,
   .hero__scroll-wheel {
     animation: none !important;

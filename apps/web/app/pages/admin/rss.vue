@@ -142,7 +142,7 @@ import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: 'RSS 订阅 - Forever 后台' })
+useHead({ title: 'RSS 订阅 - 补陋阁 后台' })
 useState('admin-page-title', () => 'RSS 订阅')
 
 /** 订阅源状态与操作（原 useRssStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */

@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <div class="login__logo" aria-hidden="true">F</div>
-    <h1 class="login__title">Forever 后台</h1>
+    <h1 class="login__title">补陋阁 后台</h1>
     <p class="login__subtitle">欢迎回来，请登录以继续</p>
 
     <form class="login__form" novalidate @submit.prevent="handleSubmit">
@@ -45,7 +45,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'auth' })
 
-useHead({ title: '登录 - Forever 后台' })
+useHead({ title: '登录 - 补陋阁 后台' })
 
 const route = useRoute()
 const auth = useAuthStore()

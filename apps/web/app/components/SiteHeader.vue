@@ -3,7 +3,7 @@
     <div class="site-header__inner" :style="{ maxWidth: width }">
       <NuxtLink to="/" class="brand" aria-label="回到首页" @click="onBrandClick">
         <span class="brand__mark" aria-hidden="true" />
-        <span class="brand__name">Forever</span>
+        <span class="brand__name">补陋阁</span>
       </NuxtLink>
 
       <!-- 桌面端导航 -->

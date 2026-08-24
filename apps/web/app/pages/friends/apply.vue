@@ -14,7 +14,7 @@
           <li>站点可正常访问，且为独立博客 / 个人网站</li>
           <li>有原创内容，非纯采集、非空站点</li>
           <li>含合法内容，无违法违规信息</li>
-          <li>已在贵站添加本站友链：<code>Forever · https://forever.example.com</code></li>
+          <li>已在贵站添加本站友链：<code>补陋阁 · https://forever.example.com</code></li>
         </ul>
         <p class="apply-rules__hint">提交后需要人工审核，通过后即会在<a href="/friends">友链页</a>展示。</p>
       </section>
@@ -109,7 +109,7 @@ import type { FriendLinkApplyInput } from '#shared/types'
 import { ApiError, apiFetch } from '~/utils/api'
 
 usePageSeo({
-  title: '申请友链 - Forever',
+  title: '申请友链 - 补陋阁',
   path: '/friends/apply',
 })
 useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })

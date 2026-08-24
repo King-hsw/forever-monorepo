@@ -293,8 +293,8 @@ function formatDate(value: string | number): string {
 }
 
 usePageSeo({
-  title: '全部文章 - Forever',
-  description: '浏览 Forever 的全部技术文章与思考记录，可按分类、标签筛选。',
+  title: '全部文章 - 补陋阁',
+  description: '浏览 补陋阁 的全部技术文章与思考记录，可按分类、标签筛选。',
   path: '/posts',
 })
 </script>
