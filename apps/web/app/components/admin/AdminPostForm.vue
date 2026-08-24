@@ -21,8 +21,8 @@
         </TiptapEditor>
       </div>
 
-      <!-- 设置栏：无边框分区 + 细线分隔，操作置顶 -->
-      <aside class="composer__rail">
+      <!-- 设置栏：普通模式常驻；全屏模式收起，由右上角按钮呼出滑出面板 -->
+      <aside v-show="!fullscreen || panelOpen" class="composer__rail" :class="{ 'is-panel': fullscreen }">
         <section class="rail-section fade-up">
           <h3 class="rail-label">发布</h3>
           <div class="rail-actions">
@@ -68,6 +68,17 @@
         </section>
       </aside>
     </div>
+
+    <!-- 全屏时的滑出面板遮罩 -->
+    <div v-if="fullscreen && panelOpen" class="composer__panel-mask" @click="panelOpen = false" />
+    <button
+      v-if="fullscreen"
+      type="button"
+      class="composer__panel-toggle"
+      @click="panelOpen = !panelOpen"
+    >
+      {{ panelOpen ? '✕' : '⚙ 发布设置' }}
+    </button>
   </form>
 </template>
 
@@ -83,6 +94,10 @@ const emit = defineEmits<{ save: [input: PostInput, status: PostStatus] }>()
 
 const categoriesStore = useCategoriesStore()
 const tagsStore = useTagsStore()
+
+// 全屏专注模式（与 admin 布局共享）；全屏时设置栏收起为滑出面板
+const fullscreen = useState('admin-editor-fullscreen', () => false)
+const panelOpen = ref(false)
 
 onMounted(() => {
   categoriesStore.fetch()
@@ -273,6 +288,52 @@ select.field-input {
   &.is-active {
     color: #fff;
     background: var(--c-primary);
+  }
+}
+
+/* ---- 全屏专注模式：设置栏收为右侧滑出面板 ---- */
+.composer__rail.is-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  width: min(320px, 88vw);
+  padding: 20px 22px;
+  overflow-y: auto;
+  background: var(--c-bg-card);
+  border-left: 1px solid var(--c-border);
+  box-shadow: -12px 0 32px rgb(0 0 0 / 10%);
+}
+
+.composer__rail.is-panel .rail-section:last-child {
+  border-bottom: none;
+}
+
+.composer__panel-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgb(0 0 0 / 25%);
+}
+
+.composer__panel-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 70;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 8%);
+
+  &:hover {
+    color: var(--c-primary);
+    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
   }
 }
 
