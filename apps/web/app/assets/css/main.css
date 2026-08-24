@@ -7,8 +7,11 @@
 
 body {
   margin: 0;
-  /* 奶油纸 → 淡杏的柔和渐变，像晒过太阳的文具桌 */
-  background: linear-gradient(165deg, #f8f1e7 0%, #f3e9dc 55%, #efe3d3 100%) fixed;
+  /* 奶油纸 → 淡杏的柔和渐变，叠一层极淡的方格纸线条水印，像晒过太阳的文具桌 */
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(74 64 54 / 4.5%) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgb(74 64 54 / 4.5%) 31px 32px),
+    linear-gradient(165deg, #f8f1e7 0%, #f3e9dc 55%, #efe3d3 100%) fixed;
 }
 
 /* ===== 设计令牌（橘子汽水 / 暖调文具）=====
@@ -85,7 +88,10 @@ html.dark {
 }
 
 html.dark body {
-  background: linear-gradient(165deg, #251e15 0%, #2a2117 60%, #231c12 100%) fixed;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(243 236 224 / 3%) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgb(243 236 224 / 3%) 31px 32px),
+    linear-gradient(165deg, #251e15 0%, #2a2117 60%, #231c12 100%) fixed;
 }
 
 /* ===== 滚动条美化 =====
