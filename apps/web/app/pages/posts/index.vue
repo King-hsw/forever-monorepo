@@ -363,14 +363,35 @@ usePageSeo({
   border: 1.5px solid var(--c-border);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: var(--shadow-card);
+  /* 「轻软弹」：位移/缩放用回弹缓动，颜色渐变用常规时长 */
+  transition:
+    transform var(--dur-soft) var(--ease-bounce),
+    box-shadow var(--dur-soft) ease,
+    color var(--dur-soft) ease,
+    border-color var(--dur-soft) ease,
+    background-color var(--dur-soft) ease;
 
   &:hover {
-    color: var(--c-primary);
+    color: var(--c-primary-hover);
     border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    transform: translateY(-1px);
+    background: var(--c-primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
   }
 
+  /* 按下回弹：像软糖一样被摁下去再弹回来 */
+  &:active {
+    transform: translateY(0) scale(0.92);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--c-primary) 25%, transparent),
+      var(--shadow-card);
+  }
 }
 
 /* 修饰符选择器不能嵌套拼接（&--active 是 Sass 语法，原生 CSS 嵌套不支持，
@@ -378,8 +399,12 @@ usePageSeo({
 .filter-btn--active,
 .filter-btn--active:hover {
   color: var(--c-on-primary);
-  background: var(--c-primary);
-  border-color: var(--c-primary);
+  /* 糖果渐变：与侧边栏 logo 同款，柿子橙 → 陶土红 */
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-color: transparent;
+  box-shadow:
+    0 3px 10px color-mix(in srgb, var(--c-primary) 35%, transparent),
+    var(--shadow-card);
 }
 
 /* ===== 目录式列表 ===== */
