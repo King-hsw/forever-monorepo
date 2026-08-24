@@ -219,7 +219,6 @@ usePageSeo({
 .wall-page {
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--c-bg-soft);
 }
 
 .wall-wrap {

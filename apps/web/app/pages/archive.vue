@@ -140,7 +140,6 @@ function formatDate(dateStr: string): string {
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--c-bg-soft);
 }
 
 .arch-main {
