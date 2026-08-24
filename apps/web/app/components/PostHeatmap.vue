@@ -224,11 +224,11 @@ const mini = computed(() => ({
 }
 
 /* 自适应宽度：以容器宽度为基准计算格子尺寸，53 列始终填满一行；
- * 窄容器（手机）下缩小间距、隐藏星期标签并放宽格子下限到 4px；
- * 兜底允许横向滚动，避免撑破页面布局 */
+ * 窄容器（手机）下缩小间距、隐藏星期标签并放宽格子下限到 4px。
+ * clip 裁掉悬停放大 / 末列月份标签的溢出，避免顶出横向滚动条 */
 .heatmap__scroll {
   container-type: inline-size;
-  overflow-x: auto;
+  overflow-x: clip;
 }
 
 .heatmap__canvas {
