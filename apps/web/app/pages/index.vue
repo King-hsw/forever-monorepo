@@ -718,8 +718,6 @@ html.dark .hero__glow {
 /* 交替底色：相邻场景用一层极淡的纸色区分，像翻到下一页 */
 .scene--tinted {
   background: color-mix(in srgb, var(--c-primary-light) 40%, transparent);
-  border-top: 1px solid var(--c-border);
-  border-bottom: 1px solid var(--c-border);
 }
 
 /* 热力图章节：居中收窄的面板 */
