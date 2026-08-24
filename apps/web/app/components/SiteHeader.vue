@@ -50,30 +50,6 @@
           </svg>
         </button>
         <a
-          <Transition name="menu">
-            <div v-if="searchOpen && kw.trim()" class="site-search__panel">
-              <p v-if="searching" class="site-search__hint">搜索中…</p>
-              <template v-else-if="results.length">
-                <!-- highlights 由后端转义后只包 <em> 标记，这里才用 v-html -->
-                <NuxtLink
-                  v-for="r in results"
-                  :key="r.id"
-                  :to="`/posts/${r.slug}`"
-                  class="site-search__item"
-                  @click="closeSearch()"
-                >
-                  <span class="site-search__item-title" v-html="r.highlights?.title || r.title" />
-                  <span v-if="r.highlights?.excerpt" class="site-search__item-excerpt" v-html="r.highlights.excerpt" />
-                </NuxtLink>
-                <NuxtLink :to="`/search?kw=${encodeURIComponent(kw.trim())}`" class="site-search__all" @click="closeSearch()">
-                  查看全部 {{ total }} 条结果 →
-                </NuxtLink>
-              </template>
-              <p v-else class="site-search__hint">没有找到「{{ kw.trim() }}」相关内容</p>
-            </div>
-          </Transition>
-        </div>
-        <a
           class="site-header__icon-btn"
           href="/rss.xml"
           target="_blank"
