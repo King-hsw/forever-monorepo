@@ -104,6 +104,22 @@ export interface RssFeedInput {
   enabled?: boolean
 }
 
+/** 订阅文章条目（对应 RssItemResponse；公开接口） */
+export interface RssItem {
+  id: number
+  /** 来源站点名称 */
+  feedTitle: string
+  /** 来源站点主页 */
+  siteUrl: string
+  title: string
+  /** 原文链接，新窗口打开 */
+  link: string
+  /** 摘要（纯文本） */
+  summary: string
+  /** 发布时间；源未提供时为 null */
+  publishedAt: string | null
+}
+
 export type FriendLinkStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 /** 友链（对应 FriendLinkResponse；公开接口不含 contact / rejectReason） */

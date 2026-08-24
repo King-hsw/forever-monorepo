@@ -49,6 +49,7 @@
         <NuxtLink class="mobile-menu__link" to="/archive" @click="menuOpen = false">归档</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/message" @click="menuOpen = false">留言墙</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/friends" @click="menuOpen = false">友链</NuxtLink>
+        <NuxtLink class="mobile-menu__link" to="/rss" @click="menuOpen = false">订阅</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
         <a class="mobile-menu__link" href="/rss.xml" target="_blank" rel="noopener" @click="menuOpen = false">RSS 订阅</a>
       </nav>
@@ -68,6 +69,7 @@ const navItems = [
   { label: '归档', to: '/archive' },
   { label: '留言墙', to: '/message' },
   { label: '友链', to: '/friends' },
+  { label: '订阅', to: '/rss' },
 ]
 
 /* 滚动后切换为玻璃拟态背景 */
