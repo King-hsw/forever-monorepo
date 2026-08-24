@@ -385,69 +385,74 @@ function confirmLink() {
     outline: none;
   }
 
-  /* 代码块（NodeView 渲染为 行号栏 + pre + 悬浮工具条的组合，见 CodeBlockLineNumbers.ts） */
+  /* 代码块（NodeView 渲染为 顶栏 + 行号栏 + pre 的组合，见 CodeBlockLineNumbers.ts）
+   * 结构与配色完全对齐详情页的 .md-code-block：Mac 三圆点顶栏、
+   * 字号 0.9em / 行高 1.5 / 底色 --c-bg-soft / 圆角 8px */
   .tiptap .tiptap-code-block {
-    position: relative;
-    display: flex;
+    display: block;
     margin: 0.8em 0;
-    /* 字号 / 行高 / 底色 / 圆角与共享样式的 pre 保持一致：
-       0.9em（相对根字号 15px = 13.5px）、1.5、--c-bg-soft、8px */
     font-size: 0.9em;
     line-height: 1.5;
     background: var(--c-bg-soft);
     border-radius: 8px;
   }
 
-  /* 代码块右上角悬浮工具条：默认半透明，hover/focus 时完全显示 */
+  /* 顶栏：三圆点 + 语言选择 + 复制按钮，同 .md-code-block__bar */
   .tiptap .tiptap-code-block__toolbar {
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    z-index: 2;
     display: flex;
     align-items: center;
-    gap: 4px;
-    opacity: 0.35;
-    transition: opacity 0.15s ease;
+    gap: 8px;
+    padding: 8px 12px 4px;
   }
 
-  .tiptap .tiptap-code-block:hover .tiptap-code-block__toolbar,
-  .tiptap .tiptap-code-block:focus-within .tiptap-code-block__toolbar {
-    opacity: 1;
+  .tiptap .tiptap-code-block__dots {
+    display: inline-flex;
+    gap: 6px;
+    margin-right: auto;
   }
 
+  .tiptap .tiptap-code-block__dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .tiptap .tiptap-code-block__dots i:nth-child(1) { background: #ff5f57; }
+  .tiptap .tiptap-code-block__dots i:nth-child(2) { background: #febc2e; }
+  .tiptap .tiptap-code-block__dots i:nth-child(3) { background: #28c840; }
+
+  /* 语言选择 / 复制按钮：胶囊样式，同 .md-code-block__lang / __copy */
   .tiptap .tiptap-code-block__language-select {
     max-width: 130px;
-    padding: 2px 4px;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--c-text);
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid var(--tt-border);
-    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--c-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
     cursor: pointer;
 
     &:hover,
     &:focus {
-      background: var(--c-bg-card);
-      border-color: var(--c-border);
+      border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
       outline: none;
     }
   }
 
   .tiptap .tiptap-code-block__copy-button {
-    padding: 3px 10px;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--c-text);
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid var(--tt-border);
-    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--c-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
     cursor: pointer;
 
     &:hover {
-      background: var(--c-bg-card);
-      border-color: var(--c-border);
+      color: var(--c-primary);
+      border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
     }
 
     &.is-copied {
@@ -456,11 +461,16 @@ function confirmLink() {
     }
   }
 
-  /* 外挂行号栏：字号 / 行高随 .tiptap-code-block，颜色与 min-width 与详情页的
-     pre code .line::before 对齐（--c-text-muted / 3ch） */
+  /* 外挂行号栏：字号 / 行高随 .tiptap-code-block；颜色与宽度与详情页的
+     pre code .line::before 对齐（--c-text-muted / 3ch / 1em 间距）；
+     上下内边距与 pre 一致，保证行号和首行代码在同一水平线上 */
+  .tiptap .tiptap-code-block__body {
+    display: flex;
+  }
+
   .tiptap .tiptap-code-block__gutter {
     flex-shrink: 0;
-    padding: 12px 0 12px 14px;
+    padding: 4px 0 12px 14px;
     text-align: right;
     color: var(--c-text-muted);
     user-select: none;
@@ -477,14 +487,13 @@ function confirmLink() {
     flex: 1;
     min-width: 0;
     margin: 0;
-    padding: 12px 16px;
+    /* 同详情页 .md-code-block pre：顶栏已占一行，上下留白收紧 */
+    padding: 4px 16px 12px 12px;
     overflow-x: auto;
     /* 字号 / 行高继承 .tiptap-code-block（0.9em / 1.5），与行号栏及详情页
        代码块完全一致；避免叠乘共享样式导致错位 */
     font-size: inherit;
     line-height: inherit;
-    /* 右侧留白稍大一点，避免第一行被悬浮工具条遮住 */
-    padding-right: 110px;
   }
 
   /* 图片节点被选中时的描边 */

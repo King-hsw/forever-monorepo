@@ -32,11 +32,20 @@ export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
       const wrapper = document.createElement('div')
       wrapper.className = 'tiptap-code-block'
 
-      // 右上角悬浮工具条：语言选择 + 复制按钮。
-      // 与行号栏一样放在可编辑内容区之外，contenteditable=false，避免干扰光标和选区
+      // 顶栏：三圆点 + 语言选择 + 复制按钮，结构与配色对齐详情页的
+      // .md-code-block__bar（见 MarkdownView.vue 与 prose.css），保证所见即所得；
+      // contenteditable=false，避免干扰光标和选区
       const toolbar = document.createElement('div')
       toolbar.className = 'tiptap-code-block__toolbar'
       toolbar.setAttribute('contenteditable', 'false')
+
+      const dots = document.createElement('span')
+      dots.className = 'tiptap-code-block__dots'
+      dots.setAttribute('aria-hidden', 'true')
+      for (let i = 0; i < 3; i += 1) {
+        dots.appendChild(document.createElement('i'))
+      }
+      toolbar.appendChild(dots)
 
       const languageSelect = document.createElement('select')
       languageSelect.className = 'tiptap-code-block__language-select'
@@ -107,9 +116,13 @@ export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
       }
       pre.appendChild(code)
 
-      wrapper.appendChild(gutter)
-      wrapper.appendChild(pre)
+      const body = document.createElement('div')
+      body.className = 'tiptap-code-block__body'
+      body.appendChild(gutter)
+      body.appendChild(pre)
+
       wrapper.appendChild(toolbar)
+      wrapper.appendChild(body)
 
       // 根据内容行数渲染行号
       const renderGutter = () => {
