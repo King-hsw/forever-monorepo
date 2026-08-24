@@ -5,7 +5,7 @@
 
     <!-- 目录：宽屏固定在正文左侧；窄屏右下角悬浮按钮展开 -->
     <aside
-      v-if="toc.length > 1"
+      v-if="toc.length"
       class="toc"
       :class="{ 'is-open': tocOpen }"
       aria-label="文章目录"
