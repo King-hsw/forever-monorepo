@@ -91,7 +91,8 @@
                 v-model="drafts[item.key]"
                 class="field-input"
                 :class="{ 'is-invalid': !!errors[item.key] }"
-                :type="meta(item.key).type === 'email' ? 'email' : 'text'"
+                :type="meta(item.key).type === 'email' ? 'email'
+                  : meta(item.key).type === 'date' ? 'date' : 'text'"
                 :placeholder="placeholderOf(item)"
                 :aria-label="meta(item.key).label"
                 spellcheck="false"
@@ -170,7 +171,7 @@ await useAsyncData('admin-settings', async () => {
 }, { server: false })
 
 /* ---------- 配置项元数据（与服务端 SiteConfigService 的登记表对应） ---------- */
-type SettingType = 'boolean' | 'number' | 'email' | 'url' | 'text'
+type SettingType = 'boolean' | 'number' | 'email' | 'url' | 'date' | 'text'
 
 interface ItemMeta {
   label: string
@@ -182,6 +183,7 @@ interface ItemMeta {
 
 const ITEM_META: Record<string, ItemMeta> = {
   'site.url': { label: '站点地址', type: 'url' },
+  'site.birth-date': { label: '建站时间', type: 'date' },
   'board.title': { label: '留言板标题', type: 'text' },
   'board.summary': { label: '留言板简介', type: 'text' },
   'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
@@ -206,7 +208,7 @@ interface Group {
 }
 
 const KNOWN_GROUPS: Group[] = [
-  { title: '站点', icon: '🌐', keys: ['site.url'] },
+  { title: '站点', icon: '🌐', keys: ['site.url', 'site.birth-date'] },
   {
     title: '留言板',
     icon: '📋',
@@ -294,6 +296,7 @@ function toggleBool(item: SettingItem) {
 function placeholderOf(item: SettingItem): string {
   if (item.value) return ''
   if (item.key === 'comment.owner-email') return '未设置，不通知站长'
+  if (item.key === 'site.birth-date') return '未设置，页脚用默认值'
   const d = meta(item.key).defaultValue
   return d ? `默认 ${d}` : '未设置'
 }
@@ -308,6 +311,9 @@ function validate(key: string): string {
   switch (meta(key).type) {
     case 'number':
       if (!/^\d+$/.test(draft)) return '须为不小于 0 的整数'
+      break
+    case 'date':
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(draft) || Number.isNaN(Date.parse(draft))) return '格式须为 yyyy-MM-dd'
       break
     case 'boolean':
       if (draft !== 'true' && draft !== 'false') return '布尔型只接受 true/false'

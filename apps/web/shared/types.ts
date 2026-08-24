@@ -209,6 +209,11 @@ export interface BoardInfo {
   summary: string
 }
 
+/** 站点公开信息（对应 SiteInfoController.SiteInfo）；birthDate 未设置为 null */
+export interface SiteInfo {
+  birthDate: string | null
+}
+
 /** 后端统一分页结构 */
 export interface PageResult<T> {
   list: T[]

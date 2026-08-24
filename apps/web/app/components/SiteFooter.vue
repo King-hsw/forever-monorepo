@@ -78,25 +78,30 @@
 </template>
 
 <script setup lang="ts">
-import type { Category } from '#shared/types'
+import type { Category, SiteInfo } from '#shared/types'
 
 /** 分类列表（复用首页的缓存 key，避免重复请求） */
 const { data: categories } = await useAsyncData('home-categories', () =>
   apiFetch<Category[]>('/api/v1/categories'),
 )
 
-const year = new Date().getFullYear()
+/** 建站日期：来自后台站点设置 site.birth-date；未设置时用内置默认值 */
+const DEFAULT_BIRTH = '2025-01-01'
+const { data: siteInfo } = await useAsyncData('site-info', () => apiFetch<SiteInfo>('/api/v1/site'))
+const birthDate = computed(() => siteInfo.value?.birthDate || DEFAULT_BIRTH)
+const SITE_BIRTH = computed(() => new Date(`${birthDate.value}T00:00:00+08:00`).getTime())
+const birthLabel = computed(() => {
+  const d = new Date(`${birthDate.value}T00:00:00+08:00`)
+  return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`
+})
 
-/** 站点「生日」：运行时长从这里起算，可按需修改 */
-const BIRTH = new Date('2025-01-01T00:00:00+08:00')
-const SITE_BIRTH = BIRTH.getTime()
-const birthLabel = `${BIRTH.getFullYear()} 年 ${BIRTH.getMonth() + 1} 月 ${BIRTH.getDate()} 日`
+const year = new Date().getFullYear()
 
 const uptime = ref('')
 let timer: ReturnType<typeof setInterval> | null = null
 
 function formatUptime() {
-  let diff = Math.max(0, Date.now() - SITE_BIRTH)
+  let diff = Math.max(0, Date.now() - SITE_BIRTH.value)
   const days = Math.floor(diff / 86_400_000)
   diff -= days * 86_400_000
   const hours = Math.floor(diff / 3_600_000)
