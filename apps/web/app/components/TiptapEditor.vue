@@ -75,8 +75,11 @@
       </div>
     </div>
 
-    <!-- 编辑区域 -->
-    <EditorContent :editor="editor" class="tiptap-editor__content" />
+    <!-- 编辑区域；header 插槽用于在正文上方放标题等自定义内容（文章编辑页的大标题输入） -->
+    <div class="tiptap-editor__body">
+      <slot name="header" />
+      <EditorContent :editor="editor" class="tiptap-editor__content" />
+    </div>
 
     <!-- 隐藏的图片选择输入框 -->
     <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple hidden @change="onImagePicked">
@@ -315,6 +318,14 @@ function confirmLink() {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+/* fluid 时 body（header 插槽 + 正文）撑满剩余高度，正文区自身滚动 */
+.tiptap-editor--fluid .tiptap-editor__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .tiptap-editor--fluid .tiptap-editor__content {
