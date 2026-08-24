@@ -3,8 +3,13 @@
     <template v-if="post">
       <div class="page-toolbar fade-up">
         <NuxtLink to="/admin/posts" class="btn btn--ghost">← 返回列表</NuxtLink>
-        <span class="badge" :class="`badge--${statusClass(post.status)}`">
-          {{ statusLabel(post.status) }}
+        <span class="page-toolbar__right">
+          <span class="badge" :class="`badge--${statusClass(post.status)}`">
+            {{ statusLabel(post.status) }}
+          </span>
+          <button type="button" class="btn btn--ghost" :title="fullscreen ? '退出全屏 (Esc)' : '全屏专注模式'" @click="toggleFullscreen">
+            {{ fullscreen ? '⤢ 退出全屏' : '⛶ 全屏' }}
+          </button>
         </span>
       </div>
       <AdminPostForm :initial="post" :saving="saving" @save="onSave" />
@@ -26,6 +31,25 @@ useState('admin-page-title', () => '编辑文章')
 
 const route = useRoute()
 const postsStore = usePostsStore()
+const fullscreen = useState('admin-editor-fullscreen', () => false)
+
+function toggleFullscreen() {
+  fullscreen.value = !fullscreen.value
+}
+
+// 离开页面时退出全屏，避免状态残留到其它后台页
+onUnmounted(() => {
+  fullscreen.value = false
+})
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && fullscreen.value) {
+    fullscreen.value = false
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 const id = String(route.params.id)
 
@@ -71,6 +95,12 @@ async function onSave(input: PostInput, status: PostStatus) {
     padding: 4px 10px;
     font-size: 13px;
   }
+}
+
+.page-toolbar__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .load-error {

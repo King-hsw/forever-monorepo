@@ -1,41 +1,45 @@
 <template>
-  <aside class="sidenav" :class="{ 'is-open': open }">
-    <div class="sidenav__logo">
+  <aside class="sidenav" :class="{ 'is-open': open, 'is-collapsed': collapsed }">
+    <div class="sidenav__logo" :title="collapsed ? 'Forever 后台' : undefined">
       <span class="sidenav__mark" aria-hidden="true">F</span>
-      <div class="sidenav__brand">
+      <div class="sidenav__brand sidenav__text">
         <strong>Forever</strong>
         <small>后台管理系统</small>
       </div>
     </div>
 
     <nav class="sidenav__nav" aria-label="后台导航">
-      <p class="sidenav__group">菜单</p>
+      <p class="sidenav__group sidenav__text">菜单</p>
       <NuxtLink
         v-for="item in navItems"
         :key="item.to"
         :to="item.to"
         class="sidenav__link"
         :class="{ 'is-active': isActive(item.to) }"
+        :title="collapsed ? item.label : undefined"
       >
         <span class="sidenav__icon" aria-hidden="true">{{ item.icon }}</span>
-        {{ item.label }}
+        <span class="sidenav__text">{{ item.label }}</span>
       </NuxtLink>
     </nav>
 
     <!-- 前往博客前台：外链新标签页打开，避免打断后台会话 -->
-    <a class="sidenav__link sidenav__blog-link" href="/" target="_blank" rel="noopener">
+    <a class="sidenav__link sidenav__blog-link" href="/" target="_blank" rel="noopener" title="前往博客">
       <span class="sidenav__icon" aria-hidden="true">🌐</span>
-      前往博客
+      <span class="sidenav__text">前往博客</span>
     </a>
 
     <div class="sidenav__footer">
       <p class="sidenav__user" title="当前登录用户">
         <span class="sidenav__avatar" aria-hidden="true">{{ avatarText }}</span>
         <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
-        <ClientOnly>{{ auth.username || '未登录' }}</ClientOnly>
+        <ClientOnly><span class="sidenav__text">{{ auth.username || '未登录' }}</span></ClientOnly>
       </p>
+      <button type="button" class="sidenav__toggle" :title="collapsed ? '展开侧边栏' : '折叠侧边栏'" @click="toggleCollapsed">
+        {{ collapsed ? '»' : '« 收起' }}
+      </button>
       <button type="button" class="sidenav__close-btn" aria-label="关闭菜单" @click="$emit('close')">
-        ✕ 收起
+        ✕ 关闭
       </button>
     </div>
   </aside>
@@ -47,6 +51,23 @@ defineEmits<{ close: [] }>()
 
 const route = useRoute()
 const auth = useAuthStore()
+
+// 折叠状态全局共享（布局据此调整内容区 padding），并持久化到 localStorage。
+// SSR 默认展开，客户端 onMounted 再同步，首帧可能有一次轻微跳动，可接受
+const collapsed = useState('admin-sidenav-collapsed', () => false)
+const KEY = 'admin-sidenav-collapsed'
+
+onMounted(() => {
+  collapsed.value = localStorage.getItem(KEY) === '1'
+})
+
+watch(collapsed, (v) => {
+  if (import.meta.client) localStorage.setItem(KEY, v ? '1' : '0')
+})
+
+function toggleCollapsed() {
+  collapsed.value = !collapsed.value
+}
 
 const navItems = [
   { label: '仪表盘', to: '/admin', icon: '📊' },
@@ -79,7 +100,30 @@ function isActive(to: string): boolean {
   width: 220px;
   background: var(--c-bg-card);
   border-right: 1px solid var(--c-border);
-  transition: transform 0.28s ease;
+  transition: transform 0.28s ease, width 0.2s ease;
+}
+
+/* 折叠为图标栏：文字隐藏，图标居中，悬停 title 提示 */
+.sidenav.is-collapsed {
+  width: 68px;
+
+  .sidenav__text {
+    display: none;
+  }
+
+  .sidenav__logo {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidenav__link {
+    justify-content: center;
+    padding: 10px 0;
+  }
+
+  .sidenav__user {
+    justify-content: center;
+  }
 }
 
 .sidenav__logo {
@@ -222,7 +266,29 @@ function isActive(to: string): boolean {
   }
 }
 
+/* 折叠开关（桌面端） */
+.sidenav__toggle {
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  background: none;
+  border: none;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--c-text);
+    background: var(--c-bg-soft);
+  }
+}
+
 @media (max-width: 900px) {
+  /* 抽屉模式下不需要折叠 */
+  .sidenav__toggle {
+    display: none;
+  }
   .sidenav {
     transform: translateX(-100%);
     box-shadow: var(--shadow-card-hover);

@@ -1,13 +1,16 @@
 <template>
-  <div class="admin-shell">
+  <div class="admin-shell" :class="{ 'is-fullscreen': editorFullscreen }">
     <AdminSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
     <Transition name="mask">
       <div v-if="sidebarOpen" class="admin-shell__mask" @click="sidebarOpen = false" />
     </Transition>
 
-    <div class="admin-shell__main">
-      <!-- 顶栏：页面标题 + 用户/退出 -->
-      <header class="topbar">
+    <div
+      class="admin-shell__main"
+      :class="{ 'is-collapsed-pad': sidenavCollapsed && !editorFullscreen }"
+    >
+      <!-- 顶栏：页面标题 + 用户/退出；编辑页全屏模式下隐藏 -->
+      <header v-show="!editorFullscreen" class="topbar">
         <button
           type="button"
           class="topbar__menu-btn"
@@ -47,6 +50,10 @@ const pageTitle = useState('admin-page-title', () => '')
 const route = useRoute()
 const auth = useAuthStore()
 
+// 与 AdminSidebar 共享的折叠状态；编辑页通过 editorFullscreen 进入无干扰全屏
+const sidenavCollapsed = useState('admin-sidenav-collapsed', () => false)
+const editorFullscreen = useState('admin-editor-fullscreen', () => false)
+
 const avatarText = computed(() => (auth.username?.slice(0, 1) ?? 'A').toUpperCase())
 
 // 路由变化时自动收起抽屉
@@ -72,6 +79,17 @@ async function handleLogout() {
 .admin-shell__main {
   min-height: 100vh;
   padding-left: 220px;
+  transition: padding-left 0.2s ease;
+}
+
+/* 侧边栏折叠后收窄内容区留白 */
+.admin-shell__main.is-collapsed-pad {
+  padding-left: 68px;
+}
+
+/* 编辑页全屏：侧栏与顶栏全部让位，正文占满视口 */
+.admin-shell.is-fullscreen .admin-shell__main {
+  padding-left: 0;
 }
 
 .topbar {
