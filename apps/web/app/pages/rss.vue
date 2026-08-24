@@ -4,47 +4,49 @@
     <SiteHeader width="800px" />
 
     <main class="wrap">
-      <div class="page-head fade-up">
-        <h1 class="page-head__cn">订阅</h1>
-        <span class="page-head__en">Subscriptions · {{ feeds?.length ?? 0 }} 个站点</span>
-      </div>
+      <!-- 章节头：英文眉题 + 标题，与首页同款 -->
+      <header class="section-head fade-up">
+        <p class="section-head__caption">Subscriptions</p>
+        <h1 class="section-head__title">订阅</h1>
+        <p class="section-head__desc">
+          朋友们博客的最新文章，定期抓取汇总于此 📡
+          <template v-if="feeds?.length">· 共 {{ feeds.length }} 个站点</template>
+        </p>
+      </header>
 
-      <p class="page-intro fade-up" style="--stagger-index: 1">
-            朋友们博客的最新文章，定期抓取汇总于此 📡
-      </p>
-
-      <!-- 订阅文章流 -->
-      <section class="items fade-up" style="--stagger-index: 2">
+      <!-- 订阅文章流：细行清单，发丝线分隔 -->
+      <section class="items fade-up" style="--stagger-index: 1">
         <a
           v-for="(item, i) in items"
           :key="item.id"
           :href="item.link"
           target="_blank"
           rel="noopener noreferrer"
-          class="card item"
+          class="item"
           :style="{ '--stagger-index': Math.min(i, 10) }"
         >
           <span class="item__meta">
-            <span class="item__feed">{{ item.feedTitle }}</span>
+            <span class="chip">{{ item.feedTitle }}</span>
             <time v-if="item.publishedAt" class="item__time">{{ formatDateTime(item.publishedAt) }}</time>
           </span>
-          <strong class="item__title">{{ item.title }}</strong>
-          <span v-if="item.summary" class="item__summary">{{ item.summary }}</span>
+          <h3 class="item__title">{{ item.title }}</h3>
+          <p v-if="item.summary" class="item__summary">{{ item.summary }}</p>
         </a>
       </section>
 
-      <p v-if="!items.length && !pending" class="rss-empty fade-up" style="--stagger-index: 2">
+      <p v-if="!items.length && !pending" class="rss-empty fade-up" style="--stagger-index: 1">
         还没有抓到订阅文章，稍后再来看看吧
       </p>
 
-      <div v-if="hasMore" class="load-more fade-up" style="--stagger-index: 2">
-        <button type="button" class="btn btn--primary" :disabled="loadingMore" @click="loadMore">
-          {{ loadingMore ? '加载中…' : '加载更多' }}
+      <div v-if="hasMore" class="load-more fade-up" style="--stagger-index: 1">
+        <button type="button" class="more-link" :disabled="loadingMore" @click="loadMore">
+          {{ loadingMore ? '加载中…' : `加载更多（已读 ${items.length} / ${total}）` }}
+          <span v-if="!loadingMore" class="more-link__arrow">↓</span>
         </button>
       </div>
 
       <!-- 订阅源列表（博客朋友圈） -->
-      <section v-if="feeds?.length" class="card feeds fade-up" style="--stagger-index: 3">
+      <section v-if="feeds?.length" class="feeds fade-up" style="--stagger-index: 2">
         <h2 class="feeds__title">订阅源</h2>
         <div class="feeds__grid">
           <a
@@ -69,6 +71,7 @@
 
 <script setup lang="ts">
 import type { PageResult, RssFeed, RssItem } from '#shared/types'
+import { formatDateTime } from '~/utils/format'
 
 usePageSeo({
   title: '订阅 - Forever',
@@ -126,135 +129,213 @@ async function loadMore() {
 .wrap {
   flex: 1;
   width: 100%;
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 96px 20px 0;
+  padding: 96px 20px 64px;
 }
 
-.page-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.page-head__cn {
+/* ===== 章节头：与首页 section-head 同款 ===== */
+.section-head__caption {
   margin: 0;
-  font-size: 28px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-primary);
 }
 
-.page-head__en {
-  font-size: 13px;
+.section-head__title {
+  margin: 8px 0 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--c-text);
+}
+
+.section-head__desc {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
   color: var(--c-text-muted);
 }
 
-.page-intro {
-  margin: 8px 0 24px;
-  font-size: 14px;
-  color: var(--c-text-secondary);
+.chip {
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+  border-radius: 999px;
 }
 
-/* ===== 文章流 ===== */
+/* ===== 文章流：清单式行条目，发丝线分隔，不做一排排盒子 ===== */
 .items {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin-top: 34px;
 }
 
 .item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px;
+  display: block;
+  padding: 20px 6px;
   text-decoration: none;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 50ms);
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
-}
 
-.item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 26px rgb(0 0 0 / 8%);
+  & + & {
+    border-top: 1px solid var(--c-border);
+  }
+
+  &:hover .item__title {
+    color: var(--c-primary);
+  }
+
+  &:hover .item__arrow {
+    opacity: 1;
+    transform: translate(2px, -2px);
+  }
 }
 
 .item__meta {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
-  font-size: 12px;
-}
-
-.item__feed {
-  overflow: hidden;
-  color: var(--c-primary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .item__time {
   flex-shrink: 0;
+  font-size: 12px;
   color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .item__title {
-  font-size: 15px;
-  line-height: 1.5;
+  position: relative;
+  margin: 10px 0 0;
+  padding-right: 22px;
+  font-size: 16.5px;
+  font-weight: 650;
+  line-height: 1.45;
   color: var(--c-text);
+  transition: color 0.2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 悬停时右上角浮现的小箭头 */
+.item__title::after {
+  content: '↗';
+  position: absolute;
+  right: 0;
+  top: 2px;
+  font-size: 14px;
+  color: var(--c-primary);
+  opacity: 0;
+  transform: translate(-2px, 2px);
+  transition: opacity 0.2s ease, transform 0.25s var(--ease-bounce, ease);
 }
 
 .item__summary {
+  margin: 7px 0 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--c-text-secondary);
   display: -webkit-box;
-  overflow: hidden;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--c-text-muted);
-  -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .rss-empty {
-  padding: 32px 0;
+  margin-top: 40px;
   font-size: 14px;
   color: var(--c-text-muted);
   text-align: center;
 }
 
 .load-more {
-  margin-top: 20px;
+  margin-top: 26px;
   text-align: center;
 }
 
-/* ===== 订阅源 ===== */
+/* 「加载更多」：软糖胶囊，与首页 more-link 同款 */
+.more-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: var(--c-bg-card);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.more-link:hover:not(:disabled) {
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-color: transparent;
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 20px rgb(229 111 67 / 32%);
+}
+
+.more-link:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.more-link__arrow {
+  transition: transform 0.2s ease;
+}
+
+.more-link:hover:not(:disabled) .more-link__arrow {
+  transform: translateY(3px);
+}
+
+/* ===== 订阅源面板：与首页热力图面板同款卡片 ===== */
 .feeds {
-  margin-top: 36px;
-  padding: 24px;
+  margin-top: 48px;
+  padding: 24px 26px;
+  background: var(--c-bg-card);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card);
 }
 
 .feeds__title {
-  margin: 0 0 14px;
-  font-size: 18px;
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--c-text-secondary);
 }
 
 .feeds__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
 }
 
 .feeds__item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px;
-  font-size: 14px;
+  padding: 12px 14px;
+  font-size: 13.5px;
   color: var(--c-text);
   text-decoration: none;
-  background: var(--c-bg-soft);
+  background: var(--c-bg-soft, var(--c-bg));
   border-radius: 10px;
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
 }
 
 .feeds__item:hover {
   transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
 }
 
 .feeds__desc {
@@ -264,13 +345,12 @@ async function loadMore() {
   line-height: 1.5;
   color: var(--c-text-muted);
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
 }
 
 @media (max-width: 640px) {
-  .page-head {
-    flex-direction: column;
-    gap: 4px;
+  .section-head__title {
+    font-size: 24px;
   }
 }
 </style>

@@ -174,6 +174,38 @@
         </div>
       </section>
 
+      <!-- 03 朋友文章：订阅的博客最新文章，丰富首页内容 -->
+      <section id="feed" class="feed-section">
+        <div class="feed-section__inner">
+          <header class="section-head reveal">
+            <p class="section-head__caption">Friend Feeds</p>
+            <h2 class="section-head__title">朋友文章</h2>
+            <p class="section-head__desc">订阅的博客们最近在写什么，定期抓取汇总。</p>
+          </header>
+
+          <div v-if="feedItems.length" class="feed-list reveal">
+            <a
+              v-for="item in feedItems"
+              :key="item.id"
+              :href="item.link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="feed-row"
+            >
+              <span class="chip">{{ item.feedTitle }}</span>
+              <span class="feed-row__title">{{ item.title }}</span>
+              <time class="feed-row__time">{{ formatDateTime(item.publishedAt) }}</time>
+            </a>
+          </div>
+          <p v-else class="feed-empty reveal">还没有抓到订阅文章</p>
+
+          <NuxtLink to="/rss" class="more-link">
+            进入订阅页
+            <span class="more-link__arrow">→</span>
+          </NuxtLink>
+        </div>
+      </section>
+
       <!-- 终幕：订阅，像书末的版权页一样素净收尾 -->
       <section id="subscribe" class="finale">
         <div class="finale__inner reveal">
@@ -205,7 +237,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, Tag } from '#shared/types'
+import type { Category, PageResult, Post, RssItem, Tag } from '#shared/types'
+import { formatDateTime } from '~/utils/format'
 
 // 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
 const { data: pageData } = await useAsyncData('home-articles', () =>
@@ -217,6 +250,11 @@ const { data: categories } = await useAsyncData('home-categories', () =>
 const { data: tags } = await useAsyncData('home-tags', () =>
   apiFetch<Tag[]>('/api/v1/tags'),
 )
+// 订阅的博客最新文章（公开接口），取几条丰富首页
+const { data: feedPage } = await useAsyncData('home-rss-items', () =>
+  apiFetch<PageResult<RssItem>>('/api/v1/rss/items', { query: { page: 1, size: 6 } }),
+)
+const feedItems = computed(() => feedPage.value?.list ?? [])
 
 /** 已发布文章，按发布时间倒序 */
 const sortKey = (p: Post) => p.publishedAt ?? p.createdAt
@@ -282,6 +320,7 @@ function scrollToTop() {
 const sections = [
   { id: 'latest', label: '近期笔墨' },
   { id: 'heatmap', label: '创作足迹' },
+  { id: 'feed', label: '朋友文章' },
   { id: 'subscribe', label: '订阅更新' },
 ]
 
@@ -913,6 +952,10 @@ html.dark .hero__glow {
     padding: 64px 0;
   }
 
+  .feed-section {
+    padding: 64px 0;
+  }
+
   .finale {
     min-height: 60vh;
   }
@@ -1276,7 +1319,81 @@ html.dark .hero__glow {
  * 样式见 components/TagSphere.vue
  */
 
-/* ---- 终幕：像书末的版权页，素净居中收尾 ---- */
+/* ---- 朋友文章：订阅的博客最新文章 ---- */
+.feed-section {
+  scroll-margin-top: 56px;
+  padding: 100px 0;
+}
+
+.feed-section__inner {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.feed-list {
+  margin-top: 34px;
+}
+
+.feed-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 4px;
+  text-decoration: none;
+
+  & + & {
+    border-top: 1px solid var(--c-border);
+  }
+}
+
+.feed-row__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 550;
+  color: var(--c-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: color 0.2s ease;
+}
+
+.feed-row:hover .feed-row__title {
+  color: var(--c-primary);
+}
+
+.feed-row__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.feed-empty {
+  margin-top: 34px;
+  font-size: 14px;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+.feed-section .more-link {
+  margin-top: 26px;
+}
+
+@media (max-width: 640px) {
+  /* 窄屏：时间换行到标题下方，行内只留站点名 + 标题 */
+  .feed-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  .feed-row__time {
+    order: 3;
+    width: 100%;
+    padding-left: 2px;
+  }
+}
 .finale {
   display: grid;
   place-items: center;
