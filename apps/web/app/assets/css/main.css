@@ -7,11 +7,18 @@
 
 body {
   margin: 0;
-  /* 奶油纸 → 淡杏的柔和渐变，叠一层极淡的方格纸线条水印，像晒过太阳的文具桌 */
+  /* 晒过太阳的文具桌：奶油纸渐变打底，
+   * 右上柿子橙 / 左下抹茶绿柔光晕营造纵深，
+   * 方格纸线条 + 稀疏「＋」符号点缀，像笔记本上的手帐记号 */
   background:
+    radial-gradient(46rem 32rem at 88% -6%, rgb(229 111 67 / 9%), transparent 62%),
+    radial-gradient(38rem 28rem at -8% 102%, rgb(147 184 132 / 10%), transparent 60%),
+    radial-gradient(30rem 22rem at 45% 42%, rgb(227 183 102 / 6%), transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cpath d='M56 48v16M48 56h16' stroke='%23e56f43' stroke-opacity='.08' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M14 96v10M9 101h10' stroke='%2393b884' stroke-opacity='.09' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M98 20v10M93 25h10' stroke='%23d96a52' stroke-opacity='.06' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"),
     repeating-linear-gradient(0deg, transparent 0 31px, rgb(74 64 54 / 4.5%) 31px 32px),
     repeating-linear-gradient(90deg, transparent 0 31px, rgb(74 64 54 / 4.5%) 31px 32px),
     linear-gradient(165deg, #f8f1e7 0%, #f3e9dc 55%, #efe3d3 100%) fixed;
+  background-attachment: fixed;
 }
 
 /* ===== 设计令牌（橘子汽水 / 暖调文具）=====
@@ -89,9 +96,14 @@ html.dark {
 
 html.dark body {
   background:
+    radial-gradient(46rem 32rem at 88% -6%, rgb(235 130 88 / 8%), transparent 62%),
+    radial-gradient(38rem 28rem at -8% 102%, rgb(163 196 148 / 7%), transparent 60%),
+    radial-gradient(30rem 22rem at 45% 42%, rgb(217 166 104 / 5%), transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='112'%3E%3Cpath d='M56 48v16M48 56h16' stroke='%23f3ece0' stroke-opacity='.05' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M14 96v10M9 101h10' stroke='%23a3c494' stroke-opacity='.06' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M98 20v10M93 25h10' stroke='%23dd7a5e' stroke-opacity='.04' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"),
     repeating-linear-gradient(0deg, transparent 0 31px, rgb(243 236 224 / 3%) 31px 32px),
     repeating-linear-gradient(90deg, transparent 0 31px, rgb(243 236 224 / 3%) 31px 32px),
     linear-gradient(165deg, #251e15 0%, #2a2117 60%, #231c12 100%) fixed;
+  background-attachment: fixed;
 }
 
 /* ===== 滚动条美化 =====
