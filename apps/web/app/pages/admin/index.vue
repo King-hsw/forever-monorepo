@@ -1,5 +1,15 @@
 <template>
   <div class="dashboard">
+    <!-- 初始化引导：新环境关键配置未落库时提醒 -->
+    <NuxtLink v-if="setupNeeded" to="/admin/setup" class="setup-banner card fade-up">
+      <span class="setup-banner__icon" aria-hidden="true">🧭</span>
+      <div class="setup-banner__text">
+        <strong>完成初始化配置</strong>
+        <small>检测到站点地址、留言板等系统参数还未设置，建议先运行初始化引导</small>
+      </div>
+      <span class="setup-banner__go">去配置 →</span>
+    </NuxtLink>
+
     <!-- 统计卡片 -->
     <section class="dashboard__stats">
       <div
@@ -80,7 +90,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '#shared/types'
+import type { Post, SettingItem } from '#shared/types'
+import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin' })
 
@@ -90,6 +101,13 @@ useState('admin-page-title', () => '仪表盘')
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
 
+// 新装环境：关键系统参数从未落库（value 为空）时，引导站长先跑一遍初始化向导
+const setupKeys = ['site.url', 'board.title']
+const settings = ref<SettingItem[]>([])
+const setupNeeded = computed(() =>
+  settings.value.length > 0 && setupKeys.some(key => settings.value.find(s => s.key === key)?.value === ''),
+)
+
 // 进入后台时拉取文章（取足够大的一页用于统计）与分类数据
 // 登录令牌存在 localStorage，SSR 阶段拿不到，仅客户端拉取（避免直接访问 URL 时 SSR 401 失败）
 await useAsyncData('admin-dashboard', async () => {
@@ -98,6 +116,10 @@ await useAsyncData('admin-dashboard', async () => {
     categoriesStore.fetch(),
   ])
 }, { server: false })
+
+apiFetch<SettingItem[]>('/api/admin/settings')
+  .then((list) => { settings.value = list })
+  .catch(() => {})
 
 const stats = computed(() => [
   {
@@ -152,6 +174,46 @@ const categoryDist = computed(() => {
 </script>
 
 <style scoped>
+.setup-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+.setup-banner__icon {
+  font-size: 24px;
+}
+
+.setup-banner__text {
+  flex: 1;
+
+  strong {
+    display: block;
+    font-size: 14px;
+  }
+
+  small {
+    font-size: 12px;
+    color: var(--c-text-muted);
+  }
+}
+
+.setup-banner__go {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
 .dashboard__stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

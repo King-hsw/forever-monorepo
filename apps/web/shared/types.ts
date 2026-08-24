@@ -246,6 +246,45 @@ export interface MeInfo {
   username: string
 }
 
+/** 角色（对应 SysRole） */
+export interface SysRole {
+  id: number
+  code: string
+  name: string
+  remark: string
+  /** 内置角色不可删除 */
+  builtIn: boolean
+  createdAt: string
+}
+
+/** 权限点（对应 SysPermission） */
+export interface SysPermission {
+  id: number
+  code: string
+  name: string
+  module: string
+  createdAt: string
+}
+
+/** 后台用户（对应 UserView） */
+export interface UserView {
+  id: number
+  username: string
+  nickname: string
+  /** 如 ACTIVE / DISABLED */
+  status: string
+  roles: SysRole[]
+  createdAt: string
+}
+
+/** 创建后台用户请求 */
+export interface UserCreateInput {
+  username: string
+  password: string
+  nickname?: string
+  roleIds?: number[]
+}
+
 /** 站点配置项（对应 SettingResponse；value 为空表示未在数据库设置，走 yml 默认值） */
 export interface SettingItem {
   key: string
