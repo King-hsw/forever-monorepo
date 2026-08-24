@@ -58,7 +58,10 @@ import type { AdminComment } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 
 const props = defineProps<{
-  articleId: number
+  /** 评论归属类型：文章评论 / 留言板留言 */
+  targetType?: 'ARTICLE' | 'BOARD'
+  /** 文章 id；targetType=ARTICLE 时必传 */
+  targetId?: number
   /** 被回复的评论；为空则发根评论 */
   replyTo?: { id: number, nickname: string } | null
   /** 回复对象昵称：非空时提交内容自动加 @前缀（用于记录回复对象，公开接口不返回该信息） */
@@ -67,7 +70,7 @@ const props = defineProps<{
   placeholderSuffix?: string
 }>()
 
-const emit = defineEmits<{ success: [comment: AdminComment] }>()
+const emit = defineEmits<{ success: [comment: AdminComment], 'cancel-reply': [] }>()
 
 const commentsStore = useCommentsStore()
 
@@ -104,12 +107,18 @@ async function submit() {
     tipIsError.value = true
     return
   }
+  // 文章评论必须有目标文章 id，否则会发出残缺请求
+  if (props.targetType !== 'BOARD' && !props.targetId) {
+    tip.value = '缺少评论目标，请刷新页面重试'
+    tipIsError.value = true
+    return
+  }
 
   submitting.value = true
   tip.value = ''
   try {
     const created = await commentsStore.create({
-      articleId: props.articleId,
+      ...(props.targetType === 'BOARD' ? { targetType: 'BOARD' as const } : { articleId: props.targetId }),
       parentId: props.replyTo?.id,
       nickname: identity.nickname.trim(),
       email: identity.email.trim(),

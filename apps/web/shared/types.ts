@@ -159,6 +159,9 @@ export interface FriendLinkUpdateInput {
 
 export type CommentStatus = 'APPROVED' | 'PENDING' | 'REJECTED'
 
+/** 评论归属类型：文章 / 留言板 */
+export type CommentTarget = 'ARTICLE' | 'BOARD'
+
 /** 公开评论（对应 CommentResponse；两层楼结构，replies 为楼内回复） */
 export interface CommentNode {
   id: number
@@ -172,11 +175,12 @@ export interface CommentNode {
   replies: CommentNode[] | null
 }
 
-/** 管理端评论（对应 CommentAdminResponse；比公开版多邮箱/IP/状态/所属文章） */
+/** 管理端评论（对应 CommentAdminResponse；比公开版多邮箱/IP/状态/归属目标） */
 export interface AdminComment {
   id: number
-  articleId: number
-  articleTitle: string
+  targetType: CommentTarget
+  /** 所属文章标题；BOARD 为 null */
+  targetTitle: string | null
   parentId: number | null
   rootId: number | null
   nickname: string
@@ -188,14 +192,21 @@ export interface AdminComment {
   createdAt: string
 }
 
-/** 发表评论请求（访客，无需登录） */
+/** 发表评论请求（访客，无需登录）；articleId 与 targetType 二选一 */
 export interface CommentInput {
-  articleId: number
+  articleId?: number
+  targetType?: CommentTarget
   parentId?: number
   nickname: string
   email: string
   site?: string
   content: string
+}
+
+/** 留言板信息（对应 BoardController.BoardInfo） */
+export interface BoardInfo {
+  title: string
+  summary: string
 }
 
 /** 后端统一分页结构 */

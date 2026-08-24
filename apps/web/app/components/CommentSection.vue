@@ -6,7 +6,8 @@
 
     <div class="card comments__form-wrap fade-up">
       <CommentForm
-        :article-id="articleId"
+        target-type="ARTICLE"
+        :target-id="articleId"
         :reply-to="replyTo"
         placeholder-suffix="（评论）"
         @success="onCreated"

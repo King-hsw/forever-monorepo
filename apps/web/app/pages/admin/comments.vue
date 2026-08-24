@@ -5,15 +5,27 @@
         访客在文章与留言板发表的留言都会出现在这里，审核通过后前台可见；共 {{ total }} 条
       </p>
 
-      <!-- 状态筛选 -->
+      <!-- 状态 / 类型筛选 -->
       <nav class="comments-admin__tabs" aria-label="按状态筛选">
         <button
-          v-for="tab in tabs"
+          v-for="tab in statusTabs"
           :key="tab.value"
           type="button"
           class="comments-admin__tab"
           :class="{ 'is-active': status === tab.value }"
-          @click="switchTab(tab.value)"
+          @click="switchStatus(tab.value)"
+        >
+          {{ tab.label }}
+        </button>
+      </nav>
+      <nav class="comments-admin__tabs" aria-label="按类型筛选">
+        <button
+          v-for="tab in typeTabs"
+          :key="tab.value"
+          type="button"
+          class="comments-admin__tab"
+          :class="{ 'is-active': targetType === tab.value }"
+          @click="switchType(tab.value)"
         >
           {{ tab.label }}
         </button>
@@ -30,7 +42,7 @@
             <span class="badge" :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
             <a v-if="item.site" :href="item.site" target="_blank" rel="noopener noreferrer"
                class="comments-list__site">{{ hostOf(item.site) }}</a>
-            <span class="comments-list__article">回复了「{{ item.articleTitle }}」</span>
+            <span class="comments-list__article">{{ targetLabel(item) }}</span>
           </div>
           <p class="comments-list__content">{{ item.content }}</p>
           <small class="comments-list__meta">
@@ -70,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminComment, CommentStatus } from '#shared/types'
+import type { AdminComment, CommentStatus, CommentTarget } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 import { formatDateTime } from '~/utils/format'
 
@@ -81,11 +93,17 @@ useState('admin-page-title', () => '评论管理')
 
 const commentsStore = useCommentsStore()
 
-const tabs: { label: string, value: CommentStatus | '' }[] = [
+const statusTabs: { label: string, value: CommentStatus | '' }[] = [
   { label: '全部', value: '' },
   { label: '待审核', value: 'PENDING' },
   { label: '已通过', value: 'APPROVED' },
   { label: '已驳回', value: 'REJECTED' },
+]
+
+const typeTabs: { label: string, value: CommentTarget | '' }[] = [
+  { label: '全部', value: '' },
+  { label: '文章', value: 'ARTICLE' },
+  { label: '留言板', value: 'BOARD' },
 ]
 
 const list = ref<AdminComment[]>([])
@@ -94,18 +112,20 @@ const page = ref(1)
 const size = 20
 const loading = ref(false)
 
-/** 当前筛选状态（'' 表示全部） */
+/** 当前筛选（'' 表示全部） */
 const status = ref<CommentStatus | ''>('')
+/** 当前类型筛选；null 表示全部 */
+const targetType = ref<CommentTarget | null>(null)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / size)))
 const activeTabLabel = computed(() =>
-  status.value ? tabs.find(t => t.value === status.value)?.label ?? '' : '',
+  status.value ? statusTabs.find(t => t.value === status.value)?.label ?? '' : '',
 )
 
 async function load(targetPage = page.value) {
   loading.value = true
   try {
-    const data = await commentsStore.fetchAdmin(status.value || undefined, targetPage, size)
+    const data = await commentsStore.fetchAdmin(status.value || undefined, targetPage, size, targetType.value ?? undefined)
     list.value = data.list
     total.value = data.total
     page.value = data.page
@@ -118,10 +138,21 @@ async function load(targetPage = page.value) {
   }
 }
 
-function switchTab(value: CommentStatus | '') {
+function switchStatus(value: CommentStatus | '') {
   if (status.value === value) return
   status.value = value
   load(1)
+}
+
+function switchType(value: CommentTarget | '') {
+  const next = value || null
+  if (targetType.value === next) return
+  targetType.value = next
+  load(1)
+}
+
+function targetLabel(item: AdminComment): string {
+  return item.targetType === 'BOARD' ? '留言板留言' : `回复了「${item.targetTitle ?? ''}」`
 }
 
 function go(p: number) {

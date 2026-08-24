@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AdminComment, CommentInput, CommentNode, CommentStatus, PageResult } from '#shared/types'
+import type { AdminComment, CommentInput, CommentNode, CommentStatus, CommentTarget, PageResult } from '#shared/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const useCommentsStore = defineStore('comments', () => {
@@ -12,20 +12,28 @@ export const useCommentsStore = defineStore('comments', () => {
     })
   }
 
-  /** 发表评论（同一 IP 每分钟 1 条；是否先审后显由后端配置决定） */
+  /** 发表评论/留言：targetType=BOARD 走留言板接口，否则按 articleId 发文章评论 */
   async function create(input: CommentInput): Promise<AdminComment> {
-    return apiFetch<AdminComment>('/api/v1/comments', {
+    const url = input.targetType === 'BOARD' ? '/api/v1/board/messages' : '/api/v1/comments'
+    return apiFetch<AdminComment>(url, {
       method: 'POST',
       body: input as unknown as Record<string, unknown>,
     })
   }
 
+  /** 分页查看留言板留言 */
+  async function fetchBoardMessages(page = 1, size = 24) {
+    return apiFetch<PageResult<CommentNode>>('/api/v1/board/messages', {
+      query: cleanQuery({ page, size }),
+    })
+  }
+
   /* ---------- 管理端 ---------- */
 
-  /** 管理端分页查询，status 不传查全部 */
-  async function fetchAdmin(status?: CommentStatus | '', page = 1, size = 20) {
+  /** 管理端分页查询，status / targetType 不传查全部 */
+  async function fetchAdmin(status?: CommentStatus | '', page = 1, size = 20, targetType?: CommentTarget | '') {
     return apiFetch<PageResult<AdminComment>>('/api/admin/comments', {
-      query: cleanQuery({ status, page, size }),
+      query: cleanQuery({ status, page, size, targetType }),
     })
   }
 
@@ -42,5 +50,5 @@ export const useCommentsStore = defineStore('comments', () => {
     await apiFetch<void>(`/api/admin/comments/${id}`, { method: 'DELETE' })
   }
 
-  return { fetchByArticle, create, fetchAdmin, approve, reject, remove }
+  return { fetchByArticle, create, fetchBoardMessages, fetchAdmin, approve, reject, remove }
 })

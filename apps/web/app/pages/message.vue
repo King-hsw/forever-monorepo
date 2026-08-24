@@ -15,7 +15,7 @@
       <div ref="formEl" class="card wall-form fade-up" style="--stagger-index: 1">
         <h2 class="wall-form__title">{{ replyTo ? `回复 @${replyTo.nickname}` : '留下你的足迹 ✍️' }}</h2>
         <CommentForm
-          :article-id="board.id"
+          target-type="BOARD"
           :reply-to="replyTo"
           :mention="mentionName"
           placeholder-suffix="（留言）"
@@ -105,19 +105,18 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentNode, Post } from '#shared/types'
+import type { BoardInfo, CommentNode } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 import { usePageSeo } from '~/composables/usePageSeo'
 
-/** 留言板：后端固定 slug 为 message 的独立页面（type=PAGE），留言即它下面的评论 */
-const BOARD_SLUG = 'message'
+/** 留言板：独立于文章，留言即 target_type=BOARD 的评论 */
 const PAGE_SIZE = 24
 
 const commentsStore = useCommentsStore()
 
-/** 公开页面详情（仅已发布可访问） */
-const { data: board, error } = await useAsyncData(`page-${BOARD_SLUG}`, () =>
-  apiFetch<Post>(`/api/v1/articles/${BOARD_SLUG}`),
+/** 留言板标题/简介，来自后台站点设置 board.title / board.summary */
+const { data: board, error } = await useAsyncData('board-info', () =>
+  apiFetch<BoardInfo>('/api/v1/board'),
 )
 
 if (error.value || !board.value) {
@@ -137,7 +136,7 @@ const hasMore = computed(() => messages.value.length < total.value)
 async function load(targetPage = page.value) {
   loading.value = true
   try {
-    const data = await commentsStore.fetchByArticle(board.value!.id, targetPage, PAGE_SIZE)
+    const data = await commentsStore.fetchBoardMessages(targetPage, PAGE_SIZE)
     if (targetPage === 1) messages.value = data.list
     else messages.value.push(...data.list)
     total.value = data.total
