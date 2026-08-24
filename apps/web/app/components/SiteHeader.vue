@@ -6,11 +6,32 @@
         <span class="brand__name">补陋阁</span>
       </NuxtLink>
 
-      <!-- 桌面端导航 -->
+      <!-- 桌面端导航（数据驱动，children 渲染为下拉） -->
       <nav class="site-nav" aria-label="主导航">
-        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="site-nav__link">
-          {{ item.label }}
-        </NuxtLink>
+        <template v-for="item in navItems" :key="item.label">
+          <div v-if="item.children" class="site-nav__dropdown">
+            <button type="button" class="site-nav__link site-nav__toggle" :aria-expanded="undefined">
+              {{ item.label }}
+              <svg class="site-nav__caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+                <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+            <div class="site-nav__panel">
+              <NuxtLink
+                v-for="child in item.children"
+                :key="child.to"
+                :to="child.to"
+                class="site-nav__sublink"
+                @keydown.esc="blurTarget"
+              >
+                {{ child.label }}
+              </NuxtLink>
+            </div>
+          </div>
+          <NuxtLink v-else :to="item.to" class="site-nav__link">
+            {{ item.label }}
+          </NuxtLink>
+        </template>
       </nav>
 
       <div class="site-header__actions">
@@ -80,13 +101,22 @@
     <!-- 移动端下拉菜单 -->
     <Transition name="menu">
       <nav v-if="menuOpen" class="mobile-menu" aria-label="移动端导航">
-        <NuxtLink class="mobile-menu__link" to="/" @click="menuOpen = false">首页</NuxtLink>
-        <NuxtLink class="mobile-menu__link" to="/posts" @click="menuOpen = false">全部文章</NuxtLink>
+        <template v-for="item in navItems" :key="item.label">
+          <NuxtLink v-if="!item.children" class="mobile-menu__link" :to="item.to" @click="menuOpen = false">
+            {{ item.label }}
+          </NuxtLink>
+          <!-- 子菜单平铺缩进展示 -->
+          <NuxtLink
+            v-for="child in item.children ?? []"
+            :key="child.to"
+            class="mobile-menu__link mobile-menu__link--sub"
+            :to="child.to"
+            @click="menuOpen = false"
+          >
+            {{ child.label }}
+          </NuxtLink>
+        </template>
         <NuxtLink class="mobile-menu__link mobile-menu__link--search" to="/search" @click="menuOpen = false">🔍 搜索文章</NuxtLink>
-        <NuxtLink class="mobile-menu__link" to="/archive" @click="menuOpen = false">归档</NuxtLink>
-        <NuxtLink class="mobile-menu__link" to="/message" @click="menuOpen = false">留言墙</NuxtLink>
-        <NuxtLink class="mobile-menu__link" to="/friends" @click="menuOpen = false">友链</NuxtLink>
-        <NuxtLink class="mobile-menu__link" to="/rss" @click="menuOpen = false">订阅</NuxtLink>
         <NuxtLink class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
         <a class="mobile-menu__link" href="/rss.xml" target="_blank" rel="noopener" @click="menuOpen = false">RSS 订阅</a>
       </nav>
@@ -103,13 +133,34 @@ withDefaults(defineProps<{ width?: string }>(), { width: '1080px' })
 const route = useRoute()
 const router = useRouter()
 
-const navItems = [
-  { label: '全部文章', to: '/posts' },
-  { label: '归档', to: '/archive' },
-  { label: '留言墙', to: '/message' },
+interface NavItem {
+  label: string
+  to: string
+  /** 有 children 时渲染为下拉分组（移动端平铺缩进） */
+  children?: { label: string, to: string }[]
+}
+
+/** 后续加菜单只改这里 */
+const navItems: NavItem[] = [
+  { label: '首页', to: '/' },
+  { label: '文章', to: '/posts' },
+  { label: '朋友圈', to: '/moments' },
+  { label: '留言', to: '/message' },
   { label: '友链', to: '/friends' },
-  { label: '订阅', to: '/rss' },
+  {
+    label: '更多',
+    to: '/archive', // 占位路由，父级本身不跳转
+    children: [
+      { label: '归档', to: '/archive' },
+      { label: '订阅', to: '/rss' },
+    ],
+  },
 ]
+
+/** Esc 收起「更多」下拉：面板由 focus-within 控制，失焦即关 */
+function blurTarget(e: Event) {
+  ;(e.currentTarget as HTMLElement).blur()
+}
 
 /* 滚动后切换为玻璃拟态背景 */
 const scrolled = ref(false)
@@ -303,6 +354,70 @@ function onBrandClick() {
   color: var(--c-primary);
   background: var(--c-primary-light);
   font-weight: 600;
+}
+
+/* ---- 「更多」下拉：hover / focus-within 展开，Esc 失焦即关 ---- */
+.site-nav__dropdown {
+  position: relative;
+}
+
+.site-nav__toggle {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-family: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.site-nav__caret {
+  transition: transform 0.2s ease;
+}
+
+.site-nav__dropdown:hover .site-nav__caret,
+.site-nav__dropdown:focus-within .site-nav__caret {
+  transform: rotate(180deg);
+}
+
+.site-nav__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  min-width: 128px;
+  padding: 6px;
+  visibility: hidden;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card-hover);
+  opacity: 0;
+  transform: translate(-50%, -4px);
+  transition: opacity 0.18s ease, transform 0.18s var(--ease-bounce), visibility 0.18s;
+}
+
+.site-nav__dropdown:hover .site-nav__panel,
+.site-nav__dropdown:focus-within .site-nav__panel {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.site-nav__sublink {
+  display: block;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.site-nav__sublink:hover,
+.site-nav__sublink.router-link-active {
+  color: var(--c-primary);
+  background: var(--c-primary-light);
 }
 
 .site-nav__link--quiet {
@@ -533,6 +648,12 @@ function onBrandClick() {
 .mobile-menu__link.router-link-active {
   color: var(--c-primary);
   background: var(--c-primary-light);
+}
+
+.mobile-menu__link--sub {
+  padding-left: 32px;
+  font-size: 13.5px;
+  color: var(--c-text-muted);
 }
 
 .menu-enter-active,

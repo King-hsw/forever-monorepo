@@ -55,7 +55,10 @@
                 <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号 ↗</a>
               </li>
               <li>
-                <a href="https://www.travellings.cn/" target="_blank" rel="noopener" title="开往">开往 ↗</a>
+                <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">闽ICP备202200094号-2</a>
+              </li>
+              <li>
+                <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机前往一位成员博客">开往 ↗</a>
               </li>
               <li>
                 <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约 ↗</a>
