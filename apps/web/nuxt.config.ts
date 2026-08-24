@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     manifest: {
       name: '补陋阁',
       short_name: '补陋阁',
-      description: '补陋阁 - 离线可用的 Web 应用',
+      description: '补陋阁 —— 斯是陋室，惟吾德馨',
       start_url: '/',
       display: 'standalone',
       orientation: 'any',

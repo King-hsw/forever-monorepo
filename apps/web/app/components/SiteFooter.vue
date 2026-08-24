@@ -16,8 +16,7 @@
             <span class="site-footer__name">补陋阁</span>
           </div>
           <p class="site-footer__desc">
-            记录技术与思考，<br>
-            每一篇文字都是与时间的对话。
+            斯是陋室，惟吾德馨。
           </p>
           <div class="site-footer__uptime" :title="'自 ' + birthLabel + ' 起'">
             <span class="site-footer__uptime-dot" aria-hidden="true" />

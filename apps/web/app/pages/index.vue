@@ -11,28 +11,18 @@
     <!-- ===== Header：吸顶导航，滚动后变为玻璃拟态 ===== -->
     <SiteHeader />
 
-    <!-- ===== Hero：头像 + 问候 + 眉题签名 + 引言（构图参考余白首页） ===== -->
+    <!-- ===== Hero：阁名 + 引言 ===== -->
     <section ref="heroEl" class="hero">
       <div class="hero__bg" aria-hidden="true">
         <div class="hero__glow" />
       </div>
 
       <div ref="heroContent" class="hero__content">
-        <p class="hero__motto fade-hero" style="--hd: 90ms">记 录 技 术 与 思 考</p>
+        <h1 class="hero__title fade-hero" style="--hd: 90ms">补陋阁</h1>
 
-        <h1 class="hero__title fade-hero" style="--hd: 180ms">补陋阁</h1>
+        <p class="hero__quote fade-hero" style="--hd: 180ms">「斯是陋室，惟吾德馨。」<span class="hero__quote-from">—— 刘禹锡《陋室铭》</span></p>
 
-        <p class="hero__quote fade-hero" style="--hd: 270ms">「斯是陋室，惟吾德馨。」<span class="hero__quote-from">—— 刘禹锡《陋室铭》</span></p>
-
-        <p class="hero__stats fade-hero" style="--hd: 360ms">
-          <span><strong>{{ publishedPosts.length }}</strong> 篇文章</span>
-          <span class="hero__stats-dot">·</span>
-          <span><strong>{{ categories?.length ?? 0 }}</strong> 个分类</span>
-          <span class="hero__stats-dot">·</span>
-          <span><strong>{{ tags?.length ?? 0 }}</strong> 个标签</span>
-        </p>
-
-        <div class="hero__actions fade-hero" style="--hd: 450ms">
+        <div class="hero__actions fade-hero" style="--hd: 360ms">
           <button type="button" class="hero__cta" @click="scrollToId('latest')">
             开始阅读
             <span class="hero__cta-arrow">↓</span>
@@ -444,7 +434,7 @@ function categoryName(categoryId: number | null): string {
 }
 
 usePageSeo({
-  title: '补陋阁 - 记录技术与思考',
+  title: '补陋阁',
   path: '/',
 })
 </script>
@@ -536,7 +526,7 @@ html.dark .hero__glow {
 
 /* 标题：衬线大字，阁名居中，宽字距显文气 */
 .hero__title {
-  margin: 20px 0 0;
+  margin: 0;
   font-family: var(--font-serif);
   font-size: clamp(46px, 8vw, 68px);
   font-weight: 600;
@@ -544,15 +534,6 @@ html.dark .hero__glow {
   letter-spacing: 0.14em;
   text-indent: 0.14em; /* 平衡末字字距带来的视觉偏移 */
   color: var(--c-text);
-}
-
-/* 眉题：标题上方的宽字距小字 */
-.hero__motto {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.3em;
-  text-indent: 0.3em;
-  color: var(--c-text-muted);
 }
 
 /* 引言：衬线斜体，卷首的一句引言 */
@@ -571,30 +552,6 @@ html.dark .hero__glow {
   margin-left: 10px;
   font-size: 13px;
   color: var(--c-text-muted);
-}
-
-/* 统计：一行素净的数字，像书前的版权页数据 */
-.hero__stats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: 10px;
-  margin: 34px 0 0;
-  font-size: 13.5px;
-  color: var(--c-text-muted);
-  font-variant-numeric: tabular-nums;
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
-}
-
-.hero__stats strong {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--c-text-secondary);
-}
-
-.hero__stats-dot {
-  opacity: 0.5;
 }
 
 /* 按钮：素净描边胶囊，悬停时才染上主题色 */
