@@ -88,7 +88,11 @@ export default defineNuxtConfig({
   app: {
     head: {
       meta: [
-        { name: 'theme-color', content: '#6366f1' }
+        { name: 'theme-color', content: '#6366f1' },
+        // iOS standalone 模式：状态栏与页面背景同色
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        // 刘海屏：页面延伸到安全区外，配合 CSS env(safe-area-inset-*) 使用
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
       ],
       script: [
         {
