@@ -60,19 +60,25 @@
 
           <section class="drawer-section">
             <span class="drawer-label">标签</span>
-            <div class="composer__tags">
-              <button
-                v-for="tag in tagsStore.list"
-                :key="tag.id"
-                type="button"
-                class="tag-option"
-                :class="{ 'is-active': form.tagIds.includes(tag.id) }"
-                @click="toggleTag(tag.id)"
-              >
+            <!-- 标签输入框：回车添加，已有标签直接选中、没有的现场创建 -->
+            <div class="tag-input" @click="tagInputEl?.focus()">
+              <span v-for="tag in selectedTags" :key="tag.id" class="tag-chip">
                 {{ tag.name }}
-              </button>
-              <p v-if="!tagsStore.list.length" class="field-hint">暂无可选标签，可在「分类标签」页新增</p>
+                <button type="button" :aria-label="`移除标签 ${tag.name}`" @click.stop="removeTag(tag.id)">×</button>
+              </span>
+              <input
+                ref="tagInputEl"
+                v-model="tagDraft"
+                type="text"
+                :placeholder="selectedTags.length ? '' : '输入标签，回车添加'"
+                @keydown.enter.prevent="addTag"
+                @keydown.backspace="onBackspace"
+              >
             </div>
+            <p v-if="suggestions.length" class="tag-suggest">
+              已有：
+              <button v-for="s in suggestions" :key="s.id" type="button" @click="selectTag(s)">{{ s.name }}</button>
+            </p>
           </section>
 
           <section class="drawer-section">
@@ -92,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Post, PostInput, PostStatus } from '#shared/types'
+import type { Post, PostInput, PostStatus, Tag } from '#shared/types'
 
 const props = withDefaults(defineProps<{
   initial?: Post | null
@@ -168,6 +174,54 @@ function toggleTag(id: number) {
   const idx = form.tagIds.indexOf(id)
   if (idx >= 0) form.tagIds.splice(idx, 1)
   else form.tagIds.push(id)
+}
+
+/* ---- 标签输入：即输即建 ---- */
+const tagDraft = ref('')
+const tagInputEl = ref<HTMLInputElement | null>(null)
+
+const selectedTags = computed(() =>
+  form.tagIds
+    .map(id => tagsStore.list.find(t => t.id === id))
+    .filter((t): t is Tag => !!t),
+)
+
+// 输入时提示名称匹配的已有标签（排除已选）
+const suggestions = computed(() => {
+  const q = tagDraft.value.trim().toLowerCase()
+  if (!q) return []
+  return tagsStore.list
+    .filter(t => t.name.toLowerCase().includes(q) && !form.tagIds.includes(t.id))
+    .slice(0, 5)
+})
+
+async function addTag() {
+  const name = tagDraft.value.trim()
+  if (!name) return
+  try {
+    // 已存在则复用，不存在则现场创建
+    const existing = tagsStore.list.find(t => t.name === name)
+    const tag = existing ?? await tagsStore.create(name)
+    if (!form.tagIds.includes(tag.id)) form.tagIds.push(tag.id)
+    tagDraft.value = ''
+  } catch (err) {
+    alert(err instanceof Error ? err.message : '创建标签失败')
+  }
+}
+
+function selectTag(tag: Tag) {
+  if (!form.tagIds.includes(tag.id)) form.tagIds.push(tag.id)
+  tagDraft.value = ''
+  tagInputEl.value?.focus()
+}
+
+function removeTag(id: number) {
+  form.tagIds.splice(form.tagIds.indexOf(id), 1)
+}
+
+/** 输入框为空时按退格删除最后一个标签 */
+function onBackspace() {
+  if (!tagDraft.value && form.tagIds.length) form.tagIds.pop()
 }
 </script>
 
@@ -288,23 +342,83 @@ select.field-input {
   gap: 7px;
 }
 
-.tag-option {
-  padding: 4px 13px;
-  font-size: 13px;
-  color: var(--c-text-secondary);
-  background: var(--c-bg-soft);
-  border: 1px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s, transform 0.15s;
+/* ---- 标签输入框（chip 式，紧凑不占空间） ---- */
+.tag-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 5px 8px;
+  cursor: text;
+  background: var(--c-bg-card);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--radius-control);
 
-  &:hover {
-    transform: translateY(-1px);
+  &:focus-within {
+    border-color: var(--c-primary);
   }
 
-  &.is-active {
-    color: #fff;
-    background: var(--c-primary);
+  input {
+    flex: 1;
+    min-width: 7ch;
+    font: inherit;
+    font-size: 13px;
+    color: var(--c-text);
+    background: none;
+    border: none;
+    outline: none;
+  }
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px 2px 10px;
+  font-size: 12.5px;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+  border-radius: 999px;
+
+  button {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--c-text-muted);
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+
+    &:hover {
+      color: #fff;
+      background: var(--c-danger);
+    }
+  }
+}
+
+.tag-suggest {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+
+  button {
+    padding: 1px 8px;
+    margin-right: 4px;
+    font-size: 12px;
+    color: var(--c-primary-hover);
+    background: var(--c-primary-light);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
