@@ -314,7 +314,9 @@ async function saveForm() {
           roleIds: userForm.roleIds,
         },
       })
-      users.value = [...users.value, user]
+      // 后端创建接口回传的 roles 恒为空列表，用勾选的角色本地补齐
+      const created: UserView = { ...user, roles: rolesOf(userForm.roleIds) }
+      users.value = [...users.value, created]
     } else {
       const role = await apiFetch<SysRole>('/api/admin/roles', {
         method: 'POST',
@@ -330,6 +332,13 @@ async function saveForm() {
   }
 }
 
+/** 按 id 把角色 id 列表转成 SysRole 列表（后端 Void 响应时本地同步用） */
+function rolesOf(ids: number[]): SysRole[] {
+  return ids
+    .map(id => roles.value.find(r => r.id === id))
+    .filter((r): r is SysRole => !!r)
+}
+
 /* ---------- 用户操作 ---------- */
 const rolesUserId = ref<number | null>(null)
 const rolesDraft = ref<number[]>([])
@@ -342,11 +351,12 @@ function toggleRoles(user: UserView) {
 async function saveUserRoles(user: UserView) {
   saving.value = true
   try {
-    const updated = await apiFetch<UserView>(`/api/admin/users/${user.id}/roles`, {
+    // 接口返回 Void，成功后直接用草稿本地同步
+    await apiFetch(`/api/admin/users/${user.id}/roles`, {
       method: 'PUT',
       body: { roleIds: rolesDraft.value },
     })
-    users.value = users.value.map(u => (u.id === user.id ? updated : u))
+    users.value = users.value.map(u => (u.id === user.id ? { ...u, roles: rolesOf(rolesDraft.value) } : u))
     rolesUserId.value = null
   } catch (err) {
     reportError(err)
@@ -358,11 +368,11 @@ async function saveUserRoles(user: UserView) {
 async function toggleStatus(user: UserView) {
   const next = user.status === 'ACTIVE' ? 'DISABLED' : 'ACTIVE'
   try {
-    const updated = await apiFetch<UserView>(`/api/admin/users/${user.id}/status`, {
+    await apiFetch(`/api/admin/users/${user.id}/status`, {
       method: 'PUT',
       body: { status: next },
     })
-    users.value = users.value.map(u => (u.id === user.id ? updated : u))
+    users.value = users.value.map(u => (u.id === user.id ? { ...u, status: next } : u))
   } catch (err) {
     reportError(err)
   }
