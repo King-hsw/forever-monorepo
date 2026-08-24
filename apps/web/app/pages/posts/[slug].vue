@@ -18,7 +18,8 @@
             <a
               :href="`#${item.id}`"
               class="toc__link"
-              :class="{ 'is-active': activeId === item.id, 'is-h3': item.level === 3 }"
+              :class="{ 'is-active': activeId === item.id }"
+              :style="{ paddingLeft: `${14 + (item.level - 2) * 14}px` }"
               @click.prevent="scrollToHeading(item.id)"
             >{{ item.text }}</a>
           </li>
@@ -114,7 +115,7 @@ const relatedPosts = computed(() =>
     .slice(0, 4),
 )
 
-/** 从 Markdown 提取 h2/h3 标题生成目录（跳过围栏代码块；id 按出现顺序编号，渲染时按同样顺序写入 DOM） */
+/** 从 Markdown 提取 h2~h6 标题生成目录（跳过围栏代码块；id 按出现顺序编号，渲染时按同样顺序写入 DOM） */
 // ponytail: 只识别 ATX 标题（# 形式），setext 标题（=== 下划线）极少用，需要时再支持
 const toc = computed(() => {
   const items: { id: string; text: string; level: number }[] = []
@@ -122,7 +123,7 @@ const toc = computed(() => {
   for (const line of (post.value?.content ?? '').split('\n')) {
     if (/^(```|~~~)/.test(line.trim())) inCode = !inCode
     if (inCode) continue
-    const match = line.match(/^(#{2,3})\s+(.+?)\s*#*\s*$/)
+    const match = line.match(/^(#{2,6})\s+(.+?)\s*#*\s*$/)
     const tag = match?.[1]
     const raw = match?.[2]
     if (!tag || !raw) continue
@@ -140,9 +141,9 @@ const activeId = ref('')
 /** 移动端目录面板展开状态（桌面端常显，不生效） */
 const tocOpen = ref(false)
 
-/** 挂载后给正文中对应的 h2/h3 写入锚点 id（顺序与 toc 一致） */
+/** 挂载后给正文中对应的 h2~h6 写入锚点 id（顺序与 toc 一致） */
 onMounted(() => {
-  const nodes = bodyEl.value?.querySelectorAll('.article-body h2, .article-body h3')
+  const nodes = bodyEl.value?.querySelectorAll('.article-body :is(h2, h3, h4, h5, h6)')
   nodes?.forEach((el, i) => {
     if (toc.value[i]) el.id = toc.value[i]!.id
   })
@@ -289,11 +290,6 @@ usePageSeo({
 
   &:hover {
     color: var(--c-primary);
-  }
-
-  &.is-h3 {
-    padding-left: 28px;
-    font-size: 12.5px;
   }
 
   &.is-active {
