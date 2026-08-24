@@ -206,6 +206,29 @@ export interface PageResult<T> {
   size: number
 }
 
+/* ===== 全局搜索 ===== */
+
+/** 搜索结果条目的高亮片段；关键词由后端用 <em> 包裹（文本已转义） */
+export interface SearchHighlight {
+  title?: string
+  excerpt?: string
+}
+
+/** 全局搜索结果条目（对应 SearchItemResponse） */
+export interface SearchItem {
+  id: number
+  slug: string
+  /** 原始标题 */
+  title: string
+  categoryName: string | null
+  tags: TagItem[]
+  createdAt: string
+  highlights: SearchHighlight | null
+}
+
+/** 搜索接口响应：复用统一分页结构 */
+export type SearchResponse = PageResult<SearchItem>
+
 /** 当前登录用户信息 */
 export interface MeInfo {
   uid: number
