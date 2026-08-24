@@ -83,10 +83,8 @@
             <path d="M6.18 17.82a2.18 2.18 0 1 1-4.36 0 2.18 2.18 0 0 1 4.36 0ZM1.82 8.91v3.09a10.18 10.18 0 0 1 10.18 10.18h3.09A13.27 13.27 0 0 0 1.82 8.91Zm0-7.09v3.09a17.27 17.27 0 0 1 17.27 17.27h3.09A20.36 20.36 0 0 0 1.82 1.82Z" />
           </svg>
         </a>
-        <ClientOnly>
-          <NuxtLink v-if="auth.isAuthenticated" class="site-nav__link site-nav__link--quiet" to="/admin">管理</NuxtLink>
-          <span v-if="auth.isAuthenticated" class="site-header__divider" aria-hidden="true" />
-        </ClientOnly>
+        <NuxtLink v-if="auth.isAuthenticated" class="site-nav__link site-nav__link--quiet" to="/admin">管理</NuxtLink>
+        <span v-if="auth.isAuthenticated" class="site-header__divider" aria-hidden="true" />
         <span class="site-header__divider" aria-hidden="true" />
         <div class="site-header__theme"><ThemeToggle /></div>
         <button
@@ -120,9 +118,7 @@
           </NuxtLink>
         </template>
         <NuxtLink class="mobile-menu__link mobile-menu__link--search" to="/search" @click="menuOpen = false">🔍 搜索文章</NuxtLink>
-        <ClientOnly>
-          <NuxtLink v-if="auth.isAuthenticated" class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
-        </ClientOnly>
+        <NuxtLink v-if="auth.isAuthenticated" class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
         <a class="mobile-menu__link" href="/rss.xml" target="_blank" rel="noopener" @click="menuOpen = false">RSS 订阅</a>
       </nav>
     </Transition>

@@ -9,6 +9,8 @@
 import type { ApiResponse } from '#shared/types'
 
 const AUTH_KEY = 'forever-admin-auth'
+/** 镜像 cookie 有效期（秒）；token 本身以后端的过期时间为准，这里只需足够长 */
+const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
 /** 业务错误（后端返回 code !== 0 或 HTTP 层错误） */
 export class ApiError extends Error {
@@ -21,17 +23,29 @@ export class ApiError extends Error {
   }
 }
 
-interface AuthStorage {
+/** 登录信息的镜像 cookie 名；SSR 端据此判断登录态（值与 localStorage 相同的 JSON） */
+export const AUTH_COOKIE = 'forever-admin-auth'
+
+export interface AuthStorage {
   token: string
   username: string
+}
+
+/** 解析登录信息 JSON，脏数据返回 null */
+function parseAuth(raw: string | undefined | null): AuthStorage | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as AuthStorage
+  } catch {
+    return null
+  }
 }
 
 /** 从 localStorage 读取登录信息（SSR 阶段返回 null） */
 export function loadAuth(): AuthStorage | null {
   if (!import.meta.client) return null
   try {
-    const raw = localStorage.getItem(AUTH_KEY)
-    return raw ? (JSON.parse(raw) as AuthStorage) : null
+    return parseAuth(localStorage.getItem(AUTH_KEY))
   } catch {
     localStorage.removeItem(AUTH_KEY)
     return null
@@ -40,12 +54,16 @@ export function loadAuth(): AuthStorage | null {
 
 export function saveAuth(token: string, username: string) {
   if (!import.meta.client) return
-  localStorage.setItem(AUTH_KEY, JSON.stringify({ token, username }))
+  const raw = JSON.stringify({ token, username })
+  localStorage.setItem(AUTH_KEY, raw)
+  // 镜像一份到 cookie，让 Nuxt SSR 渲染时能感知登录态
+  document.cookie = `${AUTH_COOKIE}=${encodeURIComponent(raw)}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; samesite=lax`
 }
 
 export function clearAuth() {
   if (!import.meta.client) return
   localStorage.removeItem(AUTH_KEY)
+  document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; samesite=lax`
 }
 
 export interface ApiOptions {

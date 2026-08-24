@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import type { MeInfo } from '#shared/types'
-import { apiFetch, clearAuth, loadAuth, saveAuth } from '~/utils/api'
+import { AUTH_COOKIE, apiFetch, clearAuth, loadAuth, saveAuth, type AuthStorage } from '~/utils/api'
 
 interface LoginResponse {
   accessToken: string
@@ -12,9 +12,30 @@ export const useAuthStore = defineStore('admin-auth', () => {
   const username = ref<string | null>(null)
   const isAuthenticated = computed(() => !!token.value)
 
-  /** 客户端从 localStorage 恢复登录态（仅执行一次） */
+  /** SSR 端从请求 cookie 解析登录信息；需在 Nuxt 上下文中调用 */
+  function parseAuthCookie(): AuthStorage | null {
+    // Nuxt 的 useCookie 默认用 destr 解析，JSON 字符串会直接得到对象
+    const value = useCookie<AuthStorage | string | null>(AUTH_COOKIE).value
+    if (!value) return null
+    if (typeof value === 'object') return value
+    try {
+      return JSON.parse(value) as AuthStorage
+    } catch {
+      return null
+    }
+  }
+
+  /** 恢复登录态：客户端读 localStorage，服务端读镜像 cookie（仅执行一次） */
   function hydrate() {
-    if (!import.meta.client || token.value) return
+    if (token.value) return
+    if (import.meta.server) {
+      const auth = parseAuthCookie()
+      if (auth) {
+        token.value = auth.token
+        username.value = auth.username
+      }
+      return
+    }
     const auth = loadAuth()
     if (auth) {
       token.value = auth.token
