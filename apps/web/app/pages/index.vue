@@ -145,6 +145,54 @@
       <!-- 02 创作足迹：独立成章，居中标题 + 居中面板 -->
 
 
+      <!-- 02 灵感与实验场：bento 网格 + 创作律动热力图 -->
+      <section id="lab" class="lab">
+        <div class="lab__inner">
+          <header class="section-head reveal">
+            <p class="section-head__caption">卷贰 · 游艺</p>
+            <h2 class="section-head__title">灵感与实验场</h2>
+            <p class="section-head__desc">这个阁子的一点点积累，和正在折腾的东西。</p>
+          </header>
+
+          <div class="bento reveal">
+            <div class="bento__tile bento__tile--intro">
+              <p class="bento__eyebrow">卷首语</p>
+              <p class="bento__lede">斯是陋室，惟吾德馨。</p>
+              <p class="bento__note">这里记下技术、生活，和一些胡思乱想。屋子虽小，字都认真写。</p>
+            </div>
+
+            <div class="bento__tile bento__tile--stats">
+              <div v-for="s in homeStats" :key="s.label" class="bento__stat">
+                <span class="bento__stat-num">{{ s.value }}</span>
+                <span class="bento__stat-label">{{ s.label }}</span>
+              </div>
+            </div>
+
+            <NuxtLink to="/archive" class="bento__tile bento__tile--link">
+              <span class="bento__link-name">归档</span>
+              <span class="bento__link-hint">全部文章按月排列 →</span>
+            </NuxtLink>
+            <NuxtLink to="/moments" class="bento__tile bento__tile--link">
+              <span class="bento__link-name">朋友圈</span>
+              <span class="bento__link-hint">不成文的碎碎念 →</span>
+            </NuxtLink>
+            <NuxtLink to="/friends" class="bento__tile bento__tile--link">
+              <span class="bento__link-name">友链</span>
+              <span class="bento__link-hint">隔壁的博客们 →</span>
+            </NuxtLink>
+            <NuxtLink to="/about" class="bento__tile bento__tile--link">
+              <span class="bento__link-name">关于</span>
+              <span class="bento__link-hint">阁主是谁，站从何来 →</span>
+            </NuxtLink>
+          </div>
+
+          <div class="rhythm reveal">
+            <h3 class="rhythm__title">创作律动</h3>
+            <PostHeatmap :posts="publishedPosts" />
+          </div>
+        </div>
+      </section>
+
       <!-- 03 朋友文章：订阅的博客最新文章，丰富首页内容 -->
       <section id="feed" class="feed-section">
         <div class="feed-section__inner">
@@ -208,7 +256,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, RssItem, Tag } from '#shared/types'
+import type { Category, PageResult, Post, RssItem, SiteInfo, Tag } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
 
 // 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
@@ -226,6 +274,13 @@ const { data: feedPage } = await useAsyncData('home-rss-items', () =>
   apiFetch<PageResult<RssItem>>('/api/v1/rss/items', { query: { page: 1, size: 6 } }),
 )
 const feedItems = computed(() => feedPage.value?.list ?? [])
+
+// 站点信息：建站日期算运行天数（与页脚共用缓存）
+const { data: siteInfo } = await useAsyncData('site-info', () => apiFetch<SiteInfo>('/api/v1/site'))
+const runDays = computed(() => {
+  const birth = siteInfo.value?.birthDate || '2025-01-01'
+  return Math.max(0, Math.floor((Date.now() - new Date(`${birth}T00:00:00+08:00`).getTime()) / 86_400_000))
+})
 
 /** 已发布文章，按发布时间倒序 */
 const sortKey = (p: Post) => p.publishedAt ?? p.createdAt
@@ -255,6 +310,14 @@ const categoryCards = computed(() =>
     }))
     .sort((a, b) => b.count - a.count)
 )
+
+/** bento 统计块：文章 / 分类 / 标签 / 运行天数 */
+const homeStats = computed(() => [
+  { value: totalPosts.value, label: '文章' },
+  { value: categories.value?.length ?? 0, label: '分类' },
+  { value: tags.value?.length ?? 0, label: '标签' },
+  { value: runDays.value.toLocaleString(), label: '运行天数' },
+])
 
 /** 标签云：按使用次数排序，字号随次数在 13~21px 间浮动 */
 const tagCloud = computed(() => {
@@ -290,6 +353,7 @@ function scrollToTop() {
 /** 首页章节（顺序即叙事顺序，标签取乾卦爻辞：龙之进阶） */
 const sections = [
   { id: 'latest', label: '初九 · 潜龙勿用' },
+  { id: 'lab', label: '九二 · 见龙在田' },
   { id: 'feed', label: '九四 · 或跃在渊' },
   { id: 'subscribe', label: '九五 · 飞龙在天' },
 ]
@@ -843,8 +907,8 @@ usePageSeo({
     padding: 64px 0;
   }
 
-  .finale {
-    min-height: 60vh;
+  .lab {
+    padding: 64px 0;
   }
 }
 
@@ -1189,6 +1253,147 @@ usePageSeo({
  */
 
 /* ---- 朋友文章：订阅的博客最新文章 ---- */
+/* ---- 灵感与实验场：bento 网格 + 创作律动 ---- */
+.lab {
+  scroll-margin-top: 56px;
+  padding: 100px 0;
+}
+
+.lab__inner {
+  width: min(1080px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 40px;
+  grid-auto-rows: 110px;
+}
+
+/* 无卡片外壳，用软色块分区；悬停染上玉青即可 */
+.bento__tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px 22px;
+  background: var(--c-bg-soft);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  text-decoration: none;
+  transition: background-color var(--dur-soft) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bento__tile--link:hover,
+  .bento__tile:hover {
+    background: color-mix(in srgb, var(--c-primary) 8%, var(--c-bg-soft));
+  }
+}
+
+.bento__tile--intro {
+  grid-column: span 2;
+  grid-row: span 2;
+  background:
+    radial-gradient(ellipse at top right, rgb(13 148 136 / 9%), transparent 60%),
+    var(--c-bg-soft);
+}
+
+.bento__eyebrow {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--c-primary);
+}
+
+.bento__lede {
+  margin: 14px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--c-text);
+}
+
+.bento__note {
+  margin: auto 0 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--c-text-secondary);
+}
+
+.bento__tile--stats {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 14px 22px;
+}
+
+.bento__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bento__stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text);
+}
+
+.bento__stat-label {
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+}
+
+.bento__tile--link {
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.bento__link-name {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.bento__link-hint {
+  font-size: 11.5px;
+  color: var(--c-text-muted);
+}
+
+@media (min-width: 900px) {
+  .bento {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .bento__tile--intro,
+  .bento__tile--stats {
+    grid-row: span 1;
+    height: auto;
+  }
+}
+
+.rhythm {
+  margin-top: 56px;
+}
+
+.rhythm__title {
+  margin: 0 0 18px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--c-text-secondary);
+}
+
+/* ---- 朋友文章 ---- */
 .feed-section {
   scroll-margin-top: 56px;
   padding: 100px 0;
@@ -1264,10 +1469,10 @@ usePageSeo({
   }
 }
 .finale {
-  display: grid;
-  place-items: center;
-  min-height: 62vh;
-  padding: 80px 24px;
+  /* 参考站式收尾：一条玉青细线之上的居中横带 */
+  margin-top: 40px;
+  padding: 72px 24px 88px;
+  border-top: 1px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
 }
 
 .finale__inner {
@@ -1284,9 +1489,10 @@ usePageSeo({
 }
 
 .finale__title {
-  margin: 18px 0 0;
-  font-size: clamp(22px, 3vw, 28px);
-  font-weight: 800;
+  margin: 16px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 2.6vw, 25px);
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--c-text);
 }

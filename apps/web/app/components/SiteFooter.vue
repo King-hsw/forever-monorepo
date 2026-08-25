@@ -140,7 +140,7 @@ onUnmounted(() => {
 }
 
 .site-footer__wave path {
-  fill: var(--c-bg);
+  fill: color-mix(in srgb, var(--c-primary) 4%, var(--c-bg));
 }
 
 /* ===== 容器 ===== */
@@ -149,8 +149,8 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 28px;
   padding: 40px 24px 24px;
-  background: var(--c-bg);
-  border-top: 1px solid var(--c-border);
+  background: color-mix(in srgb, var(--c-primary) 4%, var(--c-bg));
+  border-top: 1px solid color-mix(in srgb, var(--c-primary) 18%, var(--c-border));
 }
 
 .site-footer__inner > * {
