@@ -5,9 +5,19 @@
   box-sizing: border-box;
 }
 
+/* 系统字体：自带光学尺寸与字距表，中文回落 PingFang / 雅黑 */
 body {
   margin: 0;
   background: #ffffff;
+  font: 400 16px/1.65 system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 大字号收紧字距；正文保持 0（字距随字号变化，不用固定值） */
+h1, h2 {
+  letter-spacing: -0.02em;
 }
 
 /* ===== 设计令牌：极简白 / slate 灰阶 / 单一蓝色点缀 ===== */
@@ -42,7 +52,8 @@ body {
   --shadow-card: 0 1px 2px rgb(15 23 42 / 5%), 0 4px 12px rgb(15 23 42 / 5%);
   --shadow-card-hover: 0 4px 10px rgb(15 23 42 / 8%), 0 12px 28px rgb(15 23 42 / 8%);
 
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* 弹簧感缓动：平滑收敛无过冲（临界阻尼），变量名保留兼容旧引用 */
+  --ease-bounce: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-soft: 260ms;
   color-scheme: light;
 }
@@ -163,6 +174,8 @@ body {
 }
 
 .btn:active:not(:disabled) {
+  /* 反馈发生在按下的瞬间：压缩过渡时长，让按压立即生效 */
+  transition-duration: 80ms;
   transform: translateY(0) scale(0.96); /* 按下时软糖被压扁 */
 }
 
@@ -246,6 +259,12 @@ body {
   margin-top: 4px;
   font-size: 12px;
   color: var(--c-danger);
+}
+
+/* ===== 键盘焦点可见性（可达性基础） ===== */
+:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
 }
 
 /* ===== 衬线字体栈：仅用于引言等文学化局部 ===== */

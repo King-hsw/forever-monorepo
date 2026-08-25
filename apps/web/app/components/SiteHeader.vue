@@ -319,10 +319,29 @@ function onBrandClick() {
 
 .site-header--scrolled {
   background: color-mix(in srgb, var(--c-bg-soft) 78%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
   border-bottom-color: var(--c-border);
   box-shadow: 0 4px 20px rgb(0 0 0 / 5%);
+}
+
+/* 减少透明度：磨砂变实底，保证可读性 */
+@media (prefers-reduced-transparency: reduce) {
+  .site-header--scrolled {
+    background: var(--c-bg-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* 提高对比度：实底 + 明确描边 */
+@media (prefers-contrast: more) {
+  .site-header--scrolled {
+    background: var(--c-bg-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-bottom-color: var(--c-text-secondary);
+  }
 }
 
 .site-header__inner {
@@ -406,6 +425,12 @@ function onBrandClick() {
 .site-nav__link:hover {
   color: var(--c-primary);
   background: var(--c-primary-light);
+}
+
+/* 按下即时反馈（pointer-down 生效，不等松手） */
+.site-nav__link:active {
+  transition-duration: 80ms;
+  transform: scale(0.95);
 }
 
 /* 当前页高亮（NuxtLink 的 router-link-active） */
@@ -508,8 +533,8 @@ function onBrandClick() {
   margin-top: 14vh;
   overflow: hidden;
   background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--c-border);
   border-radius: 20px;
   box-shadow:
@@ -771,8 +796,8 @@ function onBrandClick() {
   flex-direction: column;
   padding: 8px;
   background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card-hover);
@@ -824,6 +849,22 @@ function onBrandClick() {
 
   .site-header__burger {
     display: block;
+  }
+}
+
+/* 搜索弹层与移动菜单的减透明度回落 */
+@media (prefers-reduced-transparency: reduce) {
+  .global-search {
+    background: rgb(15 23 42 / 45%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .global-search__panel,
+  .mobile-menu {
+    background: var(--c-bg-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 </style>
