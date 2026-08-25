@@ -36,8 +36,8 @@
     </section>
 
     <main>
-      <!-- 章节导航：固定在右侧，随时告知用户身处故事哪个位置，可点击跳转 -->
-      <nav class="chapter-nav" aria-label="页面章节">
+      <!-- 章节导航：固定在右侧，滚过 Hero 后才出现，可点击跳转 -->
+      <nav v-show="showChapterNav" class="chapter-nav" aria-label="页面章节">
         <button
           v-for="sec in sections"
           :key="sec.id"
@@ -310,6 +310,9 @@ const sections = [
 const activeSection = ref('latest')
 let sectionIO: IntersectionObserver | null = null
 
+/** Hero 在视口内时隐藏右侧章节导航 */
+const showChapterNav = ref(false)
+
 
 const isScrolled = ref(false)
 const showBackTop = ref(false)
@@ -319,6 +322,9 @@ function onScrollChrome() {
   const y = window.scrollY
   isScrolled.value = y > 24
   showBackTop.value = y > 600
+  // 滚过 Hero 底部（留一点余量）才显示章节导航
+  const heroBottom = heroEl.value?.offsetHeight ?? window.innerHeight
+  showChapterNav.value = y > heroBottom - 120
   const max = document.documentElement.scrollHeight - window.innerHeight
   progress.value = max > 0 ? Math.min(1, y / max) : 0
 }
