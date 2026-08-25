@@ -161,10 +161,6 @@
               </NuxtLink>
             </div>
 
-            <div v-if="tagCloud.length" class="side-block reveal">
-              <h3 class="side-block__title">标签云</h3>
-              <TagSphere :tags="tagCloud" />
-            </div>
           </aside>
         </div>
       </section>
@@ -282,7 +278,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, RssItem, SiteInfo, Tag } from '#shared/types'
+import type { Category, PageResult, Post, RssItem, SiteInfo } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
 import { mockMoments } from '~/utils/mock-moments'
 
@@ -292,9 +288,6 @@ const { data: pageData } = await useAsyncData('home-articles', () =>
 )
 const { data: categories } = await useAsyncData('home-categories', () =>
   apiFetch<Category[]>('/api/v1/categories'),
-)
-const { data: tags } = await useAsyncData('home-tags', () =>
-  apiFetch<Tag[]>('/api/v1/tags'),
 )
 // 订阅的博客最新文章（公开接口），取几条丰富首页
 const { data: feedPage } = await useAsyncData('home-rss-items', () =>
@@ -348,25 +341,6 @@ const homeStats = computed(() => [
   { value: tags.value?.length ?? 0, label: '标签' },
   { value: runDays.value.toLocaleString(), label: '运行天数' },
 ])
-
-/** 标签云：按使用次数排序，字号随次数在 13~21px 间浮动 */
-const tagCloud = computed(() => {
-  const countByName = new Map<string, number>()
-  for (const post of publishedPosts.value) {
-    for (const t of post.tags) {
-      countByName.set(t.name, (countByName.get(t.name) ?? 0) + 1)
-    }
-  }
-  const max = Math.max(1, ...countByName.values())
-  return (tags.value ?? [])
-    .map(tag => ({ id: tag.id, name: tag.name, count: countByName.get(tag.name) ?? 0 }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 16)
-    .map(tag => ({
-      ...tag,
-      size: Math.round(13 + (tag.count / max) * 8),
-    }))
-})
 
 // ===== 平滑滚动辅助 =====
 
@@ -1354,10 +1328,6 @@ usePageSeo({
 .more-link__arrow {
   transition: transform 0.2s ease;
 }
-
-/* ---- 边栏标签云：已替换为 TagSphere 环绕云组件 ----
- * 样式见 components/TagSphere.vue
- */
 
 /* ---- 朋友文章：订阅的博客最新文章 ---- */
 /* ---- 灵感与实验场：bento 网格 + 创作律动 ---- */
