@@ -108,7 +108,9 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
     const status = (err as { statusCode?: number; status?: number })?.statusCode
       ?? (err as { status?: number })?.status
     if (status === 401) {
-      handleUnauthorized()
+      // 登录接口自身的 401 是“账号或密码错误”，不能触发跳转，
+      // 否则登录页会被整页刷新，错误提示根本来不及显示
+      if (!path.startsWith('/api/auth/')) handleUnauthorized()
       throw new ApiError('登录已过期，请重新登录', 401)
     }
     const message
