@@ -6,8 +6,8 @@
       <span>山不在高 有仙则名</span>
       <span>水不在深 有龙则灵</span>
     </div>
-    <img class="ink-decor__dragon ink-decor__dragon--light" src="~/assets/img/ink-dragon-light.svg" alt="">
-    <img class="ink-decor__dragon ink-decor__dragon--dark" src="~/assets/img/ink-dragon-dark.svg" alt="">
+    <img class="ink-decor__dragon ink-decor__dragon--light" src="~/assets/img/ink-dragon-light.png" alt="">
+    <img class="ink-decor__dragon ink-decor__dragon--dark" src="~/assets/img/ink-dragon-dark.png" alt="">
   </div>
 </template>
 
@@ -39,13 +39,15 @@
   opacity: 0.09;
 }
 
-/* 左侧水墨神龙 */
+/* 左侧水墨神龙：陈容《九龙图》局部，宣纸底色已抠成透明，仅存笔墨 */
 .ink-decor__dragon {
   position: absolute;
-  left: max(-40px, -4vw);
-  bottom: 4vh;
-  width: min(38vw, 460px);
+  left: max(-30px, -3vw);
+  top: 52%;
+  transform: translateY(-50%);
+  width: min(36vw, 430px);
   height: auto;
+  opacity: 0.65;
 }
 
 .ink-decor__dragon--dark {
@@ -63,7 +65,9 @@ html.dark .ink-decor__dragon--dark {
 @media (max-width: 900px) {
   /* 窄屏：龙缩小贴左下，书法只留一列，避免压正文 */
   .ink-decor__dragon {
+    top: auto;
     bottom: 0;
+    transform: none;
     width: 52vw;
   }
 
