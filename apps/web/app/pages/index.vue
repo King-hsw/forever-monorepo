@@ -13,25 +13,6 @@
     <section ref="heroEl" class="hero">
       <div class="hero__bg" aria-hidden="true">
         <div class="hero__glow" />
-        <!-- 极淡墨竹：右上角斜出，静态装饰，透明度压到 7% -->
-        <svg class="hero__branch" viewBox="0 0 420 420" fill="none">
-          <g stroke="currentColor" stroke-linecap="round">
-            <!-- 主竿，分两节 -->
-            <path d="M368 -30 C 358 50, 346 130, 326 208" stroke-width="5" />
-            <path d="M330 186 C 296 224, 244 256, 178 278" stroke-width="3" />
-            <!-- 分枝 -->
-            <path d="M338 120 C 310 132, 282 150, 258 176" stroke-width="2.4" />
-            <path d="M300 246 C 278 264, 250 280, 218 290" stroke-width="2" />
-          </g>
-          <!-- 叶：细长叶尖，三丛 -->
-          <g fill="currentColor">
-            <path d="M258 176 C 232 164, 200 162, 174 172 C 202 184, 234 188, 260 180 Z" />
-            <path d="M262 182 C 246 204, 222 222, 194 230 C 216 210, 238 192, 262 182 Z" />
-            <path d="M178 278 C 148 268, 114 270, 88 282 C 118 294, 152 294, 180 284 Z" />
-            <path d="M182 284 C 168 306, 144 324, 116 332 C 138 314, 158 296, 182 284 Z" />
-            <path d="M218 290 C 196 306, 170 316, 142 318 C 166 304, 190 294, 218 290 Z" />
-          </g>
-        </svg>
       </div>
 
       <div ref="heroContent" class="hero__content">
@@ -516,21 +497,6 @@ usePageSeo({
   position: absolute;
   inset: 0;
   pointer-events: none;
-}
-
-/* 墨竹：右上角斜出半入画外，极低透明度，只当纸上的淡淡一笔 */
-.hero__branch {
-  position: absolute;
-  top: -40px;
-  right: -60px;
-  width: min(420px, 46vw);
-  color: var(--c-text);
-  opacity: 0.07;
-}
-
-html.dark .hero__branch {
-  color: var(--c-text);
-  opacity: 0.09;
 }
 
 /* 居中暖光：糖果色的极淡光晕，托住头像与标题 */
