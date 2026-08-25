@@ -52,12 +52,6 @@
                 <a href="/rss.xml" target="_blank" rel="noopener">RSS 订阅 ↗</a>
               </li>
               <li>
-                <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号 ↗</a>
-              </li>
-              <li>
-                <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">闽ICP备202200094号-2</a>
-              </li>
-              <li>
                 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机前往一位成员博客">开往 ↗</a>
               </li>
               <li>
@@ -68,10 +62,13 @@
         </nav>
       </div>
 
-      <!-- ===== 底部信息条 ===== -->
+      <!-- ===== 底部信息条：版权 + 备案 ===== -->
       <div class="site-footer__bottom">
-        <span>© {{ year }} 补陋阁 · 用 <span class="site-footer__heart" aria-hidden="true">♥</span> 书写</span>
-        <button type="button" class="site-footer__totop" @click="backToTop">回到顶部 ↑</button>
+        <span>© 2024 - {{ year }} 补陋阁 · 用 <span class="site-footer__heart" aria-hidden="true">♥</span> 书写</span>
+        <span class="site-footer__beian">
+          <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号</a>
+          <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">闽ICP备202200094号-2</a>
+        </span>
       </div>
     </div>
   </footer>
@@ -122,10 +119,6 @@ onUnmounted(() => {
   if (timer)
     clearInterval(timer)
 })
-
-function backToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
 </script>
 
 <style scoped>
@@ -313,25 +306,24 @@ function backToTop() {
   border-top: 1px dashed var(--c-border);
 }
 
+.site-footer__beian {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+}
+
+.site-footer__beian a {
+  color: var(--c-text-muted);
+  text-decoration: none;
+  transition: color var(--dur-soft) ease;
+}
+
+.site-footer__beian a:hover {
+  color: var(--c-primary);
+}
+
 .site-footer__heart {
   color: var(--c-primary);
-}
-
-.site-footer__totop {
-  padding: 5px 14px;
-  font-size: 12.5px;
-  color: var(--c-text-secondary);
-  background: none;
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color var(--dur-soft) ease, border-color var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce);
-}
-
-.site-footer__totop:hover {
-  color: var(--c-primary);
-  border-color: var(--c-primary);
-  transform: translateY(-2px);
 }
 
 @media (max-width: 720px) {
