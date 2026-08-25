@@ -9,29 +9,34 @@
     />
 
 
-    <!-- ===== Hero：阁名 + 引言 ===== -->
+    <!-- ===== Hero：左标中迎右铭，三段式（仿参考站） -->
     <section ref="heroEl" class="hero">
-      <div class="hero__bg" aria-hidden="true">
-        <div class="hero__glow" />
-      </div>
-
       <div ref="heroContent" class="hero__content">
-        <h1 class="hero__title fade-hero">补陋阁</h1>
+        <div class="hero__mark fade-hero" aria-hidden="true">
+          <span class="hero__mark-face" />
+        </div>
 
-        <p class="hero__quote fade-hero" style="--hd: 120ms">「斯是陋室，惟吾德馨。」<span class="hero__quote-from">—— 刘禹锡《陋室铭》</span></p>
+        <div class="hero__welcome fade-hero" style="--hd: 120ms">
+          <p class="hero__hello">你好呀 👋</p>
+          <h1 class="hero__name">这里是补陋阁</h1>
+        </div>
 
-        <div class="hero__actions fade-hero" style="--hd: 260ms">
-          <button type="button" class="hero__cta" @click="scrollToId('latest')">
-            开始阅读
-            <span class="hero__cta-arrow">↓</span>
-          </button>
+        <div class="hero__side fade-hero" style="--hd: 240ms">
+          <p class="hero__subtitle">// 斯是陋室，惟吾德馨<br>// 记录技术、生活，与胡思乱想</p>
+          <p class="hero__motto">写代码，爱折腾，<br>也记录一路上的思考与生活。</p>
+          <nav class="hero__social" aria-label="快捷入口">
+            <a href="/rss.xml" target="_blank" rel="noopener">RSS</a>
+            <NuxtLink to="/message">留言墙</NuxtLink>
+            <NuxtLink to="/about">关于小站</NuxtLink>
+          </nav>
         </div>
       </div>
 
+      <!-- 滚动提示：右下角弹跳箭头 -->
       <button type="button" class="hero__scroll-hint" aria-label="滚动查看内容" @click="scrollToId('latest')">
-        <span class="hero__scroll-mouse">
-          <span class="hero__scroll-wheel" />
-        </span>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
       </button>
     </section>
 
@@ -556,38 +561,16 @@ usePageSeo({
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  min-height: 92vh;
-  min-height: 92dvh;
-  padding: 96px 20px 80px;
-  overflow: clip;
-  text-align: center;
+  min-height: calc(100svh - 5rem);
+  padding: 48px 24px 64px;
 }
 
-.hero__bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* 居中暖光：糖果色的极淡光晕，托住头像与标题 */
-.hero__glow {
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  width: min(560px, 80vw);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgb(13 148 136 / 12%) 0%, transparent 55%);
-}
-
-.hero__content {
-  position: relative;
-  z-index: 1;
-  max-width: 720px;
-  will-change: transform, opacity;
+@media (min-width: 768px) {
+  .hero {
+    min-height: calc(100svh - 8rem);
+    padding: 48px 24px;
+  }
 }
 
 /* 入场：自下而上逐层浮现（延迟由 --hd 控制） */
@@ -595,121 +578,170 @@ usePageSeo({
   animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--hd, 0ms) both;
 }
 
-/* 标题：衬线大字，阁名居中，宽字距显文气 */
-.hero__title {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: clamp(46px, 8vw, 68px);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
-  text-indent: 0.14em; /* 平衡末字字距带来的视觉偏移 */
-  color: var(--c-text);
-}
-
-/* 引言：衬线斜体，卷首的一句引言 */
-.hero__quote {
-  margin: 26px auto 0;
-  max-width: 32em;
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1.9;
-  letter-spacing: 0.04em;
-  color: var(--c-text-secondary);
-}
-
-.hero__quote-from {
-  margin-left: 10px;
-  font-size: 13px;
-  color: var(--c-text-muted);
-}
-
-/* 按钮：素净描边胶囊，悬停时才染上主题色 */
-.hero__actions {
+/* 三段式：左标 | mono 迎语 | 铭文+社交，参考站 hero 同构 */
+.hero__content {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 36px;
-  animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 260ms both;
-}
-
-.hero__cta {
-  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 26px;
-  font-size: 14.5px;
-  font-weight: 550;
-  color: var(--c-text-secondary);
-  background: transparent;
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
+  gap: clamp(32px, 5vw, 72px);
+  width: min(1080px, calc(100% - 48px));
+  margin-inline: auto;
 }
 
-.hero__cta:hover {
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-color: transparent;
-}
-
-.hero__cta-arrow {
-  transition: transform 0.2s ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .hero__cta:hover .hero__cta-arrow {
-    transform: translateY(2px);
+@media (max-width: 767px) {
+  .hero__content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 36px;
   }
 }
 
-/* 滚动提示：鼠标造型 + 滚轮动画 */
+/* 左：品牌大软糖（参考站头像位），3px 近直角 + 发丝描边；--s 驱动笑脸各部位缩放 */
+.hero__mark {
+  --s: clamp(96px, 12vw, 152px);
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: var(--s);
+  height: var(--s);
+  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--c-border) 80%, transparent),
+    var(--shadow-card);
+}
+
+/* 笑脸：两颗眼睛 + 微笑嘴，尺寸全部由 --s 推导 */
+.hero__mark-face {
+  position: relative;
+  display: block;
+  width: calc(var(--s) * 0.46);
+  height: calc(var(--s) * 0.46);
+}
+
+.hero__mark-face::before {
+  content: '';
+  position: absolute;
+  top: 22%;
+  left: 18%;
+  width: calc(var(--s) * 0.042);
+  height: calc(var(--s) * 0.1);
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: calc(var(--s) * 0.235) 0 0 #fff; /* 第二只眼睛 */
+}
+
+.hero__mark-face::after {
+  content: '';
+  position: absolute;
+  bottom: 14%;
+  left: 50%;
+  width: calc(var(--s) * 0.24);
+  height: calc(var(--s) * 0.15);
+  border: calc(var(--s) * 0.016) solid #fff;
+  border-top: none;
+  border-left-color: transparent;
+  border-right-color: transparent;
+  border-radius: 0 0 999px 999px;
+  transform: translateX(-50%);
+}
+
+/* 中：mono 迎语两行——斜体玉青轻问候 + 墨色实名 */
+.hero__welcome {
+  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
+  line-height: 1.625;
+}
+
+.hero__hello {
+  margin: 0;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(28px, 3.4vw, 36px); /* text-4xl */
+  color: var(--c-primary);
+}
+
+.hero__name {
+  margin: 10px 0 0;
+  font-weight: 500;
+  font-size: clamp(28px, 3.4vw, 36px);
+  color: var(--c-text);
+}
+
+/* mono 小注：双斜杠注释体 */
+.hero__subtitle {
+  margin: 40px 0 0;
+  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
+  font-size: 13.5px;
+  line-height: 2;
+  color: #78716c; /* ink-500 */
+}
+
+/* 右：衬线铭文 + 社交链接 */
+.hero__side {
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+@media (max-width: 767px) {
+  .hero__side {
+    gap: 32px;
+  }
+}
+
+.hero__motto {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(20px, 2vw, 24px); /* text-2xl */
+  line-height: 1.625;
+  color: #292524; /* ink-800 */
+}
+
+.hero__social {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.hero__social a {
+  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+}
+
+.hero__social a:hover {
+  color: var(--c-primary);
+  text-decoration: underline;
+}
+
+/* 滚动提示：右下角弹跳箭头 */
 .hero__scroll-hint {
   position: absolute;
-  bottom: 30px;
-  left: 0;
-  right: 0;
-  width: max-content;
-  margin-inline: auto;
+  right: 40px;
+  bottom: 32px;
+  display: grid;
+  place-items: center;
   padding: 8px;
+  color: var(--c-text-muted);
+  cursor: pointer;
+  opacity: 0.4;
   background: none;
   border: none;
-  cursor: pointer;
-  opacity: 0.65;
   transition: opacity 0.2s ease;
-  animation: fade-up 0.6s ease 450ms both;
+  animation: hero-scroll-bounce 1.6s ease-in-out infinite;
 }
 
-.hero__scroll-hint:hover {
-  opacity: 1;
+@keyframes hero-scroll-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
 }
 
-.hero__scroll-mouse {
-  display: block;
-  width: 24px;
-  height: 38px;
-  border: 2px solid var(--c-text-muted);
-  border-radius: 14px;
-}
-
-.hero__scroll-wheel {
-  display: block;
-  width: 3px;
-  height: 7px;
-  margin: 6px auto 0;
-  background: var(--c-primary);
-  border-radius: 2px;
-  animation: scroll-wheel 1.6s ease-in-out infinite;
-}
-
-@keyframes scroll-wheel {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { transform: translateY(10px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 0; }
+@media (hover: hover) and (pointer: fine) {
+  .hero__scroll-hint:hover {
+    opacity: 0.9;
+  }
 }
 
 /* ===== 纸面编排：主栏 + 边栏 ===== */
@@ -1654,8 +1686,7 @@ usePageSeo({
 /* ===== 减少动效 ===== */
 @media (prefers-reduced-motion: reduce) {
   .fade-hero,
-  .hero__scroll-hint,
-  .hero__scroll-wheel {
+  .hero__scroll-hint {
     animation: none !important;
   }
 
