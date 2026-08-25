@@ -682,20 +682,33 @@ function onBrandClick() {
   background: var(--c-border);
 }
 
+/* 与 ThemeToggle 的胶囊圆钮保持一致：36px、卡片底色、描边、同款 hover 光环 */
 .site-header__icon-btn {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   color: var(--c-text-secondary);
-  border-radius: 50%;
-  transition: color 0.2s ease, background-color 0.2s ease, transform var(--dur-soft) var(--ease-bounce);
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    background-color 0.25s,
+    box-shadow 0.25s,
+    transform 0.15s;
 }
 
 .site-header__icon-btn:hover {
   color: var(--c-primary);
-  background: var(--c-primary-light);
-  transform: translateY(-1px) rotate(15deg);
+  border-color: var(--c-primary);
+  box-shadow: 0 0 0 3px rgb(99 102 241 / 15%);
+}
+
+.site-header__icon-btn:active {
+  transform: scale(0.92);
 }
 
 /* 移动端汉堡按钮：三横线 → 叉号 */
