@@ -278,7 +278,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, RssItem, SiteInfo } from '#shared/types'
+import type { Category, PageResult, Post, RssItem, SiteInfo, Tag } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
 import { mockMoments } from '~/utils/mock-moments'
 
@@ -289,6 +289,7 @@ const { data: pageData } = await useAsyncData('home-articles', () =>
 const { data: categories } = await useAsyncData('home-categories', () =>
   apiFetch<Category[]>('/api/v1/categories'),
 )
+const { data: tags } = await useAsyncData('home-tags', () => apiFetch<Tag[]>('/api/v1/tags'))
 // 订阅的博客最新文章（公开接口），取几条丰富首页
 const { data: feedPage } = await useAsyncData('home-rss-items', () =>
   apiFetch<PageResult<RssItem>>('/api/v1/rss/items', { query: { page: 1, size: 6 } }),
