@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  // 页面导航启用 View Transition：配合 plugins/view-transition.ts 做圆形墨晕揭幕
+  // 页面导航启用 View Transition：用浏览器原生的交叉淡化，纯合成器动画不卡顿
   experimental: {
     viewTransition: true,
   },
