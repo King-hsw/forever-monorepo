@@ -11,6 +11,10 @@
 
     <!-- ===== Hero：左标中迎右铭，三段式（仿参考站） -->
     <section ref="heroEl" class="hero">
+      <!-- 玉青氛围光斑：大面积柔焦洗出淡绿纸感（仿参考站 bg-jade-500/10 blur-100px） -->
+      <div class="hero__orb hero__orb--a" aria-hidden="true" />
+      <div class="hero__orb hero__orb--b" aria-hidden="true" />
+      <div class="hero__orb hero__orb--c" aria-hidden="true" />
       <div ref="heroContent" class="hero__content">
         <div class="hero__mark fade-hero" aria-hidden="true">
           <span class="hero__mark-face" />
@@ -564,6 +568,39 @@ usePageSeo({
   justify-content: center;
   min-height: calc(100svh - 5rem);
   padding: 48px 24px 64px;
+  overflow: clip;
+}
+
+/* 玉青氛围光斑：pointer-events 穿透，柔焦洗色 */
+.hero__orb {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: rgb(20 184 166 / 10%);
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+.hero__orb--a {
+  left: 25%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero__orb--b {
+  right: 0;
+  bottom: 0;
+  background: rgb(20 184 166 / 5%);
+  filter: blur(80px);
+}
+
+.hero__orb--c {
+  right: 12%;
+  top: 18%;
+  width: 160px;
+  height: 160px;
+  background: rgb(13 148 136 / 7%);
 }
 
 @media (min-width: 768px) {
