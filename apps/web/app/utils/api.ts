@@ -91,8 +91,9 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
   const headers: Record<string, string> = { ...options.headers }
 
+  // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401
   const auth = loadAuth()
-  if (auth?.token && !headers.Authorization) {
+  if (auth?.token && !headers.Authorization && path !== '/api/auth/login') {
     headers.Authorization = `Bearer ${auth.token}`
   }
 
