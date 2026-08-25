@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 水墨青龙：毛笔飞白笔意，青龙为青墨色，透明度已烘焙进元素 -->
+  <g fill="none" stroke="#3d5a63" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 龙身主笔：一笔 S 形游动，粗笔重墨 -->
+    <path d="M84 452 C150 420 176 372 168 322 C158 264 108 246 118 196 C128 148 186 132 232 138 C292 146 306 190 342 210 C384 232 430 208 442 160" stroke-width="16" opacity=".10"/>
+    <!-- 龙身飞白：细笔偏锋叠在主笔上 -->
+    <path d="M96 440 C156 410 168 368 160 322 C150 268 100 248 110 200 C120 156 180 142 230 148" stroke-width="7" opacity=".12"/>
+    <path d="M258 154 C300 166 310 198 346 218 C382 238 424 212 436 170" stroke-width="6" opacity=".10"/>
+    <!-- 尾梢挑锋 -->
+    <path d="M84 452 C64 468 48 470 30 462" stroke-width="6" opacity=".11"/>
+    <!-- 龙首：浓墨点睛 -->
+    <circle cx="442" cy="146" r="15" fill="#3d5a63" fill-opacity=".13" stroke="none"/>
+    <path d="M452 140 C470 134 476 122 470 112" stroke-width="8" opacity=".13"/>
+    <!-- 双角 -->
+    <path d="M436 126 C428 104 434 90 450 80" stroke-width="4.5" opacity=".11"/>
+    <path d="M450 124 C448 102 458 88 472 82" stroke-width="3.5" opacity=".09"/>
+    <!-- 龙须：两缕长线 -->
+    <path d="M462 152 C492 158 500 178 494 202" stroke-width="2.5" opacity=".10"/>
+    <path d="M458 160 C480 176 482 198 472 216" stroke-width="2" opacity=".08"/>
+    <!-- 鬃鬣：头后几笔快扫 -->
+    <path d="M414 176 C396 188 380 190 366 184" stroke-width="4" opacity=".10"/>
+    <path d="M420 192 C406 206 390 212 376 210" stroke-width="3" opacity=".08"/>
+    <!-- 背鳍：沿脊背的三笔小挑 -->
+    <path d="M180 300 C172 282 174 268 184 256" stroke-width="3" opacity=".09"/>
+    <path d="M250 148 C258 132 272 124 286 124" stroke-width="3" opacity=".09"/>
+    <path d="M320 226 C334 220 348 222 358 230" stroke-width="3" opacity=".07"/>
+    <!-- 前爪：三趾小叉 -->
+    <g stroke-width="2.5" opacity=".10">
+      <path d="M152 340 L136 352"/>
+      <path d="M154 344 L140 360"/>
+      <path d="M157 338 L146 356"/>
+    </g>
+    <!-- 云纹一抹 -->
+    <path d="M40 380 C20 360 22 336 42 326" stroke-width="3" opacity=".06"/>
+  </g>
+  <!-- 溅墨 -->
+  <g fill="#3d5a63">
+    <circle cx="70" cy="430" r="3" fill-opacity=".10"/>
+    <circle cx="110" cy="470" r="2" fill-opacity=".08"/>
+    <circle cx="470" cy="222" r="3" fill-opacity=".09"/>
+    <circle cx="500" cy="120" r="2" fill-opacity=".07"/>
+    <circle cx="30" cy="300" r="2.5" fill-opacity=".08"/>
+    <circle cx="60" cy="500" r="1.6" fill-opacity=".07"/>
+  </g>
+</svg>
