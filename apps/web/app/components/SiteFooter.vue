@@ -1,56 +1,76 @@
 <template>
   <footer class="site-footer">
+    <!-- 顶部波浪过渡 -->
+    <div class="site-footer__wave" aria-hidden="true">
+      <svg viewBox="0 0 1440 60" preserveAspectRatio="none">
+        <path d="M0,32 C240,64 480,0 720,24 C960,48 1200,16 1440,36 L1440,60 L0,60 Z" />
+      </svg>
+    </div>
+
     <div class="site-footer__inner">
-      <!-- ===== 品牌区：居中 logo + 标语 + 运行时长 ===== -->
-      <div class="site-footer__brand">
-        <NuxtLink to="/" class="site-footer__logo" aria-label="回到首页">
-          <span class="site-footer__mark" aria-hidden="true" />
-          <span class="site-footer__name">补陋阁</span>
-        </NuxtLink>
-        <p class="site-footer__desc">斯是陋室，惟吾德馨。</p>
-        <div class="site-footer__uptime" :title="'自 ' + birthLabel + ' 起'">
-          <span class="site-footer__uptime-dot" aria-hidden="true" />
-          已运行 {{ uptime }}
+      <!-- ===== 上半区：左侧品牌区 + 右侧链接分组 ===== -->
+      <div class="site-footer__top">
+        <div class="site-footer__brand">
+          <div class="site-footer__logo">
+            <span class="site-footer__mark" aria-hidden="true" />
+            <span class="site-footer__name">补陋阁</span>
+          </div>
+          <p class="site-footer__desc">
+            斯是陋室，惟吾德馨。
+          </p>
+          <div class="site-footer__uptime" :title="'自 ' + birthLabel + ' 起'">
+            <span class="site-footer__uptime-dot" aria-hidden="true" />
+            已运行 {{ uptime }}
+          </div>
         </div>
+
+        <nav class="site-footer__cols" aria-label="页脚导航">
+          <div class="site-footer__col">
+            <h3 class="site-footer__heading">导航</h3>
+            <ul>
+              <li><NuxtLink to="/">首页</NuxtLink></li>
+              <li><NuxtLink to="/posts">全部文章</NuxtLink></li>
+              <li><NuxtLink to="/message">留言墙</NuxtLink></li>
+              <li><NuxtLink to="/friends">友链</NuxtLink></li>
+              <li><NuxtLink to="/friends/apply">申请友链</NuxtLink></li>
+            </ul>
+          </div>
+
+          <div v-if="categories?.length" class="site-footer__col">
+            <h3 class="site-footer__heading">分类</h3>
+            <ul>
+              <li v-for="cat in categories" :key="cat.id">
+                <NuxtLink :to="`/posts?category=${cat.slug}`">{{ cat.name }}</NuxtLink>
+              </li>
+            </ul>
+          </div>
+
+          <div class="site-footer__col">
+            <h3 class="site-footer__heading">站外</h3>
+            <ul>
+              <li>
+                <a href="/rss.xml" target="_blank" rel="noopener">RSS 订阅 ↗</a>
+              </li>
+              <li>
+                <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号 ↗</a>
+              </li>
+              <li>
+                <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">闽ICP备202200094号-2</a>
+              </li>
+              <li>
+                <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机前往一位成员博客">开往 ↗</a>
+              </li>
+              <li>
+                <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约 ↗</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
       </div>
 
-      <!-- ===== 链接区：标签 + 行内链接，一行一组 ===== -->
-      <nav class="site-footer__groups" aria-label="页脚导航">
-        <div class="site-footer__group">
-          <span class="site-footer__label">导航</span>
-          <ul class="site-footer__links">
-            <li><NuxtLink to="/">首页</NuxtLink></li>
-            <li><NuxtLink to="/posts">全部文章</NuxtLink></li>
-            <li><NuxtLink to="/message">留言墙</NuxtLink></li>
-            <li><NuxtLink to="/friends">友链</NuxtLink></li>
-            <li><NuxtLink to="/friends/apply">申请友链</NuxtLink></li>
-          </ul>
-        </div>
-
-        <div v-if="categories?.length" class="site-footer__group">
-          <span class="site-footer__label">分类</span>
-          <ul class="site-footer__links">
-            <li v-for="cat in categories" :key="cat.id">
-              <NuxtLink :to="`/posts?category=${cat.slug}`">{{ cat.name }}</NuxtLink>
-            </li>
-          </ul>
-        </div>
-
-        <div class="site-footer__group">
-          <span class="site-footer__label">站外</span>
-          <ul class="site-footer__links">
-            <li><a href="/rss.xml" target="_blank" rel="noopener">RSS 订阅 ↗</a></li>
-            <li><a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机前往一位成员博客">开往 ↗</a></li>
-            <li><a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约 ↗</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <!-- ===== 底部信息条：版权 + 备案 + 回到顶部 ===== -->
+      <!-- ===== 底部信息条 ===== -->
       <div class="site-footer__bottom">
         <span>© {{ year }} 补陋阁 · 用 <span class="site-footer__heart" aria-hidden="true">♥</span> 书写</span>
-        <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号</a>
-        <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">闽ICP备202200094号-2</a>
         <button type="button" class="site-footer__totop" @click="backToTop">回到顶部 ↑</button>
       </div>
     </div>
@@ -113,29 +133,55 @@ function backToTop() {
   margin-top: 72px;
 }
 
-/* ===== 容器：卡片底色 + 上描边，内容全部居中 ===== */
+/* ===== 波浪过渡 ===== */
+.site-footer__wave {
+  height: 56px;
+  margin-bottom: -1px;
+}
+
+.site-footer__wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.site-footer__wave path {
+  fill: var(--c-bg-card);
+}
+
+/* ===== 容器 ===== */
 .site-footer__inner {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 28px;
-  padding: 48px 24px 24px;
+  padding: 40px 24px 24px;
   background: var(--c-bg-card);
   border-top: 1px solid var(--c-border);
 }
 
-/* ===== 品牌区 ===== */
-.site-footer__brand {
+.site-footer__inner > * {
+  max-width: 1080px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ===== 上半区：品牌 + 链接列 ===== */
+.site-footer__top {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px 64px;
+  justify-content: space-between;
+}
+
+.site-footer__brand {
+  max-width: 280px;
 }
 
 .site-footer__logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  text-decoration: none;
 }
 
 /* 与 header 品牌标一致的小软糖 */
@@ -185,9 +231,9 @@ function backToTop() {
 }
 
 .site-footer__desc {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   font-size: 13.5px;
-  letter-spacing: 0.06em;
+  line-height: 1.9;
   color: var(--c-text-secondary);
 }
 
@@ -196,7 +242,7 @@ function backToTop() {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 16px;
   padding: 6px 14px;
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
@@ -218,62 +264,39 @@ function backToTop() {
   50% { transform: scale(1.5); opacity: 0.55; }
 }
 
-/* ===== 链接区：每组一行「标签 + 行内链接」，窄屏自动换行 ===== */
-.site-footer__groups {
+/* ===== 链接列 ===== */
+.site-footer__cols {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.site-footer__group {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 32px 56px;
 }
 
-.site-footer__label {
-  min-width: 44px;
-  font-size: 12px;
+.site-footer__heading {
+  margin: 0 0 14px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  text-align: center;
   text-transform: uppercase;
   color: var(--c-text-muted);
 }
 
-.site-footer__links {
+.site-footer__col ul {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 4px;
+  flex-direction: column;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.site-footer__links li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* 行间圆点分隔符 */
-.site-footer__links li + li::before {
-  content: '·';
-  color: var(--c-border);
-}
-
-.site-footer__links a {
+.site-footer__col a {
   font-size: 13.5px;
   color: var(--c-text-secondary);
   text-decoration: none;
   transition: color var(--dur-soft) ease;
 }
 
-.site-footer__links a:hover {
+.site-footer__col a:hover {
   color: var(--c-primary);
 }
 
@@ -282,23 +305,12 @@ function backToTop() {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 8px 18px;
-  width: 100%;
+  justify-content: space-between;
+  gap: 10px;
   padding-top: 20px;
   font-size: 12.5px;
   color: var(--c-text-muted);
   border-top: 1px dashed var(--c-border);
-}
-
-.site-footer__bottom a {
-  color: var(--c-text-muted);
-  text-decoration: none;
-  transition: color var(--dur-soft) ease;
-}
-
-.site-footer__bottom a:hover {
-  color: var(--c-primary);
 }
 
 .site-footer__heart {
@@ -320,5 +332,21 @@ function backToTop() {
   color: var(--c-primary);
   border-color: var(--c-primary);
   transform: translateY(-2px);
+}
+
+@media (max-width: 720px) {
+  .site-footer__top {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .site-footer__cols {
+    gap: 28px 40px;
+  }
+
+  .site-footer__bottom {
+    justify-content: center;
+    text-align: center;
+  }
 }
 </style>
