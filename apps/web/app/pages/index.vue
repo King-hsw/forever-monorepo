@@ -143,19 +143,7 @@
       </section>
 
       <!-- 02 创作足迹：独立成章，居中标题 + 居中面板 -->
-      <section id="heatmap" class="scene scene--tinted">
-        <div class="scene__inner scene__inner--center">
-          <header class="section-head section-head--center reveal">
-            <p class="section-head__caption">卷贰 · 足印</p>
-            <h2 class="section-head__title">创作足迹</h2>
-            <p class="section-head__desc">一年里的每一天都被折进这一格格小方块，颜色越深，那天写下的文字越多。</p>
-          </header>
 
-          <div class="heatmap-panel reveal">
-            <PostHeatmap :posts="publishedPosts" />
-          </div>
-        </div>
-      </section>
 
       <!-- 03 朋友文章：订阅的博客最新文章，丰富首页内容 -->
       <section id="feed" class="feed-section">
@@ -302,7 +290,6 @@ function scrollToTop() {
 /** 首页章节（顺序即叙事顺序，标签取乾卦爻辞：龙之进阶） */
 const sections = [
   { id: 'latest', label: '初九 · 潜龙勿用' },
-  { id: 'heatmap', label: '九二 · 见龙在田' },
   { id: 'feed', label: '九四 · 或跃在渊' },
   { id: 'subscribe', label: '九五 · 飞龙在天' },
 ]
@@ -860,14 +847,6 @@ usePageSeo({
 }
 
 /* ---- 创作足迹热力图面板 ---- */
-.heatmap-panel {
-  padding: 26px 28px;
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-}
-
 .chip {
   padding: 2px 10px;
   font-size: 12px;
