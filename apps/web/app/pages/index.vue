@@ -37,7 +37,7 @@
 
     <main>
       <!-- 章节导航：固定在右侧，滚过 Hero 后才出现，可点击跳转 -->
-      <nav v-show="showChapterNav" class="chapter-nav" aria-label="页面章节">
+      <nav class="chapter-nav" :class="{ 'chapter-nav--hidden': !showChapterNav }" aria-label="页面章节">
         <button
           v-for="sec in sections"
           :key="sec.id"
@@ -772,6 +772,14 @@ html.dark .hero__glow {
   align-items: flex-end;
   gap: 18px;
   transform: translateY(-50%);
+  transition: opacity 0.35s ease, visibility 0.35s;
+}
+
+/* 淡入淡出而非硬切；visibility 延迟切换保证退出动画完整，且隐藏后不可交互 */
+.chapter-nav--hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .chapter-nav__item {
