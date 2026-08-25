@@ -18,14 +18,16 @@ export default defineNuxtConfig({
   // 注意 devProxy 对 SSR 内部 $fetch 无效，SSR 靠上面的 apiBase 直连
   nitro: {
     devProxy: {
+      // 注意：当前 nitropack 的 devProxy 转发时会剥掉匹配的前缀（/api/），
+      // 因此 target 必须带上 /api 才能还原真实路径
       '/api/': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:8080/api',
         changeOrigin: true,
         // Spring Security 会校验 Origin，改写为后端自身地址以通过 CORS 校验
         headers: { origin: 'http://localhost:8080' },
       },
-      '/rss.xml': { target: 'http://localhost:8080', changeOrigin: true },
-      '/sitemap.xml': { target: 'http://localhost:8080', changeOrigin: true },
+      '/rss.xml': { target: 'http://localhost:8080/rss.xml', changeOrigin: true },
+      '/sitemap.xml': { target: 'http://localhost:8080/sitemap.xml', changeOrigin: true },
     },
   },
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
