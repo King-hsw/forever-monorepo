@@ -1,6 +1,6 @@
 <template>
   <div class="auth-layout">
-    <div class="auth-layout__theme"><ThemeToggle /></div>
+    <div class="auth-layout__theme"></div>
     <main class="auth-layout__card card fade-up" :class="{ 'is-shaking': shaking }">
       <slot />
     </main>
@@ -31,8 +31,8 @@ watch(shakeFlag, () => {
   min-height: 100vh;
   padding: 24px;
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgb(99 102 241 / 18%), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgb(99 102 241 / 14%), transparent 55%),
+    radial-gradient(1200px 600px at 80% -10%, rgb(37 99 235 / 18%), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgb(37 99 235 / 14%), transparent 55%),
     var(--c-bg);
 }
 

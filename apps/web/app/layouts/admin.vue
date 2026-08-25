@@ -22,7 +22,6 @@
         <strong class="topbar__title">{{ pageTitle }}</strong>
 
         <div class="topbar__right">
-          <ThemeToggle />
           <span class="topbar__user">
             <span class="topbar__avatar" aria-hidden="true">{{ avatarText }}</span>
             <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->

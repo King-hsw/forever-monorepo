@@ -73,7 +73,6 @@
         >登录</NuxtLink>
         <span v-if="auth.isAuthenticated" class="site-header__divider" aria-hidden="true" />
         <span class="site-header__divider" aria-hidden="true" />
-        <div class="site-header__theme"><ThemeToggle /></div>
         <button
           type="button"
           class="site-header__burger"
@@ -350,7 +349,7 @@ function onBrandClick() {
   height: 32px;
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 12px; /* 圆润的小方块，像一颗软糖 */
-  box-shadow: 0 4px 12px rgb(229 111 67 / 35%);
+  box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
 }
 
 /* 笑脸：两颗眼睛 + 微笑嘴 */
@@ -683,7 +682,6 @@ function onBrandClick() {
   background: var(--c-border);
 }
 
-/* 与 ThemeToggle 的胶囊圆钮保持一致：36px、卡片底色、描边、同款 hover 光环 */
 .site-header__icon-btn {
   display: grid;
   place-items: center;
@@ -705,7 +703,7 @@ function onBrandClick() {
 .site-header__icon-btn:hover {
   color: var(--c-primary);
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 3px rgb(99 102 241 / 15%);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 15%);
 }
 
 .site-header__icon-btn:active {
@@ -810,11 +808,6 @@ function onBrandClick() {
 .menu-leave-to {
   opacity: 0;
   transform: translateY(-8px) scale(0.98);
-}
-
-.site-header__theme {
-  display: flex;
-  align-items: center;
 }
 
 @media (max-width: 640px) {

@@ -474,19 +474,12 @@ usePageSeo({
   transition: -webkit-text-stroke-color 0.25s ease, transform 0.25s var(--ease-bounce);
 }
 
-html.dark .row__num {
-  -webkit-text-stroke-color: #6b5842;
-}
-
 @supports not (-webkit-text-stroke: 1px black) {
   .row__num {
     color: #ecdcc4;
   }
 
-  html.dark .row__num {
-    color: #6b5842;
   }
-}
 
 .row__main {
   min-width: 0;

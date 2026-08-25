@@ -187,7 +187,7 @@ onUnmounted(() => {
   height: 34px;
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(229 111 67 / 35%);
+  box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
 }
 
 .site-footer__mark::before {

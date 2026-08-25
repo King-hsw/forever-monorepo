@@ -46,7 +46,7 @@ export default defineNuxtConfig({
       start_url: '/',
       display: 'standalone',
       orientation: 'any',
-      theme_color: '#6366f1',
+      theme_color: '#ffffff',
       background_color: '#ffffff',
       lang: 'zh-CN',
       icons: [
@@ -94,23 +94,13 @@ export default defineNuxtConfig({
   app: {
     head: {
       meta: [
-        { name: 'theme-color', content: '#6366f1' },
+        { name: 'theme-color', content: '#ffffff' },
         // iOS standalone 模式：状态栏与页面背景同色
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         // 刘海屏：页面延伸到安全区外，配合 CSS env(safe-area-inset-*) 使用
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
       ],
-      script: [
-        {
-          // 首屏防闪烁：在渲染前根据 localStorage / 系统偏好给 <html> 加上 dark / ink 类
-          innerHTML:
-            "(function(){try{var t=localStorage.getItem('forever-theme'),d=document.documentElement.classList;" +
-            "if(t==='ink')d.add('ink');" +
-            "else if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))d.add('dark')" +
-            "}catch(e){}})()",
-          tagPosition: 'head',
-        },
-      ],
+      script: [      ],
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },

@@ -207,11 +207,11 @@ const mini = computed(() => ({
   --hm-4: #c96a26;
 }
 
-:global(html.dark) .heatmap {
+.heatmap-unused-dummy {
   --hm-0: rgb(255 255 255 / 5%);
-  --hm-1: rgb(229 111 67 / 28%);
-  --hm-2: rgb(229 111 67 / 48%);
-  --hm-3: rgb(229 111 67 / 75%);
+  --hm-1: rgb(37 99 235 / 28%);
+  --hm-2: rgb(37 99 235 / 48%);
+  --hm-3: rgb(37 99 235 / 75%);
   --hm-4: #eb8258;
 }
 
@@ -316,7 +316,7 @@ const mini = computed(() => ({
 .heatmap__cells .heatmap__cell:hover:not(.is-future) {
   z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
   transform: scale(1.35); /* 悬停轻轻放大 */
-  box-shadow: 0 2px 6px rgb(229 111 67 / 30%);
+  box-shadow: 0 2px 6px rgb(37 99 235 / 30%);
 }
 
 /* 悬停信息气泡：替代原生 title，展示更及时、样式更精致。
@@ -355,11 +355,6 @@ const mini = computed(() => ({
   opacity: 0;
   transform: translateX(-50%) rotate(45deg);
   transition: opacity 0.15s ease;
-}
-
-html.dark .heatmap__cell[data-tip]::after,
-html.dark .heatmap__cell[data-tip]::before {
-  background: #3c3c4b;
 }
 
 .heatmap__cells .heatmap__cell:hover:not(.is-future)::after,

@@ -508,11 +508,7 @@ usePageSeo({
   aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgb(229 111 67 / 12%) 0%, transparent 55%);
-}
-
-html.dark .hero__glow {
-  background: radial-gradient(ellipse, rgb(235 130 88 / 8%) 0%, transparent 55%);
+  background: radial-gradient(ellipse, rgb(37 99 235 / 12%) 0%, transparent 55%);
 }
 
 .hero__content {
@@ -918,7 +914,7 @@ html.dark .hero__glow {
   padding: 30px 34px 26px;
   /* 白卡上叠一层极淡的粉→紫渐变，像一张带色的信纸 */
   background:
-    linear-gradient(135deg, rgb(229 111 67 / 7%) 0%, rgb(147 184 132 / 7%) 100%),
+    linear-gradient(135deg, rgb(37 99 235 / 7%) 0%, rgb(100 116 139 / 7%) 100%),
     var(--c-bg-card);
   border: 1.5px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
   border-radius: var(--radius-card);
@@ -942,7 +938,7 @@ html.dark .hero__glow {
   right: -38px;
   width: 150px;
   height: 150px;
-  background: rgb(229 111 67 / 22%);
+  background: rgb(37 99 235 / 22%);
   animation: featured-float 7s ease-in-out infinite;
 }
 
@@ -951,7 +947,7 @@ html.dark .hero__glow {
   left: -30px;
   width: 130px;
   height: 130px;
-  background: rgb(147 184 132 / 20%);
+  background: rgb(100 116 139 / 20%);
   animation: featured-float 9s ease-in-out 1.2s infinite reverse;
 }
 
@@ -980,7 +976,7 @@ html.dark .hero__glow {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   transform: rotate(-2deg); /* 像随手贴上的贴纸 */
-  box-shadow: 0 3px 10px rgb(229 111 67 / 35%);
+  box-shadow: 0 3px 10px rgb(37 99 235 / 35%);
 }
 
 .featured__badge::before {
@@ -1073,7 +1069,7 @@ html.dark .hero__glow {
   color: #fff;
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   transform: rotate(-45deg) scale(1.12);
-  box-shadow: 0 4px 12px rgb(229 111 67 / 35%);
+  box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
 }
 
 /* ---- 编号时间线：左侧一条竖线贯穿，序号压在线上，像目录的页码 ---- */
@@ -1206,7 +1202,7 @@ html.dark .hero__glow {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-color: transparent;
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 20px rgb(229 111 67 / 32%);
+  box-shadow: 0 8px 20px rgb(37 99 235 / 32%);
 
   .more-link__arrow {
     transform: translateX(4px);
@@ -1347,12 +1343,12 @@ html.dark .hero__glow {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(229 111 67 / 30%);
+  box-shadow: 0 6px 18px rgb(37 99 235 / 30%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 
   &:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 10px 26px rgb(229 111 67 / 40%);
+    box-shadow: 0 10px 26px rgb(37 99 235 / 40%);
   }
 }
 
@@ -1386,13 +1382,13 @@ html.dark .hero__glow {
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgb(229 111 67 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  box-shadow: 0 8px 20px rgb(37 99 235 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .back-top:hover {
   transform: translateY(-4px) scale(1.08);
-  box-shadow: 0 12px 26px rgb(229 111 67 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  box-shadow: 0 12px 26px rgb(37 99 235 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
 }
 
 .back-top:active {

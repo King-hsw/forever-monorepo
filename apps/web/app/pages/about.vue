@@ -228,14 +228,7 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   overflow-x: clip;
 }
 
-html.dark .about-page {
-  --ab-accent: #60a5fa;
-  --ab-bg: #020617;
-  --ab-text: #f1f5f9;
-  --ab-text-soft: #94a3b8;
-  --ab-line: #1e293b;
-  --ab-card: #0f172a;
-}
+
 
 /* 超大幽灵水印 */
 .ghost-word {
@@ -253,9 +246,7 @@ html.dark .about-page {
   user-select: none;
 }
 
-html.dark .ghost-word {
-  color: rgb(148 163 184 / 7%);
-}
+
 
 /* ===== 头部 ===== */
 .about-hero {

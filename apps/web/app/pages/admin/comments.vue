@@ -282,7 +282,7 @@ await useAsyncData('admin-comments', async () => {
     font-weight: 600;
     color: var(--c-on-primary);
     background: var(--c-primary);
-    box-shadow: 0 1px 4px rgb(99 102 241 / 35%);
+    box-shadow: 0 1px 4px rgb(37 99 235 / 35%);
   }
 }
 

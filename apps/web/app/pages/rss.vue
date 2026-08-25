@@ -279,7 +279,7 @@ async function loadMore() {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-color: transparent;
   transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 20px rgb(229 111 67 / 32%);
+  box-shadow: 0 8px 20px rgb(37 99 235 / 32%);
 }
 
 .more-link:disabled {
