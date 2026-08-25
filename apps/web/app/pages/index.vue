@@ -30,8 +30,6 @@
           <p class="hero__motto">写代码，爱折腾，<br>也记录一路上的思考与生活。</p>
           <nav class="hero__social" aria-label="快捷入口">
             <a href="/rss.xml" target="_blank" rel="noopener">RSS</a>
-            <NuxtLink to="/message">留言墙</NuxtLink>
-            <NuxtLink to="/about">关于小站</NuxtLink>
           </nav>
         </div>
       </div>
@@ -128,40 +126,6 @@
               <span class="more-link__arrow">→</span>
             </NuxtLink>
           </div>
-
-          <aside class="writing__side">
-            <div class="side-block reveal">
-              <h3 class="side-block__title">最近手记</h3>
-              <!-- 不成文的碎碎念：取朋友圈最新几条 -->
-              <NuxtLink
-                v-for="m in noteItems"
-                :key="m.id"
-                to="/moments"
-                class="note-item"
-              >
-                <p class="note-item__content">{{ m.content }}</p>
-                <span class="note-item__meta">{{ m.name }} · {{ m.createdAt }}</span>
-              </NuxtLink>
-              <NuxtLink to="/moments" class="notes-more">
-                进朋友圈逛逛
-                <span aria-hidden="true">→</span>
-              </NuxtLink>
-            </div>
-
-            <div v-if="categoryCards.length" class="side-block reveal">
-              <h3 class="side-block__title">探索分类</h3>
-              <NuxtLink
-                v-for="cat in categoryCards"
-                :key="cat.id"
-                :to="`/posts?category=${cat.slug}`"
-                class="side-row"
-              >
-                <span class="side-row__name">{{ cat.name }}</span>
-                <span class="side-row__count">{{ cat.count }} 篇</span>
-              </NuxtLink>
-            </div>
-
-          </aside>
         </div>
       </section>
 
@@ -195,18 +159,6 @@
               <span class="bento__link-name">归档</span>
               <span class="bento__link-hint">全部文章按月排列 →</span>
             </NuxtLink>
-            <NuxtLink to="/moments" class="bento__tile bento__tile--link">
-              <span class="bento__link-name">朋友圈</span>
-              <span class="bento__link-hint">不成文的碎碎念 →</span>
-            </NuxtLink>
-            <NuxtLink to="/friends" class="bento__tile bento__tile--link">
-              <span class="bento__link-name">友链</span>
-              <span class="bento__link-hint">隔壁的博客们 →</span>
-            </NuxtLink>
-            <NuxtLink to="/about" class="bento__tile bento__tile--link">
-              <span class="bento__link-name">关于</span>
-              <span class="bento__link-hint">阁主是谁，站从何来 →</span>
-            </NuxtLink>
           </div>
 
           <div class="rhythm reveal">
@@ -239,11 +191,6 @@
             </a>
           </div>
           <p v-else class="feed-empty reveal">还没有抓到订阅文章</p>
-
-          <NuxtLink to="/rss" class="more-link">
-            进入订阅页
-            <span class="more-link__arrow">→</span>
-          </NuxtLink>
         </div>
       </section>
 
@@ -280,7 +227,6 @@
 <script setup lang="ts">
 import type { Category, PageResult, Post, RssItem, SiteInfo, Tag } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
-import { mockMoments } from '~/utils/mock-moments'
 
 // 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
 const { data: pageData } = await useAsyncData('home-articles', () =>
@@ -319,21 +265,6 @@ const featuredPost = computed(() => publishedPosts.value[0] ?? null)
 
 /** 头条之后的目录式条目 */
 const homeRows = computed(() => publishedPosts.value.slice(1, homeCount))
-
-/** 分类卡片：带文章数与该分类下最新一篇的标题 */
-const categoryCards = computed(() =>
-  (categories.value ?? [])
-    .map(cat => ({
-      ...cat,
-      count: publishedPosts.value.filter(p => p.categoryId === cat.id).length,
-      latestTitle:
-        publishedPosts.value.find(p => p.categoryId === cat.id)?.summary ?? '暂无文章，快来写下第一篇',
-    }))
-    .sort((a, b) => b.count - a.count)
-)
-
-/** 最近手记：朋友圈最新几条（文字预览） */
-const noteItems = mockMoments.slice(0, 3)
 
 /** bento 统计块：文章 / 分类 / 标签 / 运行天数 */
 const homeStats = computed(() => [
@@ -782,26 +713,9 @@ usePageSeo({
 
 .writing__grid {
   display: grid;
-  /* 参考站式左右双栏：对称两栏，栏间发丝线 */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 64px;
   max-width: 1080px;
   margin: 0 auto;
   padding: 0 24px;
-}
-
-.writing__side {
-  display: flex;
-  flex-direction: column;
-  gap: 44px;
-}
-
-@media (min-width: 901px) {
-  /* 边栏与主栏之间用一道发丝线隔开，像杂志的栏间线 */
-  .writing__side {
-    border-left: 1px solid var(--c-border);
-    padding-left: 40px;
-  }
 }
 
 /* ---- 最近手记：文字预览条目 ---- */

@@ -133,19 +133,7 @@ interface NavItem {
 /** 后续加菜单只改这里 */
 const navItems: NavItem[] = [
   { label: '首页', to: '/' },
-  { label: '文章', to: '/posts' },
-  { label: '朋友圈', to: '/moments' },
-  { label: '留言', to: '/message' },
-  { label: '友链', to: '/friends' },
-  { label: '关于', to: '/about' },
-  {
-    label: '更多',
-    to: '/archive', // 占位路由，父级本身不跳转
-    children: [
-      { label: '归档', to: '/archive' },
-      { label: '订阅', to: '/rss' },
-    ],
-  },
+  { label: '归档', to: '/archive' },
 ]
 
 /** Esc 收起「更多」下拉：面板由 focus-within 控制，失焦即关 */

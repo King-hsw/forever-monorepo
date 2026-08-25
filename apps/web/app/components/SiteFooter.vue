@@ -29,20 +29,7 @@
             <h3 class="site-footer__heading">导航</h3>
             <ul>
               <li><NuxtLink to="/">首页</NuxtLink></li>
-              <li><NuxtLink to="/posts">全部文章</NuxtLink></li>
-              <li><NuxtLink to="/message">留言墙</NuxtLink></li>
-              <li><NuxtLink to="/friends">友链</NuxtLink></li>
-              <li><NuxtLink to="/friends/apply">申请友链</NuxtLink></li>
-              <li><NuxtLink to="/about">关于</NuxtLink></li>
-            </ul>
-          </div>
-
-          <div v-if="categories?.length" class="site-footer__col">
-            <h3 class="site-footer__heading">分类</h3>
-            <ul>
-              <li v-for="cat in categories" :key="cat.id">
-                <NuxtLink :to="`/posts?category=${cat.slug}`">{{ cat.name }}</NuxtLink>
-              </li>
+              <li><NuxtLink to="/archive">归档</NuxtLink></li>
             </ul>
           </div>
 
@@ -76,12 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, SiteInfo } from '#shared/types'
-
-/** 分类列表（复用首页的缓存 key，避免重复请求） */
-const { data: categories } = await useAsyncData('home-categories', () =>
-  apiFetch<Category[]>('/api/v1/categories'),
-)
+import type { SiteInfo } from '#shared/types'
 
 /** 建站日期：来自后台站点设置 site.birth-date；未设置时用内置默认值 */
 const DEFAULT_BIRTH = '2025-01-01'

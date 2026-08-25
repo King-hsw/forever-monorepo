@@ -29,11 +29,10 @@
     <main v-if="post" ref="bodyEl" class="article-wrap">
       <article class="article-card">
         <header class="article-head">
-          <NuxtLink
+          <span
             v-if="categorySlug"
-            :to="`/posts?category=${categorySlug}`"
             class="category-chip"
-          >{{ post.categoryName }}</NuxtLink>
+          >{{ post.categoryName }}</span>
           <span v-else class="category-chip category-chip--none">{{ post.categoryName || '未分类' }}</span>
 
           <h1 class="article-title">{{ post.title }}</h1>

@@ -60,10 +60,7 @@ const ICONS = {
 
 const navItems = [
   { label: '首页', to: '/', icon: ICONS.home },
-  { label: '文章', to: '/posts', icon: ICONS.posts },
-  { label: '朋友圈', to: '/moments', icon: ICONS.moments },
-  { label: '友链', to: '/friends', icon: ICONS.friends },
-  { label: '关于', to: '/about', icon: ICONS.about },
+  { label: '归档', to: '/archive', icon: ICONS.posts },
 ]
 
 /** 已在首页时点头像回到顶部，否则跳回首页 */
