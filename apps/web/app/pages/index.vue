@@ -205,8 +205,10 @@
           </div>
 
           <div class="rhythm reveal">
-            <h3 class="rhythm__title">创作律动</h3>
-            <PostHeatmap :posts="publishedPosts" />
+            <div class="rhythm__head">
+              <h3 class="rhythm__title">创作律动</h3>
+              <RhythmAxis :posts="publishedPosts" />
+            </div>
           </div>
         </div>
       </section>
@@ -1460,10 +1462,10 @@ usePageSeo({
 
 .rhythm__title {
   margin: 0 0 18px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--c-text-secondary);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--c-text);
 }
 
 /* ---- 朋友文章 ---- */
