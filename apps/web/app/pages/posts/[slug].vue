@@ -1,7 +1,6 @@
 <template>
   <div class="post-page">
     <!-- ===== Header：全站统一导航 ===== -->
-    <SiteHeader width="780px" />
 
     <!-- 目录：宽屏固定在正文左侧；窄屏右下角悬浮按钮展开 -->
     <aside

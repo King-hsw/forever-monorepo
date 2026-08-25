@@ -1,6 +1,5 @@
 <template>
   <div class="search-page">
-    <SiteHeader width="800px" />
 
     <main class="wrap">
       <div class="page-head">

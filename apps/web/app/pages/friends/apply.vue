@@ -2,7 +2,6 @@
   <div class="apply-page">
     <!-- ===== Header ===== -->
     <!-- ===== Header：全站统一导航 ===== -->
-    <SiteHeader width="800px" />
 
     <main class="wrap">
       <h1 class="apply-title fade-up">申请友链</h1>

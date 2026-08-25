@@ -1,6 +1,5 @@
 <template>
   <div class="moments-page">
-    <SiteHeader width="960px" />
 
     <main class="moments-wrap">
       <!-- ===== 章节头 ===== -->

@@ -1,7 +1,6 @@
 <template>
   <div class="wall-page">
     <!-- ===== Header：全站统一导航 ===== -->
-    <SiteHeader width="960px" />
 
     <main v-if="board" class="wall-wrap">
       <!-- ===== 页头 ===== -->

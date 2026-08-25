@@ -1,7 +1,6 @@
 <template>
   <div class="rss-page">
     <!-- ===== Header ===== -->
-    <SiteHeader width="800px" />
 
     <main class="wrap">
       <!-- 章节头：英文眉题 + 标题，与首页同款 -->

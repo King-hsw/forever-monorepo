@@ -1,6 +1,5 @@
 <template>
   <div class="arch-page">
-    <SiteHeader width="800px" />
 
     <main class="arch-main">
       <!-- 页头 -->

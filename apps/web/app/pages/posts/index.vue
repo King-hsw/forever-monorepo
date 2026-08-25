@@ -1,7 +1,6 @@
 <template>
   <div class="posts-page">
     <!-- ===== Header：全站统一导航 ===== -->
-    <SiteHeader width="800px" />
 
     <main class="wrap">
       <!-- 页面标题 -->

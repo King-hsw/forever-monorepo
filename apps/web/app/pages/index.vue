@@ -8,8 +8,6 @@
       aria-hidden="true"
     />
 
-    <!-- ===== Header：吸顶导航，滚动后变为玻璃拟态 ===== -->
-    <SiteHeader />
 
     <!-- ===== Hero：阁名 + 引言 ===== -->
     <section ref="heroEl" class="hero">
@@ -312,7 +310,6 @@ const sections = [
 const activeSection = ref('latest')
 let sectionIO: IntersectionObserver | null = null
 
-// ===== Header 滚动态 / 回到顶部 / 阅读进度 =====
 
 const isScrolled = ref(false)
 const showBackTop = ref(false)
