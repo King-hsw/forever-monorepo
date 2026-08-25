@@ -199,6 +199,16 @@ usePageSeo({
   padding: 84px 20px 48px;
 }
 
+/* 朱色界栏：正文版心上方一道两端渐隐的细线，呼应水墨主题 */
+.article-wrap::before {
+  content: '';
+  display: block;
+  height: 2px;
+  margin-bottom: 36px;
+  background: linear-gradient(90deg, transparent, var(--c-primary) 30%, var(--c-primary) 70%, transparent);
+  opacity: 0.45;
+}
+
 /* ===== 目录边栏：签条式（仅宽屏） =====
  * 每个条目做成垂在书脊上的纸签，当前章节的签条被「抽」出来一点
  */
