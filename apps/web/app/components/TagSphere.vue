@@ -245,7 +245,7 @@ onBeforeUnmount(() => {
 
 .tag-sphere__item:hover {
   border-color: currentcolor;
-  box-shadow: 0 4px 12px rgb(37 99 235 / 20%);
+  box-shadow: 0 4px 12px rgb(13 148 136 / 20%);
 }
 
 .tag-sphere__item sup {

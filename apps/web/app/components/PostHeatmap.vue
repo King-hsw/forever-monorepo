@@ -209,9 +209,9 @@ const mini = computed(() => ({
 
 .heatmap-unused-dummy {
   --hm-0: rgb(255 255 255 / 5%);
-  --hm-1: rgb(37 99 235 / 28%);
-  --hm-2: rgb(37 99 235 / 48%);
-  --hm-3: rgb(37 99 235 / 75%);
+  --hm-1: rgb(13 148 136 / 28%);
+  --hm-2: rgb(13 148 136 / 48%);
+  --hm-3: rgb(13 148 136 / 75%);
   --hm-4: #eb8258;
 }
 
@@ -317,7 +317,7 @@ const mini = computed(() => ({
   .heatmap__cells .heatmap__cell:hover:not(.is-future) {
     z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
     transform: scale(1.35); /* 悬停轻轻放大 */
-    box-shadow: 0 2px 6px rgb(37 99 235 / 30%);
+    box-shadow: 0 2px 6px rgb(13 148 136 / 30%);
   }
 }
 

@@ -495,7 +495,7 @@ usePageSeo({
   aspect-ratio: 1;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgb(37 99 235 / 12%) 0%, transparent 55%);
+  background: radial-gradient(ellipse, rgb(13 148 136 / 12%) 0%, transparent 55%);
 }
 
 .hero__content {
@@ -911,7 +911,7 @@ usePageSeo({
   right: -38px;
   width: 150px;
   height: 150px;
-  background: rgb(37 99 235 / 22%);
+  background: rgb(13 148 136 / 22%);
   animation: featured-float 7s ease-in-out infinite;
 }
 
@@ -943,7 +943,7 @@ usePageSeo({
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   transform: rotate(-2deg); /* 像随手贴上的贴纸 */
-  box-shadow: 0 3px 10px rgb(37 99 235 / 35%);
+  box-shadow: 0 3px 10px rgb(13 148 136 / 35%);
 }
 
 .featured__badge::before {
@@ -1037,7 +1037,7 @@ usePageSeo({
     color: #fff;
     background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
     transform: rotate(-45deg) scale(1.12);
-    box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
+    box-shadow: 0 4px 12px rgb(13 148 136 / 35%);
   }
 }
 
@@ -1172,7 +1172,7 @@ usePageSeo({
     background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
     border-color: transparent;
     transform: scale(1.02);
-    box-shadow: 0 8px 20px rgb(37 99 235 / 32%);
+    box-shadow: 0 8px 20px rgb(13 148 136 / 32%);
 
     .more-link__arrow {
       transform: translateX(4px);
@@ -1314,13 +1314,13 @@ usePageSeo({
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   text-decoration: none;
-  box-shadow: 0 6px 18px rgb(37 99 235 / 30%);
+  box-shadow: 0 6px 18px rgb(13 148 136 / 30%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       transform: scale(1.02);
-      box-shadow: 0 10px 26px rgb(37 99 235 / 40%);
+      box-shadow: 0 10px 26px rgb(13 148 136 / 40%);
     }
   }
 }
@@ -1355,14 +1355,14 @@ usePageSeo({
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgb(37 99 235 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  box-shadow: 0 8px 20px rgb(13 148 136 / 35%), inset 0 -3px 0 rgb(0 0 0 / 8%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .back-top:hover {
     transform: translateY(-2px) scale(1.04);
-    box-shadow: 0 12px 26px rgb(37 99 235 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+    box-shadow: 0 12px 26px rgb(13 148 136 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
   }
 }
 

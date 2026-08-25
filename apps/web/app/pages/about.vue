@@ -213,14 +213,14 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
 </script>
 
 <style scoped>
-/* 配色对齐参考站：白底 / 深色 slate-950，蓝 #2563eb 点缀 */
+/* 配色对齐参考站：白底 / 深色 slate-950，蓝 #0d9488 点缀 */
 .about-page {
-  --ab-accent: #2563eb;
-  --ab-bg: #ffffff;
-  --ab-text: #1e293b;
-  --ab-text-soft: #64748b;
-  --ab-line: #e2e8f0;
-  --ab-card: #f8fafc;
+  --ab-accent: #0d9488;
+  --ab-bg: #fbfaf7;
+  --ab-text: #1c1917;
+  --ab-text-soft: #57534e;
+  --ab-line: #e7e5e4;
+  --ab-card: #f5f5f4;
   position: relative;
   max-width: 1080px;
   margin: 0 auto;
@@ -358,22 +358,22 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   aspect-ratio: 16 / 10;
   padding: 16px 18px;
   background:
-    linear-gradient(to top, rgb(15 23 42 / 72%), rgb(15 23 42 / 12%) 70%),
-    linear-gradient(150deg, #3b82f6 0%, #1e293b 100%);
+    linear-gradient(to top, rgb(28 25 23 / 72%), rgb(15 23 42 / 12%) 70%),
+    linear-gradient(150deg, #14b8a6 0%, #1e293b 100%);
   border-radius: 18px;
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
 .place-card:nth-child(2) {
   background:
-    linear-gradient(to top, rgb(15 23 42 / 72%), rgb(15 23 42 / 12%) 70%),
-    linear-gradient(150deg, #64748b 0%, #1e293b 100%);
+    linear-gradient(to top, rgb(28 25 23 / 72%), rgb(15 23 42 / 12%) 70%),
+    linear-gradient(150deg, #57534e 0%, #292524 100%);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .place-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 14px 32px rgb(37 99 235 / 22%);
+    box-shadow: 0 14px 32px rgb(13 148 136 / 22%);
   }
 }
 
@@ -562,7 +562,7 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
 
 .interest-face.back {
   color: #fff;
-  background: linear-gradient(150deg, var(--ab-accent), #1d4ed8);
+  background: linear-gradient(150deg, var(--ab-accent), #0f766e);
   transform: rotateY(180deg);
 }
 
@@ -637,7 +637,7 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
 @media (hover: hover) and (pointer: fine) {
   .contact-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgb(37 99 235 / 30%);
+    box-shadow: 0 8px 20px rgb(13 148 136 / 30%);
   }
 }
 
@@ -695,7 +695,7 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
 .ten-bar i {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--ab-accent), #60a5fa);
+  background: linear-gradient(90deg, var(--ab-accent), #2dd4bf);
   border-radius: 999px;
 }
 

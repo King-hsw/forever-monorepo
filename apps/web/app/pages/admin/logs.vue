@@ -307,8 +307,8 @@ await useAsyncData('admin-logs', async () => {
 }
 
 .method-badge--get {
-  color: #2563eb;
-  background: rgb(37 99 235 / 12%);
+  color: #0d9488;
+  background: rgb(13 148 136 / 12%);
 }
 
 .method-badge--post {

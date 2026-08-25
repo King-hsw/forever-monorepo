@@ -504,7 +504,7 @@ async function confirmRemove() {
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgb(15 23 42 / 40%);
+  background: rgb(28 25 23 / 40%);
 }
 
 .create-dialog {

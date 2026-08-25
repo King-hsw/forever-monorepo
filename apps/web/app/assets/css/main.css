@@ -8,11 +8,16 @@
 /* 系统字体：自带光学尺寸与字距表，中文回落 PingFang / 雅黑 */
 body {
   margin: 0;
-  background: #ffffff;
+  background: #fbfaf7; /* 暖纸白 */
   font: 400 16px/1.65 system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  color: #fff;
+  background: rgb(13 148 136 / 85%);
 }
 
 /* 大字号收紧字距；正文保持 0（字距随字号变化，不用固定值） */
@@ -20,28 +25,38 @@ h1, h2 {
   letter-spacing: -0.02em;
 }
 
-/* ===== 设计令牌：极简白 / slate 灰阶 / 单一蓝色点缀 ===== */
+/* 各页大标题：衬线墨字，文人气质（类名分散在各页，这里统一接管字体） */
+.page-head__cn,
+.arch-head__title,
+.moments-head__title,
+.wall-head__title,
+.section-head__title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+/* ===== 设计令牌：暖纸白底 / 墨石灰阶 / 玉青点缀（对齐中式文人风） ===== */
 :root {
-  --c-primary: #2563eb;
-  --c-primary-hover: #1d4ed8;
-  --c-primary-light: rgb(37 99 235 / 8%);
+  --c-primary: #0d9488; /* 玉青 jade-600 */
+  --c-primary-hover: #0f766e; /* jade-700 */
+  --c-primary-light: rgb(13 148 136 / 9%);
 
-  /* 配角统一并入灰阶与蓝阶，保留变量名兼容旧引用 */
-  --k-mint: #64748b;
-  --k-grape: #3b82f6;
-  --k-lemon: #94a3b8;
-  --k-sky: #60a5fa;
+  /* 配角统一并入墨阶与玉阶，保留变量名兼容旧引用 */
+  --k-mint: #57534e;
+  --k-grape: #14b8a6;
+  --k-lemon: #a8a29e;
+  --k-sky: #2dd4bf;
 
-  --c-text: #0f172a;
-  --c-text-secondary: #475569;
-  --c-text-muted: #94a3b8;
-  --c-border: #e2e8f0;
-  --c-bg: #ffffff;
+  --c-text: #1c1917; /* 墨 stone-900 */
+  --c-text-secondary: #57534e; /* stone-600 */
+  --c-text-muted: #a8a29e; /* stone-400 */
+  --c-border: #e7e5e4; /* stone-200 */
+  --c-bg: #fbfaf7;
   --c-bg-card: #ffffff;
-  --c-bg-soft: #f1f5f9;
+  --c-bg-soft: #f5f5f4; /* stone-100 */
   --c-on-primary: #fff;
   --c-danger: #dc2626;
-  --c-success: #16a34a;
+  --c-success: #0d9488;
   --c-warning-text: #d97706;
   --c-warning-bg: rgb(217 119 6 / 10%);
 
@@ -49,8 +64,8 @@ h1, h2 {
   --radius-card: 14px;
   --radius-control: 10px;
 
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 5%), 0 4px 12px rgb(15 23 42 / 5%);
-  --shadow-card-hover: 0 4px 10px rgb(15 23 42 / 8%), 0 12px 28px rgb(15 23 42 / 8%);
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 4%), 0 4px 12px rgb(28 25 23 / 4%);
+  --shadow-card-hover: 0 4px 10px rgb(28 25 23 / 7%), 0 12px 28px rgb(28 25 23 / 7%);
 
   /* 弹簧感缓动：平滑收敛无过冲（临界阻尼），变量名保留兼容旧引用 */
   --ease-bounce: cubic-bezier(0.22, 1, 0.36, 1);
@@ -188,13 +203,13 @@ h1, h2 {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 14px rgb(37 99 235 / 30%);
+  box-shadow: 0 4px 14px rgb(13 148 136 / 30%);
 }
 
 .btn--primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--c-primary-hover), var(--k-grape));
   border-color: transparent;
-  box-shadow: 0 8px 20px rgb(37 99 235 / 38%);
+  box-shadow: 0 8px 20px rgb(13 148 136 / 38%);
 }
 
 .btn--danger {
@@ -244,7 +259,7 @@ h1, h2 {
 
 .field-input:focus {
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 4px rgb(37 99 235 / 15%); /* 粉色柔光圈 */
+  box-shadow: 0 0 0 4px rgb(13 148 136 / 15%); /* 粉色柔光圈 */
 }
 
 .field-label {

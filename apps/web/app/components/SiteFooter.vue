@@ -140,7 +140,7 @@ onUnmounted(() => {
 }
 
 .site-footer__wave path {
-  fill: var(--c-bg-card);
+  fill: var(--c-bg);
 }
 
 /* ===== 容器 ===== */
@@ -149,7 +149,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 28px;
   padding: 40px 24px 24px;
-  background: var(--c-bg-card);
+  background: var(--c-bg);
   border-top: 1px solid var(--c-border);
 }
 
@@ -187,7 +187,7 @@ onUnmounted(() => {
   height: 34px;
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
+  box-shadow: 0 4px 12px rgb(13 148 136 / 35%);
 }
 
 .site-footer__mark::before {

@@ -368,7 +368,7 @@ function onBrandClick() {
   height: 32px;
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 12px; /* 圆润的小方块，像一颗软糖 */
-  box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
+  box-shadow: 0 4px 12px rgb(13 148 136 / 35%);
 }
 
 /* 笑脸：两颗眼睛 + 微笑嘴 */
@@ -728,7 +728,7 @@ function onBrandClick() {
 .site-header__icon-btn:hover {
   color: var(--c-primary);
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 3px rgb(37 99 235 / 15%);
+  box-shadow: 0 0 0 3px rgb(13 148 136 / 15%);
 }
 
 .site-header__icon-btn:active {
@@ -855,7 +855,7 @@ function onBrandClick() {
 /* 搜索弹层与移动菜单的减透明度回落 */
 @media (prefers-reduced-transparency: reduce) {
   .global-search {
-    background: rgb(15 23 42 / 45%);
+    background: rgb(28 25 23 / 45%);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
