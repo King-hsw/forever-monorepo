@@ -121,6 +121,24 @@
           </div>
 
           <aside class="writing__side">
+            <div class="side-block reveal">
+              <h3 class="side-block__title">最近手记</h3>
+              <!-- 不成文的碎碎念：取朋友圈最新几条 -->
+              <NuxtLink
+                v-for="m in noteItems"
+                :key="m.id"
+                to="/moments"
+                class="note-item"
+              >
+                <p class="note-item__content">{{ m.content }}</p>
+                <span class="note-item__meta">{{ m.name }} · {{ m.createdAt }}</span>
+              </NuxtLink>
+              <NuxtLink to="/moments" class="notes-more">
+                进朋友圈逛逛
+                <span aria-hidden="true">→</span>
+              </NuxtLink>
+            </div>
+
             <div v-if="categoryCards.length" class="side-block reveal">
               <h3 class="side-block__title">探索分类</h3>
               <NuxtLink
@@ -258,6 +276,7 @@
 <script setup lang="ts">
 import type { Category, PageResult, Post, RssItem, SiteInfo, Tag } from '#shared/types'
 import { formatDateTime } from '~/utils/format'
+import { mockMoments } from '~/utils/mock-moments'
 
 // 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
 const { data: pageData } = await useAsyncData('home-articles', () =>
@@ -310,6 +329,9 @@ const categoryCards = computed(() =>
     }))
     .sort((a, b) => b.count - a.count)
 )
+
+/** 最近手记：朋友圈最新几条（文字预览） */
+const noteItems = mockMoments.slice(0, 3)
 
 /** bento 统计块：文章 / 分类 / 标签 / 运行天数 */
 const homeStats = computed(() => [
@@ -717,7 +739,8 @@ usePageSeo({
 
 .writing__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  /* 参考站式左右双栏：对称两栏，栏间发丝线 */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 64px;
   max-width: 1080px;
   margin: 0 auto;
@@ -736,6 +759,56 @@ usePageSeo({
     border-left: 1px solid var(--c-border);
     padding-left: 40px;
   }
+}
+
+/* ---- 最近手记：文字预览条目 ---- */
+.note-item {
+  display: block;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--c-border);
+  text-decoration: none;
+}
+
+.note-item__content {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--c-text-secondary);
+  transition: color 0.2s ease;
+
+  /* 两行截断，长句不撑破右栏 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.note-item__meta {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .note-item:hover .note-item__content {
+    color: var(--c-primary);
+  }
+}
+
+.notes-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--c-primary);
+  text-decoration: none;
+}
+
+.notes-more:hover {
+  text-decoration: underline;
 }
 
 /* ---- 章节头：英文眉题 + 粗黑标题 ---- */
