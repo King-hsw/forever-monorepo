@@ -28,8 +28,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.documentElement.animate(
           { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
           {
-            duration: 420,
-            easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)',
+            duration: 280,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
             pseudoElement: '::view-transition-new(root)',
           },
         )

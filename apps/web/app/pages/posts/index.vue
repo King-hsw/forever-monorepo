@@ -575,8 +575,8 @@ usePageSeo({
 
 .page-swap-leave-active {
   transition:
-    opacity 0.14s ease-in,
-    transform 0.14s ease-in;
+    opacity 0.14s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.14s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .page-swap-enter-from {
@@ -650,7 +650,7 @@ usePageSeo({
   border: 1.5px solid var(--c-border);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 
   &:hover:not(:disabled) {
     color: var(--c-primary);

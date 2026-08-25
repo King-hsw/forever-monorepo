@@ -266,10 +266,12 @@ function formatDate(dateStr: string): string {
     border-color var(--dur-soft) ease;
 }
 
-.arch-item:hover {
-  border-color: color-mix(in srgb, var(--c-primary) 35%, var(--c-border));
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .arch-item:hover {
+    border-color: color-mix(in srgb, var(--c-primary) 35%, var(--c-border));
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
 }
 
 /* 节点：绝对定位于卡片左缘外、压在主轴上（left 相对卡片自身，不依赖行高） */
@@ -286,8 +288,10 @@ function formatDate(dateStr: string): string {
   transition: transform var(--dur-soft) var(--ease-bounce);
 }
 
-.arch-item:hover .arch-item__dot {
-  transform: translateY(-50%) scale(1.25);
+@media (hover: hover) and (pointer: fine) {
+  .arch-item:hover .arch-item__dot {
+    transform: translateY(-50%) scale(1.25);
+  }
 }
 
 .arch-item__dot--primary { border-color: var(--c-primary); }

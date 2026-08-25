@@ -185,9 +185,11 @@ async function loadMore() {
     color: var(--c-primary);
   }
 
-  &:hover .item__arrow {
-    opacity: 1;
-    transform: translate(2px, -2px);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover .item__arrow {
+      opacity: 1;
+      transform: translate(2px, -2px);
+    }
   }
 }
 
@@ -271,7 +273,7 @@ async function loadMore() {
   border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 }
 
 .more-link:hover:not(:disabled) {
@@ -291,8 +293,10 @@ async function loadMore() {
   transition: transform 0.2s ease;
 }
 
-.more-link:hover:not(:disabled) .more-link__arrow {
-  transform: translateY(3px);
+@media (hover: hover) and (pointer: fine) {
+  .more-link:hover:not(:disabled) .more-link__arrow {
+    transform: translateY(3px);
+  }
 }
 
 /* ===== 订阅源面板：与首页热力图面板同款卡片 ===== */
@@ -332,9 +336,11 @@ async function loadMore() {
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
 }
 
-.feeds__item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-card);
+@media (hover: hover) and (pointer: fine) {
+  .feeds__item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+  }
 }
 
 .feeds__desc {

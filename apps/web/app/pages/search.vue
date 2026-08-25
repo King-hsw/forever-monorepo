@@ -179,10 +179,12 @@ watch(kw, (v) => {
   animation: result-in 0.35s ease both;
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, border-color 0.2s ease;
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
-    box-shadow: var(--shadow-card-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
+      box-shadow: var(--shadow-card-hover);
+    }
   }
 
   /* 高亮标记：主题色加粗，不用斜体 */
@@ -260,7 +262,7 @@ watch(kw, (v) => {
     border: 1.5px solid var(--c-border);
     border-radius: 999px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 
     &:hover:not(:disabled) {
       color: var(--c-primary-hover);

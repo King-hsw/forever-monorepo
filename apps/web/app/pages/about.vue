@@ -370,9 +370,11 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
     linear-gradient(150deg, #64748b 0%, #1e293b 100%);
 }
 
-.place-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgb(37 99 235 / 22%);
+@media (hover: hover) and (pointer: fine) {
+  .place-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgb(37 99 235 / 22%);
+  }
 }
 
 .place-kicker {
@@ -499,13 +501,15 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   color: var(--ab-text);
   border: 1px solid var(--ab-line);
   border-radius: 14px;
-  transition: all var(--dur-soft) ease;
+  transition: color var(--dur-soft) ease, background-color var(--dur-soft) ease, border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce);
 }
 
-.skill-chip:hover {
-  color: var(--ab-accent);
-  border-color: var(--ab-accent);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .skill-chip:hover {
+    color: var(--ab-accent);
+    border-color: var(--ab-accent);
+    transform: translateY(-2px);
+  }
 }
 
 /* ===== 03 兴趣翻转卡 ===== */
@@ -527,12 +531,14 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
   transform-style: preserve-3d;
 }
 
-.interest-card:hover .interest-inner {
-  transform: rotateY(180deg);
+@media (hover: hover) and (pointer: fine) {
+  .interest-card:hover .interest-inner {
+    transform: rotateY(180deg);
+  }
 }
 
 .interest-face {
@@ -619,7 +625,7 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   text-decoration: none;
   border: 1.5px solid var(--ab-accent);
   border-radius: 999px;
-  transition: all var(--dur-soft) ease;
+  transition: color var(--dur-soft) ease, background-color var(--dur-soft) ease, border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce);
 }
 
 .contact-btn.primary,
@@ -628,9 +634,11 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   background: var(--ab-accent);
 }
 
-.contact-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgb(37 99 235 / 30%);
+@media (hover: hover) and (pointer: fine) {
+  .contact-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgb(37 99 235 / 30%);
+  }
 }
 
 /* ===== 引语横幅 ===== */
@@ -670,10 +678,12 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, border-color var(--dur-soft) ease;
 }
 
-.quick-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--ab-accent);
-  box-shadow: 0 12px 28px rgb(37 99 235 / 14%);
+@media (hover: hover) and (pointer: fine) {
+  .quick-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--ab-accent);
+    box-shadow: 0 12px 28px rgb(37 99 235 / 14%);
+  }
 }
 
 .quick-card strong {

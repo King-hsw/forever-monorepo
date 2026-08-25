@@ -16,11 +16,11 @@
       </div>
 
       <div ref="heroContent" class="hero__content">
-        <h1 class="hero__title fade-hero" style="--hd: 90ms">补陋阁</h1>
+        <h1 class="hero__title fade-hero">补陋阁</h1>
 
-        <p class="hero__quote fade-hero" style="--hd: 180ms">「斯是陋室，惟吾德馨。」<span class="hero__quote-from">—— 刘禹锡《陋室铭》</span></p>
+        <p class="hero__quote fade-hero" style="--hd: 120ms">「斯是陋室，惟吾德馨。」<span class="hero__quote-from">—— 刘禹锡《陋室铭》</span></p>
 
-        <div class="hero__actions fade-hero" style="--hd: 360ms">
+        <div class="hero__actions fade-hero" style="--hd: 260ms">
           <button type="button" class="hero__cta" @click="scrollToId('latest')">
             开始阅读
             <span class="hero__cta-arrow">↓</span>
@@ -507,7 +507,7 @@ usePageSeo({
 
 /* 入场：自下而上逐层浮现（延迟由 --hd 控制） */
 .fade-hero {
-  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--hd, 0ms) both;
+  animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--hd, 0ms) both;
 }
 
 /* 标题：衬线大字，阁名居中，宽字距显文气 */
@@ -547,7 +547,7 @@ usePageSeo({
   justify-content: center;
   gap: 14px;
   margin-top: 36px;
-  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.74s both;
+  animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 260ms both;
 }
 
 .hero__cta {
@@ -563,7 +563,7 @@ usePageSeo({
   border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 }
 
 .hero__cta:hover {
@@ -576,8 +576,10 @@ usePageSeo({
   transition: transform 0.2s ease;
 }
 
-.hero__cta:hover .hero__cta-arrow {
-  transform: translateY(2px);
+@media (hover: hover) and (pointer: fine) {
+  .hero__cta:hover .hero__cta-arrow {
+    transform: translateY(2px);
+  }
 }
 
 /* 滚动提示：鼠标造型 + 滚轮动画 */
@@ -594,7 +596,7 @@ usePageSeo({
   cursor: pointer;
   opacity: 0.65;
   transition: opacity 0.2s ease;
-  animation: fade-up 0.6s ease 1s both;
+  animation: fade-up 0.6s ease 450ms both;
 }
 
 .hero__scroll-hint:hover {
@@ -805,7 +807,7 @@ usePageSeo({
   height: 10px;
   background: var(--c-border);
   border-radius: 50%;
-  transition: all var(--dur-soft) var(--ease-bounce);
+  transition: color var(--dur-soft) ease, background-color var(--dur-soft) ease, border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce);
 }
 
 .chapter-nav__item:hover .chapter-nav__dot {
@@ -935,10 +937,12 @@ usePageSeo({
   50% { transform: translate(-12px, 14px) scale(1.08); }
 }
 
-.featured:hover {
-  border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-4px);
+@media (hover: hover) and (pointer: fine) {
+  .featured:hover {
+    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-4px);
+  }
 }
 
 /* 「最新发布」贴纸徽章：渐变胶囊微倾斜，缀一颗小星星 */
@@ -1044,11 +1048,13 @@ usePageSeo({
     transform 0.3s var(--ease-bounce);
 }
 
-.featured:hover .featured__cta-circle {
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  transform: rotate(-45deg) scale(1.12);
-  box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
+@media (hover: hover) and (pointer: fine) {
+  .featured:hover .featured__cta-circle {
+    color: #fff;
+    background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+    transform: rotate(-45deg) scale(1.12);
+    box-shadow: 0 4px 12px rgb(37 99 235 / 35%);
+  }
 }
 
 /* ---- 编号时间线：左侧一条竖线贯穿，序号压在线上，像目录的页码 ---- */
@@ -1173,18 +1179,20 @@ usePageSeo({
   border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
   border-radius: 999px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 }
 
-.more-link:hover {
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-color: transparent;
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 8px 20px rgb(37 99 235 / 32%);
+@media (hover: hover) and (pointer: fine) {
+  .more-link:hover {
+    color: #fff;
+    background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
+    border-color: transparent;
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgb(37 99 235 / 32%);
 
-  .more-link__arrow {
-    transform: translateX(4px);
+    .more-link__arrow {
+      transform: translateX(4px);
+    }
   }
 }
 
@@ -1325,9 +1333,11 @@ usePageSeo({
   box-shadow: 0 6px 18px rgb(37 99 235 / 30%);
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 
-  &:hover {
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 10px 26px rgb(37 99 235 / 40%);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: 0 10px 26px rgb(37 99 235 / 40%);
+    }
   }
 }
 
@@ -1365,9 +1375,11 @@ usePageSeo({
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
 }
 
-.back-top:hover {
-  transform: translateY(-4px) scale(1.08);
-  box-shadow: 0 12px 26px rgb(37 99 235 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+@media (hover: hover) and (pointer: fine) {
+  .back-top:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 12px 26px rgb(37 99 235 / 45%), inset 0 -3px 0 rgb(0 0 0 / 8%);
+  }
 }
 
 .back-top:active {

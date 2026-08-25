@@ -139,7 +139,9 @@ h1, h2 {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    /* 更温和而非归零：保留透明度/颜色过渡反馈，只去掉位移动效 */
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+    transition-duration: 200ms !important;
   }
 }
 
@@ -168,9 +170,12 @@ h1, h2 {
   transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.btn:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.03); /* 小软糖被轻轻弹起 */
-  box-shadow: var(--shadow-card);
+/* 悬停属高频交互：只轻微放大，且门控在精确指针设备上 */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-card);
+  }
 }
 
 .btn:active:not(:disabled) {

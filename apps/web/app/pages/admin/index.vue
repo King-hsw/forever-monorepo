@@ -183,9 +183,11 @@ const categoryDist = computed(() => {
   text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+    }
   }
 }
 
@@ -227,9 +229,11 @@ const categoryDist = computed(() => {
   padding: 20px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+    }
   }
 }
 

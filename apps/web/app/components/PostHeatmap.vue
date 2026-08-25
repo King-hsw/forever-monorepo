@@ -313,10 +313,12 @@ const mini = computed(() => ({
   transition: transform var(--dur-soft) var(--ease-bounce);
 }
 
-.heatmap__cells .heatmap__cell:hover:not(.is-future) {
-  z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
-  transform: scale(1.35); /* 悬停轻轻放大 */
-  box-shadow: 0 2px 6px rgb(37 99 235 / 30%);
+@media (hover: hover) and (pointer: fine) {
+  .heatmap__cells .heatmap__cell:hover:not(.is-future) {
+    z-index: 20; /* 提升悬停格自身层级，避免气泡被后续兄弟格子盖住 */
+    transform: scale(1.35); /* 悬停轻轻放大 */
+    box-shadow: 0 2px 6px rgb(37 99 235 / 30%);
+  }
 }
 
 /* 悬停信息气泡：替代原生 title，展示更及时、样式更精致。

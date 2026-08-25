@@ -294,11 +294,13 @@ usePageSeo({
   border-radius: 0 8px 8px 0;
   transition: color var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce), border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease;
 
+@media (hover: hover) and (pointer: fine) {
   &:hover {
     color: var(--c-primary);
     transform: translateX(3px);
     border-left-color: color-mix(in srgb, var(--c-primary) 45%, var(--c-border));
   }
+}
 
   /* 当前章节：整根签条抽出书页 */
   &.is-active {
@@ -336,7 +338,7 @@ usePageSeo({
   background: var(--c-primary-light);
   border-radius: 999px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 
   &:hover {
     background: var(--c-primary-light);
@@ -398,7 +400,7 @@ usePageSeo({
   color: var(--c-text-secondary);
   background: var(--c-bg-soft);
   border-radius: 999px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 
   &:hover {
     color: var(--c-primary);
@@ -440,12 +442,14 @@ usePageSeo({
   border: 1px solid var(--c-border);
   border-radius: 12px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 
-  &:hover {
-    border-color: var(--c-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: var(--c-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
+    }
   }
 }
 

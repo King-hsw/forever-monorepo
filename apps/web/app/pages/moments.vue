@@ -173,7 +173,9 @@ usePageSeo({
   transition: transform 0.3s ease;
 }
 
-.moment-card__image:hover {
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .moment-card__image:hover {
+    transform: scale(1.04);
+  }
 }
 </style>
