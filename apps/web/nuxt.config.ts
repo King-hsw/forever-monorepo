@@ -104,7 +104,6 @@ export default defineNuxtConfig({
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
-        { rel: 'alternate', type: 'application/rss+xml', title: '补陋阁', href: '/rss.xml' },
         // 毛笔楷书字体（OFL 开源）：仅用于背景书法水印，Google Fonts 按 unicode-range 分包，只下载用到的十几个字
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
