@@ -84,7 +84,7 @@ function onBrandClick() {
   align-items: center;
   width: 88px;
   padding: 22px 0;
-  background: var(--c-bg);
+  background: #fbf9f5; /* 比纸底略暖一档，参考站侧栏同款 */
   border-right: 1px solid var(--c-border);
 }
 

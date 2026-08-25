@@ -51,7 +51,7 @@ h1, h2 {
   --c-text-secondary: #57534e; /* stone-600 */
   --c-text-muted: #a8a29e; /* stone-400 */
   --c-border: #e7e5e4; /* stone-200 */
-  --c-bg: #fbfaf7;
+  --c-bg: #fafaf9; /* ink-50，参考站同款 */
   --c-bg-card: #ffffff;
   --c-bg-soft: #f5f5f4; /* stone-100 */
   --c-on-primary: #fff;
