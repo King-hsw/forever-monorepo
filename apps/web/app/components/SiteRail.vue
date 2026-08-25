@@ -26,13 +26,6 @@
           <path d="m20 20-3.8-3.8" />
         </svg>
       </button>
-      <a class="site-rail__btn" href="/rss.xml" target="_blank" rel="noopener" aria-label="RSS 订阅" title="RSS 订阅">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M4 11a9 9 0 0 1 9 9" />
-          <path d="M4 4a16 16 0 0 1 16 16" />
-          <circle cx="5" cy="19" r="1" />
-        </svg>
-      </a>
       <NuxtLink v-if="auth.isAuthenticated" to="/admin" class="site-rail__btn" aria-label="管理后台" title="管理后台">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="3" y="11" width="18" height="10" rx="2" />

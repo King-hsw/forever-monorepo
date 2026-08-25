@@ -37,9 +37,6 @@
             <h3 class="site-footer__heading">站外</h3>
             <ul>
               <li>
-                <a href="/rss.xml" target="_blank" rel="noopener">RSS 订阅 ↗</a>
-              </li>
-              <li>
                 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机前往一位成员博客">开往 ↗</a>
               </li>
               <li>

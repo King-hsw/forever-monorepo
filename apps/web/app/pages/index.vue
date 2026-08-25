@@ -26,10 +26,7 @@
 
         <div class="hero__side fade-hero" style="--hd: 240ms">
           <p class="hero__subtitle">// 斯是陋室，惟吾德馨<br>// 记录技术、生活，与胡思乱想</p>
-          <p class="hero__motto">写代码，爱折腾，<br>也记录一路上的思考与生活。</p>
-          <nav class="hero__social" aria-label="快捷入口">
-            <a href="/rss.xml" target="_blank" rel="noopener">RSS</a>
-          </nav>
+          <p class="hero__motto">有朋自远方来，不亦乐乎。</p>
         </div>
       </div>
 
@@ -188,7 +185,7 @@ function scrollToTop() {
 
 /** 首页章节（顺序即叙事顺序，标签取乾卦爻辞：龙之进阶） */
 const sections = [
-  { id: 'latest', label: '初九 · 潜龙勿用' },
+  { id: 'latest', label: '卷壹 · 墨痕' },
 ]
 
 const activeSection = ref('latest')
@@ -535,24 +532,6 @@ usePageSeo({
   font-size: clamp(20px, 2vw, 24px); /* text-2xl */
   line-height: 1.625;
   color: #292524; /* ink-800 */
-}
-
-.hero__social {
-  display: flex;
-  gap: 24px;
-  align-items: center;
-}
-
-.hero__social a {
-  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
-  font-size: 13px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-}
-
-.hero__social a:hover {
-  color: var(--c-primary);
-  text-decoration: underline;
 }
 
 /* 滚动提示：右下角弹跳箭头 */
