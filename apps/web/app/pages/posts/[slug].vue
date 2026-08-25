@@ -199,7 +199,9 @@ usePageSeo({
   padding: 84px 20px 48px;
 }
 
-/* ===== 目录边栏（仅宽屏） ===== */
+/* ===== 目录边栏：签条式（仅宽屏） =====
+ * 每个条目做成垂在书脊上的纸签，当前章节的签条被「抽」出来一点
+ */
 .toc {
   position: fixed;
   top: 110px;
@@ -273,27 +275,38 @@ usePageSeo({
   margin: 0;
   padding: 0;
   list-style: none;
-  border-left: 2px solid var(--c-border);
+}
+
+.toc__list li + li {
+  margin-top: 4px;
 }
 
 .toc__link {
   display: block;
-  padding: 5px 0 5px 14px;
+  padding: 5px 10px 5px 14px;
   font-size: 13px;
   line-height: 1.5;
   color: var(--c-text-secondary);
   text-decoration: none;
-  border-left: 2px solid transparent;
-  margin-left: -2px;
-  transition: all 0.15s ease;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-left: 3px solid var(--c-border);
+  border-radius: 0 8px 8px 0;
+  transition: color var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce), border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease;
 
   &:hover {
     color: var(--c-primary);
+    transform: translateX(3px);
+    border-left-color: color-mix(in srgb, var(--c-primary) 45%, var(--c-border));
   }
 
+  /* 当前章节：整根签条抽出书页 */
   &.is-active {
     color: var(--c-primary);
+    font-weight: 600;
+    transform: translateX(8px);
     border-left-color: var(--c-primary);
+    box-shadow: -3px 2px 8px rgb(0 0 0 / 7%);
   }
 }
 

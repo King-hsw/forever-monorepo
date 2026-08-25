@@ -2,25 +2,32 @@
   <button
     type="button"
     class="theme-toggle"
-    :class="{ 'theme-toggle--dark': shownDark }"
-    :aria-label="shownDark ? '切换到浅色模式' : '切换到深色模式'"
-    :title="shownDark ? '切换到浅色模式' : '切换到深色模式'"
-    @click="toggle($event)"
+    :aria-label="`当前${MODE_LABEL[shownMode]}主题，点击切换`"
+    :title="`切换主题（当前：${MODE_LABEL[shownMode]}）`"
+    @click="onClick"
   >
-    <span class="theme-toggle__icon" aria-hidden="true">
-      <svg class="theme-toggle__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <circle cx="12" cy="12" r="4.5" />
-        <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4" />
-      </svg>
-      <svg class="theme-toggle__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" />
-      </svg>
-    </span>
+    <!-- 太极：每次点击旋转半圈，配合 View Transition 的圆形揭幕换肤 -->
+    <svg
+      class="theme-toggle__icon"
+      :class="{ 'theme-toggle__icon--spin': spinning }"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      @animationend="spinning = false"
+    >
+      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6" />
+      <path d="M12 2a5 5 0 0 1 0 10 5 5 0 0 0 0 10A10 10 0 0 0 12 2Z" fill="currentColor" />
+      <circle cx="12" cy="7" r="1.5" :fill="'var(--c-bg-card)'" />
+      <circle cx="12" cy="17" r="1.5" fill="currentColor" />
+    </svg>
   </button>
 </template>
 
 <script setup lang="ts">
-const { isDark, toggle } = useTheme()
+import type { ThemeMode } from '~/composables/useTheme'
+
+const { mode, toggle } = useTheme()
+
+const MODE_LABEL: Record<ThemeMode, string> = { light: '浅色', dark: '暗夜', ink: '水墨' }
 
 // 水合完成前固定渲染浅色态，避免与 SSR 输出不一致导致 hydration mismatch
 const mounted = ref(false)
@@ -28,7 +35,14 @@ onMounted(() => {
   mounted.value = true
 })
 
-const shownDark = computed(() => mounted.value && isDark.value)
+const shownMode = computed(() => (mounted.value ? mode.value : 'light'))
+
+/** 点击时让太极转起来；animationend 后摘掉类，下次点击可重播 */
+const spinning = ref(false)
+function onClick(e: MouseEvent) {
+  spinning.value = true
+  return toggle(e)
+}
 </script>
 
 <style scoped>
@@ -64,41 +78,16 @@ const shownDark = computed(() => mounted.value && isDark.value)
 }
 
 .theme-toggle__icon {
-  position: relative;
-  display: block;
   width: 18px;
   height: 18px;
 }
 
-.theme-toggle__icon svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transition:
-    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.3s;
+.theme-toggle__icon--spin {
+  animation: taiji-spin 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 太阳：默认可见；暗色时缩小淡出并旋转 */
-.theme-toggle__sun {
-  transform: rotate(0deg) scale(1);
-  opacity: 1;
-}
-
-.theme-toggle--dark .theme-toggle__sun {
-  transform: rotate(90deg) scale(0.4);
-  opacity: 0;
-}
-
-/* 月亮：默认藏起；暗色时旋入 */
-.theme-toggle__moon {
-  transform: rotate(-90deg) scale(0.4);
-  opacity: 0;
-}
-
-.theme-toggle--dark .theme-toggle__moon {
-  transform: rotate(0deg) scale(1);
-  opacity: 1;
+@keyframes taiji-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(180deg); }
 }
 </style>

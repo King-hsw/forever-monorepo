@@ -1,5 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  // 页面导航启用 View Transition：配合 plugins/view-transition.ts 做圆形墨晕揭幕
+  experimental: {
+    viewTransition: true,
+  },
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   runtimeConfig: {
@@ -98,11 +102,12 @@ export default defineNuxtConfig({
       ],
       script: [
         {
-          // 首屏防闪烁：在渲染前根据 localStorage / 系统偏好给 <html> 加上 dark 类
+          // 首屏防闪烁：在渲染前根据 localStorage / 系统偏好给 <html> 加上 dark / ink 类
           innerHTML:
-            "(function(){try{var t=localStorage.getItem('forever-theme');" +
-            "if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))" +
-            "{document.documentElement.classList.add('dark')}}catch(e){}})()",
+            "(function(){try{var t=localStorage.getItem('forever-theme'),d=document.documentElement.classList;" +
+            "if(t==='ink')d.add('ink');" +
+            "else if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))d.add('dark')" +
+            "}catch(e){}})()",
           tagPosition: 'head',
         },
       ],

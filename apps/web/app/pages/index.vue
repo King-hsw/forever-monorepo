@@ -57,7 +57,7 @@
         <div class="writing__grid">
           <div class="writing__main">
             <header class="section-head reveal">
-              <p class="section-head__caption">Recent Writing</p>
+              <p class="section-head__caption">卷壹 · 墨痕</p>
               <h2 class="section-head__title">近期笔墨</h2>
               <p class="section-head__desc">刚刚写下的文字，还热乎着。</p>
             </header>
@@ -146,7 +146,7 @@
       <section id="heatmap" class="scene scene--tinted">
         <div class="scene__inner scene__inner--center">
           <header class="section-head section-head--center reveal">
-            <p class="section-head__caption">Footprints</p>
+            <p class="section-head__caption">卷贰 · 足印</p>
             <h2 class="section-head__title">创作足迹</h2>
             <p class="section-head__desc">一年里的每一天都被折进这一格格小方块，颜色越深，那天写下的文字越多。</p>
           </header>
@@ -161,7 +161,7 @@
       <section id="feed" class="feed-section">
         <div class="feed-section__inner">
           <header class="section-head reveal">
-            <p class="section-head__caption">Friend Feeds</p>
+            <p class="section-head__caption">卷叁 · 同游</p>
             <h2 class="section-head__title">朋友文章</h2>
             <p class="section-head__desc">订阅的博客们最近在写什么，定期抓取汇总。</p>
           </header>
@@ -299,12 +299,12 @@ function scrollToTop() {
 
 // ===== 章节导航：追踪当前所处分镜 =====
 
-/** 首页章节（顺序即叙事顺序） */
+/** 首页章节（顺序即叙事顺序，标签取乾卦爻辞：龙之进阶） */
 const sections = [
-  { id: 'latest', label: '近期笔墨' },
-  { id: 'heatmap', label: '创作足迹' },
-  { id: 'feed', label: '朋友文章' },
-  { id: 'subscribe', label: '订阅更新' },
+  { id: 'latest', label: '初九 · 潜龙勿用' },
+  { id: 'heatmap', label: '九二 · 见龙在田' },
+  { id: 'feed', label: '九四 · 或跃在渊' },
+  { id: 'subscribe', label: '九五 · 飞龙在天' },
 ]
 
 const activeSection = ref('latest')

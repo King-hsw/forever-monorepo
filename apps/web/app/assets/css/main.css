@@ -104,6 +104,46 @@ html.dark body {
   background-attachment: fixed;
 }
 
+/* ===== 水墨主题：宣纸 + 朱砂 =====
+ * 传统文人色：宣纸米黄打底，朱砂点睛，黛青压字；
+ * 沿用同一套变量名，组件层零改动
+ */
+html.ink {
+  --c-primary: #a83a32;
+  --c-primary-hover: #8e2f28;
+  --c-primary-light: rgb(168 58 50 / 9%);
+  --k-mint: #7a8f6d;   /* 竹青 */
+  --k-grape: #b0574a;  /* 降红 */
+  --k-lemon: #c8a96a;  /* 鎏金 */
+  --k-sky: #6b7f8f;    /* 黛蓝 */
+  --c-text: #3d3529;
+  --c-text-secondary: #5f5647;
+  --c-text-muted: #857a67;
+  --c-border: #d8cdb8;
+  --c-bg: #efe6d5;
+  --c-bg-card: #f7f0e0;
+  --c-bg-soft: #e9dec9;
+  --c-on-primary: #fff;
+  --c-danger: #a83a32;
+  --c-success: #6f8757;
+  --c-warning-text: #96690d;
+  --c-warning-bg: rgb(200 169 106 / 14%);
+  --shadow-card: 0 2px 6px rgb(61 53 41 / 6%), 0 10px 30px rgb(61 53 41 / 7%);
+  --shadow-card-hover: 0 4px 10px rgb(61 53 41 / 10%), 0 16px 40px rgb(61 53 41 / 12%);
+  color-scheme: light;
+}
+
+/* 宣纸底：米黄纸色 + 极淡的朱（右上）与竹青（左下）晕染，保留纸张颗粒 */
+html.ink body {
+  background:
+    radial-gradient(46rem 32rem at 88% -6%, rgb(168 58 50 / 5%), transparent 62%),
+    radial-gradient(38rem 28rem at -8% 102%, rgb(122 143 109 / 7%), transparent 60%),
+    radial-gradient(30rem 22rem at 45% 42%, rgb(200 169 106 / 6%), transparent 65%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23g)' opacity='.05'/%3E%3C/svg%3E"),
+    linear-gradient(165deg, #f1e8d6 0%, #ede2cc 55%, #e8dbC2 100%) fixed;
+  background-attachment: fixed;
+}
+
 /* ===== 滚动条美化 =====
  * 轨道透明、胶囊形滑块，颜色跟随主题令牌，
  * 默认低调，悬停时点亮成主题色 */

@@ -1,34 +1,46 @@
-export type ThemeMode = 'light' | 'dark'
+export type ThemeMode = 'light' | 'dark' | 'ink'
+
+/** 循环顺序：浅色 → 暗夜 → 水墨 */
+const NEXT: Record<ThemeMode, ThemeMode> = { light: 'dark', dark: 'ink', ink: 'light' }
 
 const STORAGE_KEY = 'forever-theme'
 
+/** 各模式的 theme-color meta 与标题栏色 */
+const THEME_COLOR: Record<ThemeMode, string> = {
+  light: '#f6efe4',
+  dark: '#241c17',
+  ink: '#efe6d5',
+}
+
 /**
- * 主题管理：
+ * 主题管理（三态：浅色 / 暗夜 / 水墨）：
  * - 持久化到 localStorage
  * - 首次访问跟随系统偏好（由 nuxt.config.ts 中的内联脚本在渲染前处理，防止闪烁）
  * - 切换时使用 View Transition API 做从点击位置扩散的圆形揭示动画，
  *   不支持该 API 的浏览器优雅降级为直接切换（配合 CSS 变量过渡）
  */
 export function useTheme() {
-  // SSR / 客户端共享状态：通过 <html> 上的 dark 类判断当前主题
-  const isDark = useState<boolean>('theme-dark', () => false)
+  // SSR / 客户端共享状态：通过 <html> 上的 dark / ink 类判断当前主题
+  const mode = useState<ThemeMode>('theme-mode', () => 'light')
 
   const syncFromDOM = () => {
-    if (import.meta.client) {
-      isDark.value = document.documentElement.classList.contains('dark')
-    }
+    if (!import.meta.client) return
+    const el = document.documentElement.classList
+    mode.value = el.contains('dark') ? 'dark' : el.contains('ink') ? 'ink' : 'light'
   }
 
-  const apply = (mode: ThemeMode) => {
-    document.documentElement.classList.toggle('dark', mode === 'dark')
-    localStorage.setItem(STORAGE_KEY, mode)
-    isDark.value = mode === 'dark'
-    updateThemeColorMeta(mode)
+  const apply = (next: ThemeMode) => {
+    const el = document.documentElement.classList
+    el.toggle('dark', next === 'dark')
+    el.toggle('ink', next === 'ink')
+    localStorage.setItem(STORAGE_KEY, next)
+    mode.value = next
+    updateThemeColorMeta(next)
   }
 
-  const updateThemeColorMeta = (mode: ThemeMode) => {
+  const updateThemeColorMeta = (next: ThemeMode) => {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (meta) meta.content = mode === 'dark' ? '#14161d' : '#6366f1'
+    if (meta) meta.content = THEME_COLOR[next]
   }
 
   /** 切换主题；传入事件对象时，动画以触发组件在页面中的位置为圆心向外扩散 */
@@ -36,7 +48,7 @@ export function useTheme() {
     if (import.meta.server) return
     syncFromDOM()
 
-    const next: ThemeMode = isDark.value ? 'light' : 'dark'
+    const next = NEXT[mode.value]
     const doc = document.documentElement
 
     // 用户偏好减少动效、或浏览器不支持 View Transition：直接切换
@@ -115,7 +127,7 @@ export function useTheme() {
   }
 
   return {
-    isDark: readonly(isDark),
+    mode: readonly(mode),
     toggle,
   }
 }
