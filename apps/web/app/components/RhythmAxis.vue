@@ -1,8 +1,14 @@
 <template>
   <div class="rhythm-axis">
-    <!-- 头部：说明 + 等宽数字统计（仿参考站 Articles/Moments 计数） -->
-    <div class="rhythm-axis__head">
-      <p class="rhythm-axis__desc">近一年的数字足迹：逻辑的向上生长，感性的向下扎根。</p>
+    <!-- 头部：玉青短线 + 衬线标题（下边框收口）+ 等宽数字统计，仿参考站 -->
+    <div class="rhythm-axis__header">
+      <div>
+        <div class="rhythm-axis__heading">
+          <span class="rhythm-axis__tick" aria-hidden="true" />
+          <h2 class="rhythm-axis__title">创作律动</h2>
+        </div>
+        <p class="rhythm-axis__desc">近一年的数字足迹：逻辑的向上生长，感性的向下扎根。</p>
+      </div>
       <div class="rhythm-axis__stats">
         <div class="rhythm-axis__stat">
           <span class="rhythm-axis__stat-label">文章</span>
@@ -126,18 +132,51 @@ const weeks = computed<WeekBucket[]>(() => {
 </script>
 
 <style scoped>
-.rhythm-axis__head {
+/* ===== 头部：玉青短线 + 下边框衬线标题 + 右侧统计，规格照搬参考站 ===== */
+.rhythm-axis__header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+@media (min-width: 768px) {
+  .rhythm-axis__header {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+}
+
+.rhythm-axis__heading {
+  display: inline-flex;
+  gap: 12px;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--c-bg-soft);
+}
+
+.rhythm-axis__tick {
+  width: 32px;
+  height: 1px;
+  background: rgb(20 184 166 / 40%);
+}
+
+.rhythm-axis__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 20px; /* text-xl */
+  font-weight: 500;
+  color: var(--c-text);
 }
 
 .rhythm-axis__desc {
   margin: 0;
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 13px;
+  font-size: 14px; /* text-sm */
   color: var(--c-text-muted);
 }
 
@@ -154,36 +193,37 @@ const weeks = computed<WeekBucket[]>(() => {
 
 .rhythm-axis__stat-label {
   font-size: 10px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--c-text-muted);
 }
 
 .rhythm-axis__stat-num {
-  font-size: 24px;
-  color: var(--c-text-secondary);
+  font-size: 24px; /* text-2xl */
+  line-height: 1.2;
+  color: var(--c-text-secondary); /* ink-600 */
 }
 
 .rhythm-axis__stat-num--up {
-  color: var(--c-primary);
+  color: var(--c-primary); /* jade-600 */
 }
 
-/* ---- 横轴柱状区 ---- */
+/* ---- 横轴柱状区：h-64 (256px)、4px 圆头柱、jade-500/60 与 ink-300 ---- */
 .rhythm-axis__chart {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 224px;
-  margin-top: 28px;
+  height: 256px;
+  margin-top: 0;
 }
 
-/* 中轴线 */
+/* 中轴线：ink-200/50 */
 .rhythm-axis__baseline {
   position: absolute;
   inset: 50% 0 auto;
   height: 1px;
-  background: color-mix(in srgb, var(--c-border) 60%, transparent);
+  background: rgb(231 229 228 / 50%);
 }
 
 .rhythm-axis__col {
@@ -201,27 +241,27 @@ const weeks = computed<WeekBucket[]>(() => {
 /* 柱体：从中心向上/下生长，高度过渡可中断平滑重定向 */
 .rhythm-axis__bar {
   width: 100%;
-  max-width: 3px;
+  max-width: 4px;
   border-radius: 999px;
-  transition: height 0.5s var(--ease-bounce), opacity 0.5s ease;
+  transition: height 0.5s ease, opacity 0.5s ease;
 }
 
 .rhythm-axis__bar--up {
-  background: color-mix(in srgb, var(--c-primary) 65%, transparent);
+  background: rgb(20 184 166 / 60%); /* jade-500/60 */
   transform: translateY(-1px);
 }
 
 .rhythm-axis__bar--down {
-  background: color-mix(in srgb, var(--c-text-muted) 80%, transparent);
+  background: #a8a29e; /* ink-400 */
   transform: translateY(1px);
 }
 
 /* 空周的呼吸短柱 */
 .rhythm-axis__bar--stub {
   height: 2px;
-  opacity: 0.5;
+  opacity: 0.8;
   transform: translateY(-1px);
-  background: color-mix(in srgb, var(--c-text-muted) 45%, transparent);
+  background: #d6d3d1; /* ink-300 */
 }
 
 /* 悬停浮层：默认隐藏，跟随列居中显示 */

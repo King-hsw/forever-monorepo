@@ -205,10 +205,7 @@
           </div>
 
           <div class="rhythm reveal">
-            <div class="rhythm__head">
-              <h3 class="rhythm__title">创作律动</h3>
-              <RhythmAxis :posts="publishedPosts" />
-            </div>
+            <RhythmAxis :posts="publishedPosts" />
           </div>
         </div>
       </section>
@@ -1458,14 +1455,6 @@ usePageSeo({
 
 .rhythm {
   margin-top: 56px;
-}
-
-.rhythm__title {
-  margin: 0 0 18px;
-  font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--c-text);
 }
 
 /* ---- 朋友文章 ---- */
