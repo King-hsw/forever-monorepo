@@ -1091,47 +1091,13 @@ usePageSeo({
   }
 }
 
-/* ---- 头条区：直接落在版面上，缀两颗漂浮泡泡 ---- */
+/* ---- 头条区：直接落在版面上，素净 ---- */
 .featured {
   position: relative;
   display: block;
-  overflow: hidden;
   margin-bottom: 26px;
   padding: 30px 34px 26px;
   text-decoration: none;
-}
-
-/* 两颗模糊泡泡：右上粉、左下紫，缓慢漂浮 */
-.featured::before,
-.featured::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(38px);
-  pointer-events: none;
-}
-
-.featured::before {
-  top: -46px;
-  right: -38px;
-  width: 150px;
-  height: 150px;
-  background: rgb(13 148 136 / 22%);
-  animation: featured-float 7s ease-in-out infinite;
-}
-
-.featured::after {
-  bottom: -52px;
-  left: -30px;
-  width: 130px;
-  height: 130px;
-  background: rgb(100 116 139 / 20%);
-  animation: featured-float 9s ease-in-out 1.2s infinite reverse;
-}
-
-@keyframes featured-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-12px, 14px) scale(1.08); }
 }
 
 /* 「最新发布」贴纸徽章：渐变胶囊微倾斜，缀一颗小星星 */
