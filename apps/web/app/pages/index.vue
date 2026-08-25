@@ -8,7 +8,6 @@
       aria-hidden="true"
     />
 
-
     <!-- ===== Hero：左标中迎右铭，三段式（仿参考站） -->
     <section ref="heroEl" class="hero">
       <!-- 玉青氛围光斑：大面积柔焦洗出淡绿纸感（仿参考站 bg-jade-500/10 blur-100px） -->
@@ -128,84 +127,6 @@
           </div>
         </div>
       </section>
-
-      <!-- 02 创作足迹：独立成章，居中标题 + 居中面板 -->
-
-
-      <!-- 02 灵感与实验场：bento 网格 + 创作律动热力图 -->
-      <section id="lab" class="lab">
-        <div class="lab__inner">
-          <header class="section-head reveal">
-            <p class="section-head__caption">卷贰 · 游艺</p>
-            <h2 class="section-head__title">灵感与实验场</h2>
-            <p class="section-head__desc">这个阁子的一点点积累，和正在折腾的东西。</p>
-          </header>
-
-          <div class="bento reveal">
-            <div class="bento__tile bento__tile--intro">
-              <p class="bento__eyebrow">卷首语</p>
-              <p class="bento__lede">斯是陋室，惟吾德馨。</p>
-              <p class="bento__note">这里记下技术、生活，和一些胡思乱想。屋子虽小，字都认真写。</p>
-            </div>
-
-            <div class="bento__tile bento__tile--stats">
-              <div v-for="s in homeStats" :key="s.label" class="bento__stat">
-                <span class="bento__stat-num">{{ s.value }}</span>
-                <span class="bento__stat-label">{{ s.label }}</span>
-              </div>
-            </div>
-
-            <NuxtLink to="/archive" class="bento__tile bento__tile--link">
-              <span class="bento__link-name">归档</span>
-              <span class="bento__link-hint">全部文章按月排列 →</span>
-            </NuxtLink>
-          </div>
-
-          <div class="rhythm reveal">
-            <RhythmAxis :posts="publishedPosts" />
-          </div>
-        </div>
-      </section>
-
-      <!-- 03 朋友文章：订阅的博客最新文章，丰富首页内容 -->
-      <section id="feed" class="feed-section">
-        <div class="feed-section__inner">
-          <header class="section-head reveal">
-            <p class="section-head__caption">卷叁 · 同游</p>
-            <h2 class="section-head__title">朋友文章</h2>
-            <p class="section-head__desc">订阅的博客们最近在写什么，定期抓取汇总。</p>
-          </header>
-
-          <div v-if="feedItems.length" class="feed-list reveal">
-            <a
-              v-for="item in feedItems"
-              :key="item.id"
-              :href="item.link"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="feed-row"
-            >
-              <span class="chip">{{ item.feedTitle }}</span>
-              <span class="feed-row__title">{{ item.title }}</span>
-              <time class="feed-row__time">{{ formatDateTime(item.publishedAt) }}</time>
-            </a>
-          </div>
-          <p v-else class="feed-empty reveal">还没有抓到订阅文章</p>
-        </div>
-      </section>
-
-      <!-- 终幕：订阅，像书末的版权页一样素净收尾 -->
-      <section id="subscribe" class="finale">
-        <div class="finale__inner reveal">
-          <p class="finale__eyebrow" aria-hidden="true">Stay Tuned</p>
-          <h2 class="finale__title">不错过任何一篇更新</h2>
-          <p class="finale__text">订阅 RSS，新文章第一时间送达你的阅读器。</p>
-          <div class="finale__actions">
-            <a class="finale__btn" href="/rss.xml" target="_blank">订阅 RSS</a>
-            <NuxtLink class="finale__btn finale__btn--ghost" to="/posts">浏览全部文章</NuxtLink>
-          </div>
-        </div>
-      </section>
     </main>
 
     <!-- ===== Footer ===== -->
@@ -225,8 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, RssItem, SiteInfo, Tag } from '#shared/types'
-import { formatDateTime } from '~/utils/format'
+import type { Category, PageResult, Post } from '#shared/types'
 
 // 从 forever-server 拉取公开数据（已发布文章 / 分类 / 标签）
 const { data: pageData } = await useAsyncData('home-articles', () =>
@@ -235,19 +155,7 @@ const { data: pageData } = await useAsyncData('home-articles', () =>
 const { data: categories } = await useAsyncData('home-categories', () =>
   apiFetch<Category[]>('/api/v1/categories'),
 )
-const { data: tags } = await useAsyncData('home-tags', () => apiFetch<Tag[]>('/api/v1/tags'))
-// 订阅的博客最新文章（公开接口），取几条丰富首页
-const { data: feedPage } = await useAsyncData('home-rss-items', () =>
-  apiFetch<PageResult<RssItem>>('/api/v1/rss/items', { query: { page: 1, size: 6 } }),
-)
-const feedItems = computed(() => feedPage.value?.list ?? [])
-
 // 站点信息：建站日期算运行天数（与页脚共用缓存）
-const { data: siteInfo } = await useAsyncData('site-info', () => apiFetch<SiteInfo>('/api/v1/site'))
-const runDays = computed(() => {
-  const birth = siteInfo.value?.birthDate || '2025-01-01'
-  return Math.max(0, Math.floor((Date.now() - new Date(`${birth}T00:00:00+08:00`).getTime()) / 86_400_000))
-})
 
 /** 已发布文章，按发布时间倒序 */
 const sortKey = (p: Post) => p.publishedAt ?? p.createdAt
@@ -266,14 +174,6 @@ const featuredPost = computed(() => publishedPosts.value[0] ?? null)
 /** 头条之后的目录式条目 */
 const homeRows = computed(() => publishedPosts.value.slice(1, homeCount))
 
-/** bento 统计块：文章 / 分类 / 标签 / 运行天数 */
-const homeStats = computed(() => [
-  { value: totalPosts.value, label: '文章' },
-  { value: categories.value?.length ?? 0, label: '分类' },
-  { value: tags.value?.length ?? 0, label: '标签' },
-  { value: runDays.value.toLocaleString(), label: '运行天数' },
-])
-
 // ===== 平滑滚动辅助 =====
 
 function scrollToId(id: string) {
@@ -289,9 +189,6 @@ function scrollToTop() {
 /** 首页章节（顺序即叙事顺序，标签取乾卦爻辞：龙之进阶） */
 const sections = [
   { id: 'latest', label: '初九 · 潜龙勿用' },
-  { id: 'lab', label: '九二 · 见龙在田' },
-  { id: 'feed', label: '九四 · 或跃在渊' },
-  { id: 'subscribe', label: '九五 · 飞龙在天' },
 ]
 
 const activeSection = ref('latest')
@@ -299,7 +196,6 @@ let sectionIO: IntersectionObserver | null = null
 
 /** Hero 在视口内时隐藏右侧章节导航 */
 const showChapterNav = ref(false)
-
 
 const isScrolled = ref(false)
 const showBackTop = ref(false)
@@ -687,24 +583,6 @@ usePageSeo({
   }
 }
 
-/* ===== 纸面编排：主栏 + 边栏 ===== */
-.scene {
-  scroll-margin-top: 56px;
-  padding: 100px 0;
-}
-
-/* 交替底色：相邻场景用一层极淡的纸色区分，像翻到下一页 */
-.scene--tinted {
-  background: color-mix(in srgb, var(--c-primary-light) 40%, transparent);
-}
-
-/* 热力图章节：居中收窄的面板 */
-.scene__inner--center {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
 /* ---- 近期笔墨：左主栏 + 右边栏（参考余白首页的 1.6fr : 1fr 编排）---- */
 .writing {
   scroll-margin-top: 56px;
@@ -716,56 +594,6 @@ usePageSeo({
   max-width: 1080px;
   margin: 0 auto;
   padding: 0 24px;
-}
-
-/* ---- 最近手记：文字预览条目 ---- */
-.note-item {
-  display: block;
-  padding: 12px 2px;
-  border-bottom: 1px solid var(--c-border);
-  text-decoration: none;
-}
-
-.note-item__content {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.8;
-  color: var(--c-text-secondary);
-  transition: color 0.2s ease;
-
-  /* 两行截断，长句不撑破右栏 */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.note-item__meta {
-  display: block;
-  margin-top: 6px;
-  font-size: 11.5px;
-  color: var(--c-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .note-item:hover .note-item__content {
-    color: var(--c-primary);
-  }
-}
-
-.notes-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  font-size: 13px;
-  color: var(--c-primary);
-  text-decoration: none;
-}
-
-.notes-more:hover {
-  text-decoration: underline;
 }
 
 /* ---- 章节头：英文眉题 + 粗黑标题 ---- */
@@ -794,50 +622,7 @@ usePageSeo({
   color: var(--c-text-muted);
 }
 
-.section-head--center {
-  text-align: center;
-}
-
 /* ---- 边栏区块：小标题 + 清单 ---- */
-.side-block__title {
-  margin: 0 0 14px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--c-text-secondary);
-}
-
-.side-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 2px;
-  border-bottom: 1px solid var(--c-border);
-  text-decoration: none;
-}
-
-.side-row:last-child {
-  border-bottom: none;
-}
-
-.side-row__name {
-  font-size: 14px;
-  color: var(--c-text-secondary);
-  transition: color 0.2s ease;
-}
-
-.side-row:hover .side-row__name {
-  color: var(--c-primary);
-}
-
-.side-row__count {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: var(--c-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ===== 终幕样式见下方「书末版权页」区块 ===== */
 
 /* ===== 章节导航：固定右侧，始终告知用户身处故事何处，可点击跳转 ===== */
@@ -929,17 +714,6 @@ usePageSeo({
     gap: 48px;
   }
 
-  .scene {
-    padding: 64px 0;
-  }
-
-  .feed-section {
-    padding: 64px 0;
-  }
-
-  .lab {
-    padding: 64px 0;
-  }
 }
 
 /* ---- 创作足迹热力图面板 ---- */
@@ -1235,290 +1009,7 @@ usePageSeo({
   transition: transform 0.2s ease;
 }
 
-/* ---- 朋友文章：订阅的博客最新文章 ---- */
-/* ---- 灵感与实验场：bento 网格 + 创作律动 ---- */
-.lab {
-  scroll-margin-top: 56px;
-  padding: 100px 0;
-}
-
-.lab__inner {
-  width: min(1080px, calc(100% - 48px));
-  margin-inline: auto;
-}
-
-.bento {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 40px;
-  grid-auto-rows: 110px;
-}
-
 /* 无卡片外壳，用软色块分区；悬停染上玉青即可 */
-.bento__tile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 18px 22px;
-  background: var(--c-bg-soft);
-  border-radius: var(--radius-control);
-  overflow: hidden;
-  text-decoration: none;
-  transition: background-color var(--dur-soft) ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .bento__tile--link:hover,
-  .bento__tile:hover {
-    background: color-mix(in srgb, var(--c-primary) 8%, var(--c-bg-soft));
-  }
-}
-
-.bento__tile--intro {
-  grid-column: span 2;
-  grid-row: span 2;
-  background:
-    radial-gradient(ellipse at top right, rgb(13 148 136 / 9%), transparent 60%),
-    var(--c-bg-soft);
-}
-
-.bento__eyebrow {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 12px;
-  letter-spacing: 0.3em;
-  color: var(--c-primary);
-}
-
-.bento__lede {
-  margin: 14px 0 0;
-  font-family: var(--font-serif);
-  font-size: clamp(20px, 2.6vw, 26px);
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--c-text);
-}
-
-.bento__note {
-  margin: auto 0 0;
-  font-size: 13.5px;
-  line-height: 1.8;
-  color: var(--c-text-secondary);
-}
-
-.bento__tile--stats {
-  grid-column: span 2;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  align-items: center;
-  gap: 8px;
-  padding: 14px 22px;
-}
-
-.bento__stat {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.bento__stat-num {
-  font-size: 24px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--c-text);
-}
-
-.bento__stat-label {
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-}
-
-.bento__tile--link {
-  justify-content: flex-end;
-  gap: 4px;
-}
-
-.bento__link-name {
-  font-family: var(--font-serif);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.bento__link-hint {
-  font-size: 11.5px;
-  color: var(--c-text-muted);
-}
-
-@media (min-width: 900px) {
-  .bento {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .bento__tile--intro,
-  .bento__tile--stats {
-    grid-row: span 1;
-    height: auto;
-  }
-}
-
-.rhythm {
-  margin-top: 56px;
-}
-
-/* ---- 朋友文章 ---- */
-.feed-section {
-  scroll-margin-top: 56px;
-  padding: 100px 0;
-}
-
-.feed-section__inner {
-  max-width: 820px;
-  margin: 0 auto;
-  padding: 0 24px;
-}
-
-.feed-list {
-  margin-top: 34px;
-}
-
-.feed-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 15px 4px;
-  text-decoration: none;
-
-  & + & {
-    border-top: 1px solid var(--c-border);
-  }
-}
-
-.feed-row__title {
-  flex: 1;
-  min-width: 0;
-  font-size: 14.5px;
-  font-weight: 550;
-  color: var(--c-text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  transition: color 0.2s ease;
-}
-
-.feed-row:hover .feed-row__title {
-  color: var(--c-primary);
-}
-
-.feed-row__time {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: var(--c-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.feed-empty {
-  margin-top: 34px;
-  font-size: 14px;
-  color: var(--c-text-muted);
-  text-align: center;
-}
-
-.feed-section .more-link {
-  margin-top: 26px;
-}
-
-@media (max-width: 640px) {
-  /* 窄屏：时间换行到标题下方，行内只留站点名 + 标题 */
-  .feed-row {
-    flex-wrap: wrap;
-    row-gap: 6px;
-  }
-
-  .feed-row__time {
-    order: 3;
-    width: 100%;
-    padding-left: 2px;
-  }
-}
-.finale {
-  /* 参考站式收尾：一条玉青细线之上的居中横带 */
-  margin-top: 40px;
-  padding: 72px 24px 88px;
-  border-top: 1px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
-}
-
-.finale__inner {
-  width: min(640px, 100%);
-  text-align: center;
-}
-
-.finale__eyebrow {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--c-text-muted);
-}
-
-.finale__title {
-  margin: 16px 0 0;
-  font-family: var(--font-serif);
-  font-size: clamp(20px, 2.6vw, 25px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--c-text);
-}
-
-.finale__text {
-  margin: 14px 0 0;
-  font-size: 14.5px;
-  line-height: 1.7;
-  color: var(--c-text-secondary);
-}
-
-.finale__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 32px;
-}
-
-.finale__btn {
-  padding: 11px 26px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-radius: 999px;
-  text-decoration: none;
-  box-shadow: 0 6px 18px rgb(13 148 136 / 30%);
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease;
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      transform: scale(1.02);
-      box-shadow: 0 10px 26px rgb(13 148 136 / 40%);
-    }
-  }
-}
-
-.finale__btn--ghost {
-  color: var(--c-text);
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  box-shadow: var(--shadow-card);
-
-  &:hover {
-    color: var(--c-primary);
-    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    box-shadow: var(--shadow-card-hover);
-  }
-}
-
 
 /* ===== 回到顶部：小软糖 ===== */
 .back-top {
