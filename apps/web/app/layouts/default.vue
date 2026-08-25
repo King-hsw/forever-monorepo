@@ -1,8 +1,12 @@
 <template>
-  <div>
-    <!-- 全站唯一的 Header：放在布局里，切页不重挂，避免导航闪烁 -->
+  <div class="app-shell">
+    <!-- 桌面端左侧竖排导航（≥901px），移动端回落为顶部 Header -->
+    <SiteRail />
     <SiteHeader :width="headerWidth" />
-    <slot />
+    <div class="app-shell__body">
+      <slot />
+    </div>
+    <GlobalSearch />
   </div>
 </template>
 
@@ -22,3 +26,18 @@ const headerWidth = computed(() => {
   return HEADER_WIDTHS.find(([p]) => route.path.startsWith(p))?.[1] ?? '800px'
 })
 </script>
+
+<style scoped>
+.app-shell__body {
+  min-height: 100vh;
+}
+
+/* 桌面端：内容整体让出左栏宽度 */
+@media (min-width: 901px) {
+  .app-shell__body {
+    padding-left: 88px;
+  }
+}
+
+/* 移动端：隐藏桌面左栏（SiteRail 自身已 display:none），顶栏照常 */
+</style>
