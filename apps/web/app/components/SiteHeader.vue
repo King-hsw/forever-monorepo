@@ -190,6 +190,7 @@ const navItems: NavItem[] = [
   { label: '朋友圈', to: '/moments' },
   { label: '留言', to: '/message' },
   { label: '友链', to: '/friends' },
+  { label: '关于', to: '/about' },
   {
     label: '更多',
     to: '/archive', // 占位路由，父级本身不跳转

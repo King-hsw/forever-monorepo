@@ -33,6 +33,7 @@
               <li><NuxtLink to="/message">留言墙</NuxtLink></li>
               <li><NuxtLink to="/friends">友链</NuxtLink></li>
               <li><NuxtLink to="/friends/apply">申请友链</NuxtLink></li>
+              <li><NuxtLink to="/about">关于</NuxtLink></li>
             </ul>
           </div>
 
