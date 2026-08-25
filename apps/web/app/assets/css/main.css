@@ -18,7 +18,7 @@ body {
     /* 纸张颗粒：fractalNoise 噪点，低透明度下像纸纤维 */
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23g)' opacity='.05'/%3E%3C/svg%3E"),
     /* 水墨青龙水印：右下角，微微出血更像纸上钤印 */
-    url("../img/ink-dragon-light.svg") right -60px bottom -40px / min(52vw, 520px) auto no-repeat,
+    url("../img/ink-dragon-light.svg") right 3vw top 84px / min(34vw, 380px) auto no-repeat,
     linear-gradient(165deg, #f8f1e7 0%, #f3e9dc 55%, #efe3d3 100%) fixed;
   background-attachment: fixed;
 }
@@ -102,7 +102,7 @@ html.dark body {
     radial-gradient(38rem 28rem at -8% 102%, rgb(163 196 148 / 7%), transparent 60%),
     radial-gradient(30rem 22rem at 45% 42%, rgb(217 166 104 / 5%), transparent 65%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23g)' opacity='.04'/%3E%3C/svg%3E"),
-    url("../img/ink-dragon-dark.svg") right -60px bottom -40px / min(52vw, 520px) auto no-repeat,
+    url("../img/ink-dragon-dark.svg") right 3vw top 84px / min(34vw, 380px) auto no-repeat,
     linear-gradient(165deg, #251e15 0%, #2a2117 60%, #231c12 100%) fixed;
   background-attachment: fixed;
 }
