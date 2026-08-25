@@ -1295,30 +1295,21 @@ usePageSeo({
   opacity: 0.7;
 }
 
-/* 「查看全部」：软糖胶囊按钮 */
+/* 「查看全部」：素净的纯文本链接 */
 .more-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: 26px;
-  padding: 10px 22px;
   font-size: 14px;
   font-weight: 600;
   color: var(--c-primary);
-  background: var(--c-bg-card);
-  border: 1px solid color-mix(in srgb, var(--c-primary) 35%, transparent);
-  border-radius: 999px;
   text-decoration: none;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .more-link:hover {
-    color: #fff;
-    background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-    border-color: transparent;
-    transform: scale(1.02);
-    box-shadow: 0 8px 20px rgb(13 148 136 / 32%);
+    text-decoration: underline;
 
     .more-link__arrow {
       transform: translateX(4px);
