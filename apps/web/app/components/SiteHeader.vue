@@ -135,8 +135,9 @@
           </div>
 
           <Transition name="menu">
-            <div v-if="kw.trim()" class="global-search__results">
-              <p v-if="searching" class="global-search__hint">搜索中…</p>
+            <div class="global-search__results">
+              <p v-if="!kw.trim()" class="global-search__hint">输入关键词，实时搜索全站文章</p>
+              <p v-else-if="searching" class="global-search__hint">搜索中…</p>
               <template v-else-if="results.length">
                 <!-- highlights 由后端转义后只包 <em> 标记，这里才用 v-html -->
                 <NuxtLink
@@ -489,31 +490,42 @@ function onBrandClick() {
   margin-left: auto;
 }
 
-/* ---- 全局搜索弹层：遮罩 + 顶部居中面板 ---- */
+/* ---- 全局搜索弹层：遮罩 + 顶部居中面板（command palette 风格） ---- */
 .global-search {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--c-bg) 55%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: color-mix(in srgb, var(--c-bg) 62%, transparent);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
 }
 
 .global-search__panel {
-  width: min(600px, calc(100vw - 32px));
-  margin: 16vh auto 0;
+  width: min(640px, calc(100vw - 32px));
+  margin-top: 14vh;
   overflow: hidden;
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: 18px;
-  box-shadow: var(--shadow-card-hover);
+  background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--c-border);
+  border-radius: 20px;
+  box-shadow:
+    0 24px 70px rgb(0 0 0 / 18%),
+    0 4px 16px rgb(0 0 0 / 8%);
 }
 
+/* 搜索条：内嵌软底色圆角块，与结果区留出呼吸感 */
 .global-search__bar {
   display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 10px;
-  padding: 4px 10px 4px 18px;
+  margin: 10px 10px 0;
+  padding: 5px 8px 5px 14px;
+  background: var(--c-bg-soft);
+  border-radius: 14px;
 }
 
 .global-search__glass {
@@ -524,7 +536,7 @@ function onBrandClick() {
 .global-search__input {
   flex: 1;
   min-width: 0;
-  padding: 14px 0;
+  padding: 11px 0;
   font-size: 15.5px;
   color: var(--c-text);
   background: none;
@@ -541,16 +553,19 @@ function onBrandClick() {
   }
 }
 
+/* kbd 徽标 */
 .global-search__esc {
   flex-shrink: 0;
-  padding: 3px 9px;
+  padding: 3px 8px;
   font-size: 11px;
   font-family: inherit;
+  line-height: 1.4;
   color: var(--c-text-muted);
   cursor: pointer;
-  background: var(--c-bg-soft);
+  background: var(--c-bg-card);
   border: 1px solid var(--c-border);
-  border-radius: 6px;
+  border-radius: 7px;
+  box-shadow: 0 1.5px 0 var(--c-border);
   transition: color 0.15s ease, border-color 0.15s ease;
 
   &:hover {
@@ -559,25 +574,32 @@ function onBrandClick() {
   }
 }
 
+.global-search__results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: min(440px, 56vh);
+  padding: 10px;
+  overflow-y: auto;
+}
+
 .global-search__hint {
-  padding: 14px 18px;
+  padding: 22px 12px;
   margin: 0;
   font-size: 13px;
+  text-align: center;
   color: var(--c-text-muted);
 }
 
 .global-search__item {
   display: block;
-  padding: 11px 18px;
+  padding: 9px 12px;
   text-decoration: none;
+  border-radius: 12px;
   transition: background-color 0.15s ease;
 
   &:hover {
     background: var(--c-primary-light);
-  }
-
-  & + & {
-    border-top: 1px solid var(--c-border);
   }
 }
 
@@ -611,14 +633,14 @@ function onBrandClick() {
 }
 
 .global-search__all {
-  display: block;
-  padding: 11px 18px;
+  margin-top: 4px;
+  padding: 9px;
   font-size: 13px;
   text-align: center;
   color: var(--c-primary-hover);
   text-decoration: none;
   background: var(--c-primary-light);
-  border-top: 1px solid var(--c-border);
+  border-radius: 12px;
 
   &:hover {
     text-decoration: underline;
