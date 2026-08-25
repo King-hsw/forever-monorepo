@@ -9,8 +9,7 @@ body {
   margin: 0;
   /* 晒过太阳的文具桌：奶油纸渐变打底，
    * 右上柿子橙 / 左下抹茶绿柔光晕营造纵深，
-   * 叠 feTurbulence 纸张颗粒增加质感；
-   * 水墨龙与书法水印由 InkDecor 组件负责 */
+   * 叠 feTurbulence 纸张颗粒增加质感 */
   background:
     radial-gradient(46rem 32rem at 88% -6%, rgb(229 111 67 / 9%), transparent 62%),
     radial-gradient(38rem 28rem at -8% 102%, rgb(147 184 132 / 10%), transparent 60%),

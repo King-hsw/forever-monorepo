@@ -2,7 +2,6 @@
   <div>
     <NuxtRouteAnnouncer />
     <NuxtPwaAssets />
-    <InkDecor />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
