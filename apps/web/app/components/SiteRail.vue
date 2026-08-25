@@ -153,8 +153,12 @@ function onBrandClick() {
   place-items: center;
   width: 42px;
   height: 42px;
+  padding: 0;
+  font: inherit;
   color: var(--c-text-secondary);
   cursor: pointer;
+  background: none;
+  border: none;
   border-radius: var(--radius-control);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
