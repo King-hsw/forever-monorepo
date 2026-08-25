@@ -57,7 +57,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CommentNode, Post } from '#shared/types'
+import type { CommentNode, PageResult, Post } from '#shared/types'
 
 const props = defineProps<{
   /** 已发布文章，按 createdAt/publishedAt 统计每周发文数 */
@@ -105,11 +105,13 @@ const weeks = computed<WeekBucket[]>(() => {
 
   for (const p of props.posts) {
     const i = idxOf(new Date(p.publishedAt ?? p.createdAt).getTime())
-    if (i >= 0) buckets[i].posts++
+    const b = buckets[i]
+    if (i >= 0 && b) b.posts++
   }
   for (const ts of flatComments.value) {
     const i = idxOf(new Date(ts).getTime())
-    if (i >= 0) buckets[i].comments++
+    const b = buckets[i]
+    if (i >= 0 && b) b.comments++
   }
 
   // 高度归一化：各自以最大值为满高（46px），空周只留 2px 的呼吸短柱
