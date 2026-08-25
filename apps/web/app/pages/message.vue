@@ -287,14 +287,6 @@ usePageSeo({
   break-inside: avoid;
   animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--stagger-index, 0) * 50ms);
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
-
-@media (hover: hover) and (pointer: fine) {
-  &:hover {
-    transform: translateY(-3px) rotate(-0.4deg);
-    box-shadow: 0 6px 18px rgb(0 0 0 / 8%);
-  }
-}
 }
 
 .wall-card__head {

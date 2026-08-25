@@ -299,14 +299,9 @@ async function loadMore() {
   }
 }
 
-/* ===== 订阅源面板：与首页热力图面板同款卡片 ===== */
+/* ===== 订阅源列表 ===== */
 .feeds {
   margin-top: 48px;
-  padding: 24px 26px;
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: var(--radius-card, 16px);
-  box-shadow: var(--shadow-card);
 }
 
 .feeds__title {
@@ -327,20 +322,15 @@ async function loadMore() {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 14px;
+  padding: 14px 2px;
   font-size: 13.5px;
   color: var(--c-text);
   text-decoration: none;
-  background: var(--c-bg-soft, var(--c-bg));
-  border-radius: 10px;
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .feeds__item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card);
-  }
+.feeds__list > * + * .feeds__item,
+.feeds__item + .feeds__item {
+  border-top: 1px solid var(--c-border);
 }
 
 .feeds__desc {

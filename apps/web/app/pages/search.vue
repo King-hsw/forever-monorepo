@@ -169,30 +169,21 @@ watch(kw, (v) => {
 
 .result {
   display: block;
-  padding: 16px 20px;
-  margin-bottom: 12px;
+  padding: 16px 2px;
   text-decoration: none;
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: var(--radius-card);
   /* 整组淡入：翻页 / 换词时不生硬 */
   animation: result-in 0.35s ease both;
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, border-color 0.2s ease;
+}
 
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      transform: translateY(-2px);
-      border-color: color-mix(in srgb, var(--c-primary) 40%, transparent);
-      box-shadow: var(--shadow-card-hover);
-    }
-  }
+.result + .result {
+  border-top: 1px solid var(--c-border);
+}
 
-  /* 高亮标记：主题色加粗，不用斜体 */
-  em {
-    font-style: normal;
-    font-weight: 700;
-    color: var(--c-primary-hover);
-  }
+/* 高亮标记：主题色加粗，不用斜体 */
+.result em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--c-primary-hover);
 }
 
 .result__title {

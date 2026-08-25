@@ -98,6 +98,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 .confirm-dialog {
   width: min(380px, 100%);
   padding: 22px;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .confirm-dialog__input {

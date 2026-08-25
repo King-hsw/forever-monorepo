@@ -254,16 +254,8 @@ function formatDate(dateStr: string): string {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 11px 16px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-control);
-  box-shadow: var(--shadow-card);
+  padding: 11px 2px;
   text-decoration: none;
-  transition:
-    transform var(--dur-soft) var(--ease-bounce),
-    box-shadow var(--dur-soft) ease,
-    border-color var(--dur-soft) ease;
 }
 
 @media (hover: hover) and (pointer: fine) {

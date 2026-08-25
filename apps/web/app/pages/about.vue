@@ -672,18 +672,6 @@ useSeoMeta({ title: '关于', description: '关于补陋阁——阁主、站点
   gap: 6px;
   padding: 22px 24px;
   text-decoration: none;
-  background: var(--ab-card);
-  border: 1px solid var(--ab-line);
-  border-radius: 18px;
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, border-color var(--dur-soft) ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .quick-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--ab-accent);
-    box-shadow: 0 12px 28px rgb(37 99 235 / 14%);
-  }
 }
 
 .quick-card strong {

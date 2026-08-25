@@ -314,10 +314,6 @@ usePageSeo({
 
 .article-card {
   padding: 36px clamp(20px, 5vw, 44px) 32px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
   animation: fade-up 0.4s ease both;
 }
 

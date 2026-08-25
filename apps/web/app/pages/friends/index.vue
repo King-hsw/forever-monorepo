@@ -146,14 +146,6 @@ function hostOf(url: string): string {
   text-decoration: none;
   animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--stagger-index, 0) * 50ms);
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .friend-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 26px rgb(0 0 0 / 8%);
-  }
 }
 
 .friend-card__icon {

@@ -512,6 +512,10 @@ async function confirmRemove() {
   max-height: calc(100vh - 48px);
   padding: 22px;
   overflow-y: auto;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card-hover);
 
   > div {
     margin-bottom: 14px;

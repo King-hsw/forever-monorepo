@@ -886,22 +886,14 @@ usePageSeo({
   }
 }
 
-/* ---- 头条大卡：草莓牛奶色纸，缀两颗漂浮泡泡 ---- */
+/* ---- 头条区：直接落在版面上，缀两颗漂浮泡泡 ---- */
 .featured {
   position: relative;
   display: block;
   overflow: hidden;
   margin-bottom: 26px;
   padding: 30px 34px 26px;
-  /* 白卡上叠一层极淡的粉→紫渐变，像一张带色的信纸 */
-  background:
-    linear-gradient(135deg, rgb(37 99 235 / 7%) 0%, rgb(100 116 139 / 7%) 100%),
-    var(--c-bg-card);
-  border: 1.5px solid color-mix(in srgb, var(--c-primary) 22%, var(--c-border));
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
   text-decoration: none;
-  transition: transform var(--dur-soft) var(--ease-bounce), box-shadow var(--dur-soft) ease, border-color var(--dur-soft) ease;
 }
 
 /* 两颗模糊泡泡：右上粉、左下紫，缓慢漂浮 */
@@ -935,14 +927,6 @@ usePageSeo({
 @keyframes featured-float {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(-12px, 14px) scale(1.08); }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .featured:hover {
-    border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-4px);
-  }
 }
 
 /* 「最新发布」贴纸徽章：渐变胶囊微倾斜，缀一颗小星星 */

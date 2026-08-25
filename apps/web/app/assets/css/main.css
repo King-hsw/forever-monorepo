@@ -145,13 +145,8 @@ h1, h2 {
   }
 }
 
-/* ===== 通用组件类 ===== */
-.card {
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-}
+/* 卡片外壳已全站移除：内容直接落在版面上，靠留白与分隔建立层级。
+ * 模板中的 .card 类仅作容器锚点保留，不再提供任何视觉外壳。 */
 
 .btn {
   display: inline-flex;
