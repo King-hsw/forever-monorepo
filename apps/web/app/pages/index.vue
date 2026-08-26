@@ -16,7 +16,7 @@
       <div class="hero__orb hero__orb--c" aria-hidden="true" />
       <div ref="heroContent" class="hero__content">
         <div class="hero__mark fade-hero" aria-hidden="true">
-          <span class="hero__mark-face" />
+          <img src="/icons/avatar.jpeg" alt="补陋阁" class="hero__mark-img" />
         </div>
 
         <div class="hero__welcome fade-hero" style="--hd: 120ms">
@@ -448,38 +448,12 @@ usePageSeo({
 }
 
 /* 笑脸：两颗眼睛 + 微笑嘴，尺寸全部由 --s 推导 */
-.hero__mark-face {
-  position: relative;
+.hero__mark-img {
   display: block;
-  width: calc(var(--s) * 0.46);
-  height: calc(var(--s) * 0.46);
-}
-
-.hero__mark-face::before {
-  content: '';
-  position: absolute;
-  top: 22%;
-  left: 18%;
-  width: calc(var(--s) * 0.042);
-  height: calc(var(--s) * 0.1);
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: calc(var(--s) * 0.235) 0 0 #fff; /* 第二只眼睛 */
-}
-
-.hero__mark-face::after {
-  content: '';
-  position: absolute;
-  bottom: 14%;
-  left: 50%;
-  width: calc(var(--s) * 0.24);
-  height: calc(var(--s) * 0.15);
-  border: calc(var(--s) * 0.016) solid #fff;
-  border-top: none;
-  border-left-color: transparent;
-  border-right-color: transparent;
-  border-radius: 0 0 999px 999px;
-  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
 }
 
 /* 中：mono 迎语两行——斜体玉青轻问候 + 墨色实名 */
