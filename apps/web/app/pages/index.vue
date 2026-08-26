@@ -22,7 +22,7 @@
         <div class="hero__side fade-hero" style="--hd: 240ms">
           <p class="hero__subtitle">// 曾经是一名Java开发者 // 正努力学习AI中</p>
           <p class="hero__motto">有朋自远方来，不亦乐乎。</p>
-          <p class="hero__motto">码于行，思于心。以文补陋，以技自砺。</p>
+          <p class="hero__motto hero__motto--sub">码于行，思于心。以文补陋，以技自砺。</p>
         </div>
       </div>
 
@@ -465,7 +465,7 @@ usePageSeo({
 .hero__side {
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 16px;
 }
 
 @media (max-width: 767px) {
@@ -474,12 +474,24 @@ usePageSeo({
   }
 }
 
+/* 主铭文：最大最重的一级 */
 .hero__motto {
-  margin: 0;
+  margin: 32px 0 0;
   font-family: var(--font-serif);
-  font-size: clamp(20px, 2vw, 24px); /* text-2xl */
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 600;
   line-height: 1.625;
-  color: #292524; /* ink-800 */
+  letter-spacing: 0.02em;
+  color: var(--c-text);
+}
+
+/* 次铭文：紧随主铭文之下，小一号、弱化 */
+.hero__motto--sub {
+  margin: 6px 0 0;
+  font-size: clamp(14px, 1.4vw, 16px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #78716c; /* ink-500 */
 }
 
 /* 滚动提示：底部中央弹跳箭头 */
