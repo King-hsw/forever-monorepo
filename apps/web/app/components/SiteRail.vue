@@ -26,11 +26,8 @@
           <path d="m20 20-3.8-3.8" />
         </svg>
       </button>
-      <NuxtLink v-if="auth.isAuthenticated" to="/admin" class="site-rail__btn" aria-label="管理后台" title="管理后台">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="11" width="18" height="10" rx="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-        </svg>
+      <NuxtLink v-if="auth.isAuthenticated" to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台" title="管理后台">
+        <img src="/icons/avatar.jpeg" alt="" width="22" height="22" />
       </NuxtLink>
       <NuxtLink v-else to="/admin/login" class="site-rail__btn" aria-label="登录" title="登录">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -157,6 +154,13 @@ function onBrandClick() {
   border: none;
   border-radius: var(--radius-control);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.site-rail__avatar img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 @media (hover: hover) and (pointer: fine) {
