@@ -22,6 +22,7 @@
         <div class="hero__side fade-hero" style="--hd: 240ms">
           <p class="hero__subtitle">// 曾经是一名Java开发者 // 正努力学习AI中</p>
           <p class="hero__motto">有朋自远方来，不亦乐乎。</p>
+          <p class="hero__motto">码于行，思于心。以文补陋，以技自砺。</p>
         </div>
       </div>
 

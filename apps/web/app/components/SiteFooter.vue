@@ -37,10 +37,16 @@
             <h3 class="site-footer__heading">站外</h3>
             <ul>
               <li>
-                <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener noreferrer" title="随机前往一位成员博客">开往 ↗</a>
+                <a href="https://www.travellings.cn/" target="_blank" rel="noopener" title="开往">开往 ↗</a>
               </li>
               <li>
                 <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约 ↗</a>
+              </li>
+              <li>
+                <a href="https://travel.moe/go.html?travel=on" target="_blank" rel="noopener" title="异次元之旅-跃迁-我们一起去萌站成员的星球旅行吧！">异次元之旅 ↗</a>
+              </li>
+              <li>
+                <a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener" title="穿梭虫洞-随机访问十年之约友链博客">虫洞（随机博客） ↗</a>
               </li>
             </ul>
           </div>
