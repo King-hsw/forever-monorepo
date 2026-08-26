@@ -25,7 +25,6 @@
         </div>
 
         <div class="hero__side fade-hero" style="--hd: 240ms">
-          <p class="hero__subtitle">// 斯是陋室，惟吾德馨<br>// 记录技术、生活，与胡思乱想</p>
           <p class="hero__motto">有朋自远方来，不亦乐乎。</p>
         </div>
       </div>
@@ -502,15 +501,6 @@ usePageSeo({
   font-weight: 500;
   font-size: clamp(28px, 3.4vw, 36px);
   color: var(--c-text);
-}
-
-/* mono 小注：双斜杠注释体 */
-.hero__subtitle {
-  margin: 40px 0 0;
-  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
-  font-size: 13.5px;
-  line-height: 2;
-  color: #78716c; /* ink-500 */
 }
 
 /* 右：衬线铭文 + 社交链接 */
