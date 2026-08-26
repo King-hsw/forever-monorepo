@@ -19,12 +19,8 @@
           <img src="/icons/avatar.png" alt="补陋阁" class="hero__mark-img" />
         </div>
 
-        <div class="hero__welcome fade-hero" style="--hd: 120ms">
-          <p class="hero__hello">忙忙碌碌</p>
-          <h1 class="hero__name">无所事事中</h1>
-        </div>
-
         <div class="hero__side fade-hero" style="--hd: 240ms">
+          <p class="hero__subtitle">// 曾经是一名Java开发者 // 正努力学习AI中</p>
           <p class="hero__motto">有朋自远方来，不亦乐乎。</p>
         </div>
       </div>
@@ -455,24 +451,12 @@ usePageSeo({
 }
 
 /* 中：mono 迎语两行——斜体玉青轻问候 + 墨色实名 */
-.hero__welcome {
-  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
-  line-height: 1.625;
-}
-
-.hero__hello {
+.hero__subtitle {
   margin: 0;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(28px, 3.4vw, 36px); /* text-4xl */
-  color: var(--c-primary);
-}
-
-.hero__name {
-  margin: 10px 0 0;
-  font-weight: 500;
-  font-size: clamp(28px, 3.4vw, 36px);
-  color: var(--c-text);
+  font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
+  font-size: 13.5px;
+  line-height: 2;
+  color: #78716c; /* ink-500 */
 }
 
 /* 右：衬线铭文 + 社交链接 */
