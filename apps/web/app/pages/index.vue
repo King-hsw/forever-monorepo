@@ -440,7 +440,6 @@ usePageSeo({
   place-items: center;
   width: var(--s);
   height: var(--s);
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 4px;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--c-border) 80%, transparent),
