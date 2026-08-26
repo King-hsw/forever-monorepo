@@ -49,15 +49,28 @@
         </button>
         <NuxtLink
           v-if="auth.isAuthenticated"
-          class="site-nav__link site-nav__link--quiet"
+          class="site-header__icon-btn"
           to="/admin"
-        >管理</NuxtLink>
+          aria-label="管理后台"
+          title="管理后台"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </NuxtLink>
         <NuxtLink
           v-else
-          class="site-nav__link site-nav__link--quiet"
+          class="site-header__icon-btn"
           to="/admin/login"
-        >登录</NuxtLink>
-        <span v-if="auth.isAuthenticated" class="site-header__divider" aria-hidden="true" />
+          aria-label="登录"
+          title="登录"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </NuxtLink>
         <span class="site-header__divider" aria-hidden="true" />
         <button
           type="button"
