@@ -16,7 +16,7 @@
       <div class="hero__orb hero__orb--c" aria-hidden="true" />
       <div ref="heroContent" class="hero__content">
         <div class="hero__mark fade-hero" aria-hidden="true">
-          <img src="/icons/avatar.jpeg" alt="补陋阁" class="hero__mark-img" />
+          <img src="/icons/avatar.png" alt="补陋阁" class="hero__mark-img" />
         </div>
 
         <div class="hero__welcome fade-hero" style="--hd: 120ms">
