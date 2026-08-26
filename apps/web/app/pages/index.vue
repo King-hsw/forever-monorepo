@@ -20,8 +20,8 @@
         </div>
 
         <div class="hero__welcome fade-hero" style="--hd: 120ms">
-          <p class="hero__hello">你好呀 👋</p>
-          <h1 class="hero__name">这里是补陋阁</h1>
+          <p class="hero__hello">忙忙碌碌</p>
+          <h1 class="hero__name">无所事事中</h1>
         </div>
 
         <div class="hero__side fade-hero" style="--hd: 240ms">
