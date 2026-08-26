@@ -443,12 +443,15 @@ usePageSeo({
 }
 
 /* 笑脸：两颗眼睛 + 微笑嘴，尺寸全部由 --s 推导 */
+/* 边缘羽化：径向遮罩让图片渐隐融入纸色背景 */
 .hero__mark-img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 999px;
+  -webkit-mask-image: radial-gradient(circle at center, #000 58%, transparent 76%);
+  mask-image: radial-gradient(circle at center, #000 58%, transparent 76%);
 }
 
 /* 中：mono 迎语两行——斜体玉青轻问候 + 墨色实名 */
