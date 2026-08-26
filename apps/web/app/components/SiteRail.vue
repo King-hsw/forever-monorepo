@@ -27,7 +27,7 @@
         </svg>
       </button>
       <NuxtLink v-if="auth.isAuthenticated" to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台" title="管理后台">
-        <img src="/icons/avatar.jpeg" alt="" width="22" height="22" />
+        <img src="/icons/avatar.png" alt="" width="22" height="22" />
       </NuxtLink>
       <NuxtLink v-else to="/admin/login" class="site-rail__btn" aria-label="登录" title="登录">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
