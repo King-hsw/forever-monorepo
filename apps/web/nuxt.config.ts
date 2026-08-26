@@ -5,6 +5,10 @@ export default defineNuxtConfig({
     viewTransition: true,
   },
   compatibilityDate: '2025-07-15',
+  // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
+  routeRules: {
+    '/admin/**': { ssr: false },
+  },
   devtools: { enabled: true },
   runtimeConfig: {
     // forever-server 后端地址：仅服务端 SSR 使用，直连后端不走代理，
