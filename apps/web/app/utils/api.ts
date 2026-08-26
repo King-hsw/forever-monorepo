@@ -26,16 +26,27 @@ export class ApiError extends Error {
 /** 登录信息的镜像 cookie 名；SSR 端据此判断登录态（值与 localStorage 相同的 JSON） */
 export const AUTH_COOKIE = 'forever-admin-auth'
 
+/** 后端 /api/auth/login 与 /api/auth/refresh 的响应体 */
+export interface TokenPair {
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+  refreshExpiresIn: number
+}
+
 export interface AuthStorage {
-  token: string
+  accessToken: string
+  refreshToken: string
   username: string
 }
 
-/** 解析登录信息 JSON，脏数据返回 null */
+/** 解析登录信息 JSON，缺字段（如旧版单 token 格式）视为未登录 */
 function parseAuth(raw: string | undefined | null): AuthStorage | null {
   if (!raw) return null
   try {
-    return JSON.parse(raw) as AuthStorage
+    const value = JSON.parse(raw) as Partial<AuthStorage>
+    if (!value.accessToken || !value.refreshToken || !value.username) return null
+    return value as AuthStorage
   } catch {
     return null
   }
@@ -52,9 +63,9 @@ export function loadAuth(): AuthStorage | null {
   }
 }
 
-export function saveAuth(token: string, username: string) {
+export function saveAuth(auth: AuthStorage) {
   if (!import.meta.client) return
-  const raw = JSON.stringify({ token, username })
+  const raw = JSON.stringify(auth)
   localStorage.setItem(AUTH_KEY, raw)
   // 镜像一份到 cookie，让 Nuxt SSR 渲染时能感知登录态
   document.cookie = `${AUTH_COOKIE}=${encodeURIComponent(raw)}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; samesite=lax`
@@ -81,11 +92,39 @@ function handleUnauthorized() {
   window.location.href = '/admin/login'
 }
 
+/** 单飞刷新：并发多个 401 只发一次 /api/auth/refresh，成功返回 true */
+let refreshing: Promise<boolean> | null = null
+function refreshToken(): Promise<boolean> {
+  if (!import.meta.client) return Promise.resolve(false)
+  refreshing ??= (async () => {
+    try {
+      const current = loadAuth()
+      if (!current) return false
+      const config = useRuntimeConfig()
+      const base = config.public.apiBase as string
+      // 直接 $fetch 而非 apiFetch，避免递归触发刷新
+      const res = await $fetch<ApiResponse<Pick<TokenPair, 'accessToken' | 'refreshToken'>>>(
+        `${base}/api/auth/refresh`,
+        { method: 'POST', body: { refreshToken: current.refreshToken } },
+      )
+      if (res.code !== 0) return false
+      saveAuth({ ...current, accessToken: res.data.accessToken, refreshToken: res.data.refreshToken })
+      return true
+    } catch {
+      return false
+    } finally {
+      refreshing = null
+    }
+  })()
+  return refreshing
+}
+
 /**
  * 发起 API 请求并解包统一响应体。
- * 失败时抛出 ApiError；401 会清除本地登录态并跳转登录页。
+ * 失败时抛出 ApiError；业务请求 401 时先用 refreshToken 静默续期重试一次，
+ * 刷新失败才清除本地登录态并跳转登录页。
  */
-export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
+export async function apiFetch<T>(path: string, options: ApiOptions = {}, retried = false): Promise<T> {
   // devProxy 只对浏览器请求生效；SSR 内部 $fetch 必须直连后端地址
   const config = useRuntimeConfig()
   const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
@@ -93,8 +132,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 
   // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401
   const auth = loadAuth()
-  if (auth?.token && !headers.Authorization && path !== '/api/auth/login') {
-    headers.Authorization = `Bearer ${auth.token}`
+  if (auth?.accessToken && !headers.Authorization && path !== '/api/auth/login') {
+    headers.Authorization = `Bearer ${auth.accessToken}`
   }
 
   let res: ApiResponse<T>
@@ -109,9 +148,12 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
     const status = (err as { statusCode?: number; status?: number })?.statusCode
       ?? (err as { status?: number })?.status
     if (status === 401) {
-      // 登录接口自身的 401 是“账号或密码错误”，不能触发跳转，
+      // 登录接口自身的 401 是“账号或密码错误”，不能触发刷新/跳转，
       // 否则登录页会被整页刷新，错误提示根本来不及显示
-      if (!path.startsWith('/api/auth/')) handleUnauthorized()
+      if (!retried && !path.startsWith('/api/auth/')) {
+        if (await refreshToken()) return apiFetch<T>(path, options, true)
+        handleUnauthorized()
+      }
       throw new ApiError('登录已过期，请重新登录', 401)
     }
     const message

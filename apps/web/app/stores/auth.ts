@@ -1,16 +1,11 @@
 import { defineStore } from 'pinia'
 import type { MeInfo } from '#shared/types'
-import { AUTH_COOKIE, apiFetch, clearAuth, loadAuth, saveAuth, type AuthStorage } from '~/utils/api'
-
-interface LoginResponse {
-  accessToken: string
-  expiresIn: number
-}
+import { AUTH_COOKIE, apiFetch, clearAuth, loadAuth, saveAuth, type AuthStorage, type TokenPair } from '~/utils/api'
 
 export const useAuthStore = defineStore('admin-auth', () => {
-  const token = ref<string | null>(null)
+  const accessToken = ref<string | null>(null)
   const username = ref<string | null>(null)
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => !!accessToken.value)
 
   /** SSR 端从请求 cookie 解析登录信息；需在 Nuxt 上下文中调用 */
   function parseAuthCookie(): AuthStorage | null {
@@ -27,18 +22,18 @@ export const useAuthStore = defineStore('admin-auth', () => {
 
   /** 恢复登录态：客户端读 localStorage，服务端读镜像 cookie（仅执行一次） */
   function hydrate() {
-    if (token.value) return
+    if (accessToken.value) return
     if (import.meta.server) {
       const auth = parseAuthCookie()
       if (auth) {
-        token.value = auth.token
+        accessToken.value = auth.accessToken
         username.value = auth.username
       }
       return
     }
     const auth = loadAuth()
     if (auth) {
-      token.value = auth.token
+      accessToken.value = auth.accessToken
       username.value = auth.username
     }
   }
@@ -46,7 +41,7 @@ export const useAuthStore = defineStore('admin-auth', () => {
   /** 调用后端 /api/auth/login 登录，成功返回 true */
   async function login(user: string, password: string): Promise<boolean> {
     try {
-      const data = await apiFetch<LoginResponse>('/api/auth/login', {
+      const data = await apiFetch<TokenPair>('/api/auth/login', {
         method: 'POST',
         body: { username: user, password },
       })
@@ -55,20 +50,29 @@ export const useAuthStore = defineStore('admin-auth', () => {
         headers: { Authorization: `Bearer ${data.accessToken}` },
       }).catch(() => null)
 
-      token.value = data.accessToken
+      accessToken.value = data.accessToken
       username.value = me?.username ?? user
-      saveAuth(data.accessToken, username.value)
+      saveAuth({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        username: username.value,
+      })
       return true
     } catch {
       return false
     }
   }
 
-  function logout() {
-    token.value = null
+  /** 吊销后端会话（幂等，失败也照常清除本地登录态）后清理本地 */
+  async function logout() {
+    const refreshToken = loadAuth()?.refreshToken
+    if (refreshToken) {
+      await apiFetch('/api/auth/logout', { method: 'POST', body: { refreshToken } }).catch(() => {})
+    }
+    accessToken.value = null
     username.value = null
     clearAuth()
   }
 
-  return { token, username, isAuthenticated, hydrate, login, logout }
+  return { token: accessToken, username, isAuthenticated, hydrate, login, logout }
 })
