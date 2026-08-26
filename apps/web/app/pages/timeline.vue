@@ -149,14 +149,27 @@ function measure() {
   update()
 }
 
+let io: IntersectionObserver | null = null
+
 onMounted(() => {
   measure()
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', measure)
+  // 入场「合入」：卡片滑入、茎线描边、节点弹出（transform 移动同样会触发 IO）
+  io = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('tl-in')
+        io?.unobserve(entry.target)
+      }
+    }
+  }, { threshold: 0.4 })
+  document.querySelectorAll('.tl-page .tl-cell').forEach(el => io!.observe(el))
 })
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('resize', measure)
+  io?.disconnect()
 })
 </script>
 
@@ -423,6 +436,66 @@ a:hover .tl-card {
   border-radius: 50%;
   box-shadow: 0 0 0 4px rgb(20 184 166 / 12%);
   z-index: 2;
+}
+
+/* ===== 入场「合入」：未进入视口时藏起来，tl-in 后归位 ===== */
+.tl-cell .tl-card {
+  opacity: 0;
+  transform: translateX(56px);
+}
+
+.tl-cell--year .tl-yearcard {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+.tl-cell .tl-stem path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.tl-cell .tl-dot {
+  transform: translate(-50%, -50%) scale(0);
+}
+
+.tl-cell.tl-in .tl-card,
+.tl-cell.tl-in .tl-yearcard {
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tl-cell.tl-in .tl-card--below {
+  transition-delay: 0.08s;
+}
+
+.tl-cell.tl-in .tl-stem path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.7s ease 0.15s;
+}
+
+.tl-cell.tl-in .tl-dot {
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.45s var(--ease-bounce) 0.5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-cell .tl-card,
+  .tl-cell--year .tl-yearcard,
+  .tl-cell .tl-dot {
+    opacity: 1;
+    transform: none;
+  }
+
+  .tl-cell .tl-dot {
+    transform: translate(-50%, -50%);
+  }
+
+  .tl-cell .tl-stem path {
+    stroke-dashoffset: 0;
+  }
 }
 
 .tl-dot__pulse {
