@@ -29,7 +29,7 @@
         </div>
       </div>
 
-      <!-- 滚动提示：右下角弹跳箭头 -->
+      <!-- 滚动提示：底部中央弹跳箭头 -->
       <button type="button" class="hero__scroll-hint" aria-label="滚动查看内容" @click="scrollToId('latest')">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="m6 9 6 6 6-6" />
@@ -524,11 +524,12 @@ usePageSeo({
   color: #292524; /* ink-800 */
 }
 
-/* 滚动提示：右下角弹跳箭头 */
+/* 滚动提示：底部中央弹跳箭头 */
 .hero__scroll-hint {
   position: absolute;
-  right: 40px;
+  left: 50%;
   bottom: 32px;
+  margin-left: -19px; /* 22px 图标 + 2×8px padding，取半宽实现水平居中 */
   display: grid;
   place-items: center;
   padding: 8px;
