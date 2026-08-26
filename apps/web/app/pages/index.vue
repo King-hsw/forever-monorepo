@@ -412,6 +412,7 @@ usePageSeo({
 /* 三段式：左标 | mono 迎语 | 铭文+社交，参考站 hero 同构 */
 .hero__content {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: clamp(32px, 5vw, 72px);
   width: min(1080px, calc(100% - 48px));
