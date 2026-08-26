@@ -440,10 +440,6 @@ usePageSeo({
   place-items: center;
   width: var(--s);
   height: var(--s);
-  border-radius: 4px;
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--c-border) 80%, transparent),
-    var(--shadow-card);
 }
 
 /* 笑脸：两颗眼睛 + 微笑嘴，尺寸全部由 --s 推导 */
