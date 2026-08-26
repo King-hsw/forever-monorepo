@@ -32,6 +32,12 @@
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </NuxtLink>
+      <NuxtLink v-else to="/admin/login" class="site-rail__btn" aria-label="登录" title="登录">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </NuxtLink>
     </div>
   </aside>
 </template>
