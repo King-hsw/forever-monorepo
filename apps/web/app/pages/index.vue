@@ -448,7 +448,7 @@ usePageSeo({
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 2px;
+  border-radius: 24px;
 }
 
 /* 中：mono 迎语两行——斜体玉青轻问候 + 墨色实名 */
