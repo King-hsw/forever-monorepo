@@ -198,8 +198,8 @@ usePageSeo({
   padding: 84px 20px 48px;
 }
 
-/* ===== 目录边栏：签条式（仅宽屏） =====
- * 每个条目做成垂在书脊上的纸签，当前章节的签条被「抽」出来一点
+/* ===== 目录边栏：墨线式（仅宽屏）=====
+ * 一根竖细线贯穿到底，条目纯文字；当前章节用主色短线在墨线上「点」出
  */
 .toc {
   position: fixed;
@@ -264,9 +264,11 @@ usePageSeo({
 }
 
 .toc__title {
-  margin: 0 0 10px;
-  font-size: 13px;
+  margin: 0 0 12px;
+  font-family: var(--font-serif);
+  font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.2em;
   color: var(--c-text-muted);
 }
 
@@ -274,6 +276,7 @@ usePageSeo({
   margin: 0;
   padding: 0;
   list-style: none;
+  border-left: 1px solid var(--c-border); /* 墨线 */
 }
 
 .toc__list li + li {
@@ -282,32 +285,25 @@ usePageSeo({
 
 .toc__link {
   display: block;
-  padding: 5px 10px 5px 14px;
+  padding: 5px 8px;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--c-text-secondary);
   text-decoration: none;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-left: 3px solid var(--c-border);
-  border-radius: 0 8px 8px 0;
-  transition: color var(--dur-soft) ease, transform var(--dur-soft) var(--ease-bounce), border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease;
+  border-left: 2px solid transparent;
+  margin-left: -1px; /* 盖住容器墨线，激活时以主色短线取代 */
+  transition: color var(--dur-soft) ease, border-color var(--dur-soft) ease;
 
 @media (hover: hover) and (pointer: fine) {
   &:hover {
     color: var(--c-primary);
-    transform: translateX(3px);
-    border-left-color: color-mix(in srgb, var(--c-primary) 45%, var(--c-border));
   }
 }
 
-  /* 当前章节：整根签条抽出书页 */
   &.is-active {
     color: var(--c-primary);
     font-weight: 600;
-    transform: translateX(8px);
     border-left-color: var(--c-primary);
-    box-shadow: -3px 2px 8px rgb(0 0 0 / 7%);
   }
 }
 
