@@ -133,7 +133,6 @@ interface NavItem {
 /** 后续加菜单只改这里 */
 const navItems: NavItem[] = [
   { label: '首页', to: '/' },
-  { label: '时间线', to: '/timeline' },
   { label: '归档', to: '/archive' },
 ]
 
