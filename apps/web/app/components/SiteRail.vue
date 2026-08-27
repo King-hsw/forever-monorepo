@@ -1,10 +1,6 @@
 <template>
   <!-- 桌面端左侧竖排导航：头像标在上、图标菜单居中、工具收在底部（≥901px 显示） -->
   <aside class="site-rail">
-    <NuxtLink to="/" class="site-rail__brand" aria-label="回到首页" @click="onBrandClick">
-      <span class="site-rail__mark" aria-hidden="true" />
-    </NuxtLink>
-
     <nav class="site-rail__nav" aria-label="主导航">
       <NuxtLink
         v-for="item in navItems"
@@ -40,7 +36,6 @@
 </template>
 
 <script setup lang="ts">
-const route = useRoute()
 const auth = useAuthStore()
 const searchOpen = useState('global-search-open', () => false)
 
@@ -58,13 +53,6 @@ const navItems = [
   { label: '首页', to: '/', icon: ICONS.home },
   { label: '归档', to: '/archive', icon: ICONS.posts },
 ]
-
-/** 已在首页时点头像回到顶部，否则跳回首页 */
-function onBrandClick() {
-  if (route.path === '/') {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-}
 </script>
 
 <style scoped>
@@ -85,51 +73,6 @@ function onBrandClick() {
   .site-rail {
     display: flex;
   }
-}
-
-/* 品牌标：与原 header 同款小软糖 */
-.site-rail__brand {
-  flex-shrink: 0;
-  display: block;
-}
-
-.site-rail__mark {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgb(13 148 136 / 30%);
-}
-
-/* 笑脸：两颗眼睛 + 微笑嘴 */
-.site-rail__mark::before {
-  content: '';
-  position: absolute;
-  top: 36%;
-  left: 28%;
-  width: 4px;
-  height: 6px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 12px 0 0 #fff;
-}
-
-.site-rail__mark::after {
-  content: '';
-  position: absolute;
-  bottom: 22%;
-  left: 50%;
-  width: 12px;
-  height: 7px;
-  border: 2px solid #fff;
-  border-top: none;
-  border-left-color: transparent;
-  border-right-color: transparent;
-  border-radius: 0 0 14px 14px;
-  transform: translateX(-50%);
 }
 
 .site-rail__nav {
