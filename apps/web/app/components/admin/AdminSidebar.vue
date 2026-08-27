@@ -88,7 +88,7 @@ const navItems = [
   { label: '友链管理', to: '/admin/friends', icon: '🤝', perm: 'friend-link:list' },
   { label: '站点设置', to: '/admin/settings', icon: '⚙️', perm: 'setting:list' },
   { label: '日志审计', to: '/admin/logs', icon: '📜', perm: 'log:list' },
-  { label: '个人资料', to: '/admin/profile', icon: '👤' },
+  // 个人资料入口在顶栏头像下拉里，不再进菜单
 ]
 
 const visibleNavItems = computed(() =>
