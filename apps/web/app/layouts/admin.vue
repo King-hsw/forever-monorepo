@@ -23,7 +23,7 @@
 
         <div class="topbar__right">
           <span class="topbar__user">
-            <span class="topbar__avatar" aria-hidden="true">{{ avatarText }}</span>
+            <span class="topbar__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
             <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
             <ClientOnly>{{ auth.username || '未登录' }}</ClientOnly>
           </span>
@@ -53,7 +53,6 @@ const auth = useAuthStore()
 const sidenavCollapsed = useState('admin-sidenav-collapsed', () => false)
 const editorFullscreen = useState('admin-editor-fullscreen', () => false)
 
-const avatarText = computed(() => (auth.username?.slice(0, 1) ?? 'A').toUpperCase())
 
 // 路由变化时自动收起抽屉
 watch(

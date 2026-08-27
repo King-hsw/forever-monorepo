@@ -1,5 +1,10 @@
 import type { PostStatus } from '#shared/types'
 
+/** 取用户名首字母大写作为头像占位符，空值回退 'A' */
+export function initialOf(username?: string | null): string {
+  return (username?.slice(0, 1) ?? 'A').toUpperCase()
+}
+
 /** 文章状态展示文案 */
 export function statusLabel(status: PostStatus): string {
   return status === 'PUBLISHED' ? '已发布' : '草稿'

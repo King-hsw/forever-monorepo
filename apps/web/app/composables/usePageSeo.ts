@@ -6,7 +6,7 @@ export const SITE_DESCRIPTION = '补陋阁 —— 斯是陋室，惟吾德馨'
 
 /**
  * 页面级 SEO 统一入口：
- * title / description / keywords / canonical / Open Graph / Twitter Card 一次配齐。
+ * title / description / keywords / canonical / Open Graph 一次配齐。
  *
  * - 所有字段均支持响应式 getter，文章详情页数据到达后自动更新
  * - canonical 默认取当前路由 path（不含 query，避免筛选参数产生重复页面）
@@ -19,7 +19,7 @@ export interface PageSeoOptions {
   description?: MaybeRefOrGetter<string | null | undefined>
   /** 关键词列表（文章页一般传标签名） */
   keywords?: MaybeRefOrGetter<string[]>
-  /** 分享图（og:image / twitter:image） */
+  /** 分享图（og:image） */
   image?: MaybeRefOrGetter<string | null | undefined>
   /** canonical 路径，如 /posts/xxx；默认取当前路由 path */
   path?: MaybeRefOrGetter<string | undefined>
@@ -65,11 +65,6 @@ export function usePageSeo(options: PageSeoOptions) {
     ogType: () => type.value,
     ogImage: () => image.value,
     ogSiteName: SITE_NAME,
-
-    twitterCard: () => (image.value ? 'summary_large_image' : 'summary'),
-    twitterTitle: () => title.value,
-    twitterDescription: () => description.value,
-    twitterImage: () => image.value,
 
     // article 相关 meta 仅在文章详情页有值时输出
     articlePublishedTime: () =>

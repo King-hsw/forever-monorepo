@@ -140,7 +140,7 @@ function onCopyClick(event: MouseEvent) {
   const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.md-code-block__copy')
   if (!btn || btn.disabled) return
   const code = btn.closest('.md-code-block')?.querySelector('pre')?.textContent ?? ''
-  copyText(code)
+  navigator.clipboard.writeText(code)
     .then(() => {
       btn.textContent = '已复制 ✓'
       btn.classList.add('is-copied')

@@ -104,22 +104,6 @@ export interface RssFeedInput {
   enabled?: boolean
 }
 
-/** 订阅文章条目（对应 RssItemResponse；公开接口） */
-export interface RssItem {
-  id: number
-  /** 来源站点名称 */
-  feedTitle: string
-  /** 来源站点主页 */
-  siteUrl: string
-  title: string
-  /** 原文链接，新窗口打开 */
-  link: string
-  /** 摘要（纯文本） */
-  summary: string
-  /** 发布时间；源未提供时为 null */
-  publishedAt: string | null
-}
-
 export type FriendLinkStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 /** 友链（对应 FriendLinkResponse；公开接口不含 contact / rejectReason） */
@@ -203,12 +187,6 @@ export interface CommentInput {
   content: string
 }
 
-/** 留言板信息（对应 BoardController.BoardInfo） */
-export interface BoardInfo {
-  title: string
-  summary: string
-}
-
 /** 站点公开信息（对应 SiteInfoController.SiteInfo）；birthDate 未设置为 null */
 export interface SiteInfo {
   birthDate: string | null
@@ -282,13 +260,6 @@ export interface UserView {
   createdAt: string
 }
 
-/** 创建后台用户请求 */
-export interface UserCreateInput {
-  username: string
-  password: string
-  nickname?: string
-  roleIds?: number[]
-}
 
 /** 站点配置项（对应 SettingResponse；value 为空表示未在数据库设置，走 yml 默认值） */
 export interface SettingItem {

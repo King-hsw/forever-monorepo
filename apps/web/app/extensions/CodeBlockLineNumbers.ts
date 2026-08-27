@@ -1,5 +1,4 @@
 import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight'
-import { copyText } from '../utils/clipboard'
 
 /** 复制成功后的反馈展示时长 */
 const COPY_FEEDBACK_MS = 1500
@@ -88,7 +87,7 @@ export const CodeBlockLineNumbers = CodeBlockLowlight.extend({
       copyButton.textContent = '复制'
       let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined
       copyButton.addEventListener('click', () => {
-        copyText(node.textContent ?? '')
+        navigator.clipboard.writeText(node.textContent ?? '')
           .then(() => {
             copyButton.textContent = '已复制'
             copyButton.classList.add('is-copied')

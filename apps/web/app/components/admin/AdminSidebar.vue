@@ -31,7 +31,7 @@
 
     <div class="sidenav__footer">
       <p class="sidenav__user" title="当前登录用户">
-        <span class="sidenav__avatar" aria-hidden="true">{{ avatarText }}</span>
+        <span class="sidenav__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
         <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
         <ClientOnly><span class="sidenav__text">{{ auth.username || '未登录' }}</span></ClientOnly>
       </p>
@@ -81,7 +81,6 @@ const navItems = [
   { label: '日志审计', to: '/admin/logs', icon: '📜' },
 ]
 
-const avatarText = computed(() => (auth.username?.slice(0, 1) ?? 'A').toUpperCase())
 
 function isActive(to: string): boolean {
   return to === '/admin' ? route.path === '/admin' : route.path.startsWith(to)

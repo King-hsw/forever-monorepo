@@ -104,7 +104,6 @@ export default defineNuxtConfig({
         // 刘海屏：页面延伸到安全区外，配合 CSS env(safe-area-inset-*) 使用
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
       ],
-      script: [      ],
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
