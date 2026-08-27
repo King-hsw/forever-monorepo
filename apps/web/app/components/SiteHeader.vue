@@ -68,18 +68,25 @@
             <circle cx="12" cy="7" r="4" />
           </svg>
         </NuxtLink>
-        <NuxtLink
-          v-else
-          class="site-header__icon-btn"
-          to="/admin/login"
-          aria-label="登录"
-          title="登录"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </NuxtLink>
+        <div v-else class="site-header__login">
+          <button
+            type="button"
+            class="site-header__icon-btn"
+            :aria-expanded="loginOpen"
+            aria-label="登录"
+            title="登录"
+            @click="loginOpen = !loginOpen"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
+          <div v-if="loginOpen" class="site-header__login-panel">
+            <NuxtLink to="/admin/login" @click="closeLogin">账号登录</NuxtLink>
+            <NuxtLink to="/guest" @click="closeLogin">游客登录</NuxtLink>
+          </div>
+        </div>
         <span class="site-header__divider" aria-hidden="true" />
         <button
           type="button"
@@ -134,6 +141,22 @@ const searchOpen = useState('global-search-open', () => false)
 auth.hydrate()
 guest.hydrate()
 
+/* 登录菜单：账号登录 / 游客登录 */
+const loginOpen = ref(false)
+
+function closeLogin() {
+  loginOpen.value = false
+}
+
+function onDocMouseDown(e: MouseEvent) {
+  if (loginOpen.value && !(e.target as Element).closest('.site-header__login'))
+    closeLogin()
+}
+
+function onDocKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeLogin()
+}
+
 interface NavItem {
   label: string
   to: string
@@ -164,13 +187,20 @@ function onScroll() {
 onMounted(() => {
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
+  document.addEventListener('mousedown', onDocMouseDown)
+  document.addEventListener('keydown', onDocKeydown)
 })
 
-onUnmounted(() => window.removeEventListener('scroll', onScroll))
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+  document.removeEventListener('mousedown', onDocMouseDown)
+  document.removeEventListener('keydown', onDocKeydown)
+})
 
-// 路由变化时收起移动端菜单与搜索下拉
+// 路由变化时收起移动端菜单、搜索下拉与登录菜单
 watch(() => route.fullPath, () => {
   menuOpen.value = false
+  closeLogin()
 })
 
 /** 已在首页时点品牌回到顶部，否则跳回首页 */
@@ -407,6 +437,41 @@ function onBrandClick() {
   border: 1px solid var(--c-primary);
   border-radius: 999px;
   text-decoration: none;
+}
+
+/* 登录菜单：人物 icon 点开，面板从顶栏下方弹出 */
+.site-header__login {
+  position: relative;
+}
+
+.site-header__login-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.site-header__login-panel a {
+  padding: 8px 12px;
+  font-size: 13.5px;
+  color: var(--c-text-secondary);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.site-header__login-panel a:hover {
+  color: var(--c-primary);
+  background: var(--c-primary-light);
 }
 
 /* 移动端汉堡按钮：三横线 → 叉号 */

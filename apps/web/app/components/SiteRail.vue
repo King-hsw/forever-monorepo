@@ -34,12 +34,26 @@
       <NuxtLink v-if="auth.isAuthenticated" to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台" title="管理后台">
         <img src="/icons/avatar.png" alt="" width="22" height="22" />
       </NuxtLink>
-      <NuxtLink v-else to="/admin/login" class="site-rail__btn" aria-label="登录" title="登录">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      </NuxtLink>
+      <div v-else class="site-rail__login">
+        <button
+          type="button"
+          class="site-rail__btn"
+          :class="{ 'site-rail__btn--active': loginOpen }"
+          :aria-expanded="loginOpen"
+          aria-label="登录"
+          title="登录"
+          @click="loginOpen = !loginOpen"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </button>
+        <div v-if="loginOpen" class="site-rail__login-panel">
+          <NuxtLink to="/admin/login" @click="closeLogin">账号登录</NuxtLink>
+          <NuxtLink to="/guest" @click="closeLogin">游客登录</NuxtLink>
+        </div>
+      </div>
     </div>
   </aside>
 </template>
@@ -65,6 +79,35 @@ const navItems = [
   { label: '归档', to: '/archive', icon: ICONS.posts },
   { label: '聊天', to: '/chat', icon: ICONS.chat },
 ]
+
+/* 登录菜单：账号登录 / 游客登录 */
+const route = useRoute()
+const loginOpen = ref(false)
+
+function closeLogin() {
+  loginOpen.value = false
+}
+
+function onDocMouseDown(e: MouseEvent) {
+  if (loginOpen.value && !(e.target as Element).closest('.site-rail__login'))
+    closeLogin()
+}
+
+function onDocKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeLogin()
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', onDocMouseDown)
+  document.addEventListener('keydown', onDocKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocMouseDown)
+  document.removeEventListener('keydown', onDocKeydown)
+})
+
+watch(() => route.fullPath, closeLogin)
 </script>
 
 <style scoped>
@@ -142,6 +185,46 @@ const navItems = [
 .site-rail__btn:active {
   transition-duration: 80ms;
   transform: scale(0.92);
+}
+
+/* 登录菜单：人物 icon 点开，面板从侧栏右侧弹出 */
+.site-rail__login {
+  position: relative;
+}
+
+.site-rail__login-panel {
+  position: absolute;
+  bottom: -6px;
+  left: calc(100% + 10px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card-hover);
+}
+
+.site-rail__login-panel a {
+  padding: 8px 12px;
+  font-size: 13.5px;
+  color: var(--c-text-secondary);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.site-rail__login-panel a:hover {
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+}
+
+.site-rail__btn--active {
+  color: var(--c-primary);
+  background: var(--c-primary-light);
 }
 
 .site-rail__foot {
