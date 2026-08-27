@@ -325,7 +325,6 @@ function onBrandClick() {
   display: inline-flex;
   gap: 5px;
   align-items: center;
-  font-family: inherit;
   cursor: pointer;
   background: none;
   border: none;

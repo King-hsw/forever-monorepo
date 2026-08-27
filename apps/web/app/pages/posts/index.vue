@@ -45,11 +45,7 @@
           <li v-for="post in list" :key="post.id">
             <NuxtLink :to="`/posts/${post.slug}`" class="entry">
               <span class="entry__top">
-                <span class="entry__badges">
-                  <span v-if="post.categoryName" class="badge badge--cat">{{ post.categoryName }}</span>
-                  <span v-for="t in post.tags.slice(0, 3)" :key="t.id" class="badge">{{ t.name }}</span>
-                  <span v-if="post.tags.length > 3" class="badge">+{{ post.tags.length - 3 }}</span>
-                </span>
+                <span v-if="post.categoryName" class="entry__cat">{{ post.categoryName }}</span>
                 <span class="entry__date">
                   <time :datetime="(post.publishedAt ?? post.createdAt).slice(0, 10)">{{ formatDate(post.publishedAt ?? post.createdAt) }}</time>
                   <span class="entry__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
@@ -57,6 +53,10 @@
               </span>
               <h2 class="entry__title">{{ post.title }}</h2>
               <p class="entry__summary">{{ post.summary }}</p>
+              <p v-if="post.tags.length" class="entry__tags">
+                <span v-for="t in post.tags.slice(0, 3)" :key="t.id">#{{ t.name }}</span>
+                <span v-if="post.tags.length > 3" class="entry__tags-more">+{{ post.tags.length - 3 }}</span>
+              </p>
             </NuxtLink>
           </li>
         </ul>
@@ -297,26 +297,13 @@ function goPage(p: number) {
   gap: 8px;
 }
 
-.entry__badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.badge {
+.entry__cat {
   padding: 1px 9px;
   font-size: 12px;
-  color: var(--c-text-secondary);
-  background: transparent;
-  border: 1px solid var(--c-border);
-  border-radius: 999px;
-}
-
-.badge--cat {
-  color: var(--c-primary-hover);
   font-weight: 600;
+  color: var(--c-primary-hover);
   background: var(--c-primary-light);
-  border-color: transparent;
+  border-radius: 999px;
 }
 
 .entry__date {
@@ -346,6 +333,20 @@ function goPage(p: number) {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+}
+
+/* 标签独行：与分类徽章错开，不再混在同一行 */
+.entry__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--c-primary-hover);
+
+  &-more {
+    color: var(--c-text-muted);
+  }
 }
 
 /* ===== 翻页：上页 / 数字页码 / 下页 ===== */
@@ -380,6 +381,7 @@ function goPage(p: number) {
 
 .pager__num {
   display: inline-grid;
+  place-items: center;
   min-width: 32px;
   height: 32px;
   padding: 0 8px;

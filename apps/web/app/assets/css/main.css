@@ -5,6 +5,16 @@
   box-sizing: border-box;
 }
 
+/* 表单控件 / kbd 默认不继承字体：统一继承，避免各处按钮、输入框字体跑偏 */
+button,
+input,
+select,
+textarea,
+kbd {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
 /* 系统字体：自带光学尺寸与字距表，中文回落 PingFang / 雅黑 */
 body {
   margin: 0;

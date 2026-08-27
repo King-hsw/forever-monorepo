@@ -220,7 +220,6 @@ onMounted(() => {
   flex-shrink: 0;
   padding: 3px 8px;
   font-size: 11px;
-  font-family: inherit;
   line-height: 1.4;
   color: var(--c-text-muted);
   cursor: pointer;
