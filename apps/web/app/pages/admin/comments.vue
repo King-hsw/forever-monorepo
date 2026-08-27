@@ -104,6 +104,7 @@ const typeTabs: { label: string, value: CommentTarget | '' }[] = [
   { label: '全部', value: '' },
   { label: '文章', value: 'ARTICLE' },
   { label: '留言板', value: 'BOARD' },
+  { label: '动态', value: 'MOMENT' },
 ]
 
 const list = ref<AdminComment[]>([])
@@ -152,7 +153,9 @@ function switchType(value: CommentTarget | '') {
 }
 
 function targetLabel(item: AdminComment): string {
-  return item.targetType === 'BOARD' ? '留言板留言' : `回复了「${item.targetTitle ?? ''}」`
+  if (item.targetType === 'BOARD') return '留言板留言'
+  if (item.targetType === 'MOMENT') return '动态评论'
+  return `回复了「${item.targetTitle ?? ''}」`
 }
 
 function go(p: number) {

@@ -191,6 +191,7 @@ const ITEM_META: Record<string, ItemMeta> = {
   'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },
   'comment.owner-email': { label: '站长邮箱', type: 'email' },
   'comment.from-email': { label: '发件人地址', type: 'email', defaultValue: 'noreply@example.com' },
+  'moments.amapKey': { label: '高德 Web 服务 Key', type: 'text' },
 }
 
 const FALLBACK_META: ItemMeta = { label: '', type: 'text' }
@@ -224,6 +225,12 @@ const KNOWN_GROUPS: Group[] = [
     icon: '📧',
     desc: '需已在服务端配置 spring.mail.* SMTP 基础设施，通知失败不影响评论本身',
     keys: ['comment.notify-mail', 'comment.owner-email', 'comment.from-email'],
+  },
+  {
+    title: '动态',
+    icon: '📍',
+    desc: '发布页「获取当前位置」走高德逆地理编码；留空时该功能静默降级，可手动填写地点',
+    keys: ['moments.amapKey'],
   },
 ]
 
