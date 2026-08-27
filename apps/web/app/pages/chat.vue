@@ -97,7 +97,18 @@
                 >
                 <div class="msg__col">
                   <span v-if="!row.self && row.showName" class="msg__name">{{ row.msg.nickname }}</span>
-                  <div class="msg__bubble">{{ row.msg.content }}</div>
+                  <div class="msg__bubble" title="回复 {{ row.msg.nickname }}" @click="setReplyTo(row.msg)">
+                    <button
+                      v-if="row.quote"
+                      type="button"
+                      class="msg__quote"
+                      title="查看被引用的消息"
+                      @click.stop="focusMessage(row.quote!.id)"
+                    >
+                      <span class="msg__quote-name">{{ row.quote.name }}：</span>{{ row.quote.content }}
+                    </button>
+                    {{ row.msg.content }}
+                  </div>
                 </div>
                 <img
                   v-if="row.self"
@@ -127,6 +138,12 @@
               <span>邮箱</span>
               <input v-model="email" type="email" maxlength="60" placeholder="邮箱（不会公开展示）" />
             </label>
+          </div>
+          <div v-if="replyTo" class="composer__reply">
+            <span class="composer__reply-text">
+              回复 <strong>{{ replyTo.nickname }}</strong>：{{ replyTo.content }}
+            </span>
+            <button type="button" class="composer__reply-close" aria-label="取消回复" @click="replyTo = null">×</button>
           </div>
           <div class="composer__row">
             <textarea
@@ -158,6 +175,7 @@ interface BoardInfo {
 
 interface ChatMsg {
   id: number
+  parentId: number | null
   nickname: string
   avatarUrl: string
   site: string | null
@@ -173,10 +191,17 @@ interface Member {
   count: number
 }
 
+/** 引用块：被回复的消息（QQ/微信风） */
+interface Quote {
+  id: number
+  name: string
+  content: string
+}
+
 /** 渲染行：时间分隔 / 消息 */
 type Row =
   | { kind: 'sep'; key: string; text: string }
-  | { kind: 'msg'; key: number; msg: ChatMsg; self: boolean; showName: boolean }
+  | { kind: 'msg'; key: number; msg: ChatMsg; self: boolean; showName: boolean; quote: Quote | null }
 
 const PAGE_SIZE = 100
 const MAX_PAGES = 30
@@ -257,6 +282,7 @@ async function load() {
 function toMsg(n: CommentNode): ChatMsg {
   return {
     id: n.id,
+    parentId: n.parentId ?? null,
     nickname: n.nickname,
     avatarUrl: n.avatarUrl,
     site: n.site,
@@ -310,6 +336,7 @@ const members = computed<Member[]>(() => {
 /* ---------- 聊天时间线：根留言 + 回复按时间摊平，群聊流 ---------- */
 
 const rows = computed<Row[]>(() => {
+  const byId = new Map(msgs.value.map(m => [m.id, m]))
   const out: Row[] = []
   let lastT = 0
   let lastName = ''
@@ -318,12 +345,16 @@ const rows = computed<Row[]>(() => {
     if (t - lastT > GAP_MS)
       out.push({ kind: 'sep', key: `sep-${m.id}`, text: fmtSep(m.createdAt) })
     const self = isSelfName(m.nickname)
+    const parent = m.parentId ? byId.get(m.parentId) : undefined
     out.push({
       kind: 'msg',
       key: m.id,
       msg: m,
       self,
       showName: !self && m.nickname !== lastName,
+      quote: parent
+        ? { id: parent.id, name: parent.nickname, content: parent.content }
+        : null,
     })
     lastT = t
     lastName = m.nickname
@@ -332,23 +363,27 @@ const rows = computed<Row[]>(() => {
 })
 
 function jumpTo(member: Member) {
-  let target: ChatMsg | null = null
+  let targetId: number | null = null
   for (let i = msgs.value.length - 1; i >= 0; i--) {
     const cur = msgs.value[i]
     if (cur?.nickname === member.nickname) {
-      target = cur
+      targetId = cur.id
       break
     }
   }
-  if (!target) return
+  if (targetId !== null) focusMessage(targetId)
+}
+
+/** 滚动定位到指定消息并闪烁提示（成员跳转 / 引用回跳共用） */
+function focusMessage(id: number) {
   membersOpen.value = false
   nextTick(() => {
     document
-      .querySelector(`.msg[data-mid="${target!.id}"]`)
+      .querySelector(`.msg[data-mid="${id}"]`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    flashKey.value = target!.id
+    flashKey.value = id
     setTimeout(() => {
-      if (flashKey.value === target!.id) flashKey.value = null
+      if (flashKey.value === id) flashKey.value = null
     }, 1600)
   })
 }
@@ -360,9 +395,16 @@ function scrollToBottom(smooth = true) {
 
 /* ---------- 发送 ---------- */
 
+/** 正在回复的消息（null = 发新帖） */
+const replyTo = ref<ChatMsg | null>(null)
 const draft = ref('')
 const sending = ref(false)
 const notice = ref('')
+
+function setReplyTo(msg: ChatMsg) {
+  // 再点一次取消
+  replyTo.value = replyTo.value?.id === msg.id ? null : msg
+}
 
 function onEnter(e: KeyboardEvent) {
   // 中文输入法组词中的 Enter 不发送（也不能 preventDefault，否则会吞掉候选词确认）
@@ -396,8 +438,10 @@ async function send() {
       nickname: identity.value.nickname,
       email: identity.value.email,
       content,
+      parentId: replyTo.value?.id,
     })
     draft.value = ''
+    replyTo.value = null
     if (created.status === 'APPROVED') {
       // 创建接口不返回头像等完整字段，静默刷新整列表保持数据一致
       msgs.value = await loadAllMessages()
@@ -744,7 +788,45 @@ usePageSeo({
   box-shadow: 0 1px 2px rgb(28 25 23 / 5%);
   white-space: pre-wrap;
   word-break: break-word;
+  cursor: pointer;
   transition: box-shadow 0.3s ease;
+}
+
+.msg__quote {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0 0 6px;
+  padding: 4px 8px 4px 7px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--c-text-muted);
+  text-align: left;
+  white-space: normal;
+  background: color-mix(in srgb, var(--c-text) 5%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--c-text-muted) 35%, transparent);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.msg__quote:hover {
+  color: var(--c-text-secondary);
+}
+
+.msg__quote-name {
+  font-weight: 600;
+  color: var(--c-text-secondary);
+}
+
+.msg--self .msg__quote {
+  color: color-mix(in srgb, var(--c-on-primary) 80%, transparent);
+  background: rgb(255 255 255 / 14%);
+  border-left-color: rgb(255 255 255 / 40%);
+}
+
+.msg--self .msg__quote-name {
+  color: var(--c-on-primary);
 }
 
 .msg--self .msg__bubble {
@@ -799,6 +881,49 @@ usePageSeo({
   background: transparent;
   border: 1px solid var(--c-border);
   border-radius: 8px;
+}
+
+.composer__reply {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 10px;
+  font-size: 12.5px;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+  border-radius: 8px;
+}
+
+.composer__reply-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composer__reply-text strong {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.composer__reply-close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--c-text-muted);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.composer__reply-close:hover {
+  color: var(--c-text);
 }
 
 .composer__row {

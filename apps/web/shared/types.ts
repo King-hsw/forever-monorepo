@@ -156,6 +156,8 @@ export interface CommentNode {
   site: string | null
   content: string
   createdAt: string
+  /** 所回复消息的 id（根评论为 null） */
+  parentId?: number | null
   replies: CommentNode[] | null
   /** 所回复的楼内回复昵称（仅回复楼内回复时非 null，回复根评论为 null） */
   parentNickname?: string | null
