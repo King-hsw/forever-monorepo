@@ -44,10 +44,16 @@
         >
           <li v-for="post in list" :key="post.id">
             <NuxtLink :to="`/posts/${post.slug}`" class="entry">
-              <span class="entry__meta">
-                <time :datetime="(post.publishedAt ?? post.createdAt).slice(0, 10)">{{ formatDate(post.publishedAt ?? post.createdAt) }}</time>
-                <span v-if="post.categoryName" class="entry__cat">{{ post.categoryName }}</span>
-                <span class="entry__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
+              <span class="entry__top">
+                <span class="entry__badges">
+                  <span v-if="post.categoryName" class="badge badge--cat">{{ post.categoryName }}</span>
+                  <span v-for="t in post.tags.slice(0, 3)" :key="t.id" class="badge">{{ t.name }}</span>
+                  <span v-if="post.tags.length > 3" class="badge">+{{ post.tags.length - 3 }}</span>
+                </span>
+                <span class="entry__date">
+                  <time :datetime="(post.publishedAt ?? post.createdAt).slice(0, 10)">{{ formatDate(post.publishedAt ?? post.createdAt) }}</time>
+                  <span class="entry__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
+                </span>
               </span>
               <h2 class="entry__title">{{ post.title }}</h2>
               <p class="entry__summary">{{ post.summary }}</p>
@@ -55,11 +61,21 @@
           </li>
         </ul>
 
-        <!-- 翻页 -->
+        <!-- 翻页：数字页码，页码多时收窗带省略号 -->
         <nav v-if="totalPages > 1" class="pager" aria-label="文章分页">
-          <button type="button" :disabled="page <= 1" @click="goPage(page - 1)">← 上一页</button>
-          <span>{{ page }} / {{ totalPages }} 页</span>
-          <button type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">下一页 →</button>
+          <button type="button" class="pager__nav" :disabled="page <= 1" @click="goPage(page - 1)">上一页</button>
+          <template v-for="(p, i) in pages" :key="i">
+            <span v-if="p === '…'" class="pager__dots" aria-hidden="true">…</span>
+            <button
+              v-else
+              type="button"
+              class="pager__num"
+              :class="{ 'is-active': p === page }"
+              :aria-current="p === page ? 'page' : undefined"
+              @click="goPage(p)"
+            >{{ p }}</button>
+          </template>
+          <button type="button" class="pager__nav" :disabled="page >= totalPages" @click="goPage(page + 1)">下一页</button>
         </nav>
       </template>
 
@@ -120,6 +136,18 @@ const { data: categories } = await useAsyncData('home-categories', () =>
 
 const list = computed(() => data.value?.list ?? [])
 const totalPages = computed(() => (data.value ? Math.max(1, Math.ceil(data.value.total / data.value.size)) : 1))
+
+/** 页码窗口：≤7 页全显，否则首尾 + 当前 ±1，中间折叠为省略号 */
+const pages = computed<(number | '…')[]>(() => {
+  const cur = page.value
+  const total = totalPages.value
+  const out: (number | '…')[] = []
+  for (let i = 1; i <= total; i++) {
+    if (total <= 7 || i === 1 || i === total || Math.abs(i - cur) <= 1) out.push(i)
+    else if (out[out.length - 1] !== '…') out.push('…')
+  }
+  return out
+})
 
 /** 切换分类：再点已激活项取消 */
 function setFilter(id?: number) {
@@ -262,19 +290,43 @@ function goPage(p: number) {
   }
 }
 
-.entry__meta {
+.entry__top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+.entry__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge {
+  padding: 1px 9px;
+  font-size: 12px;
+  color: var(--c-text-secondary);
+  background: transparent;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+}
+
+.badge--cat {
+  color: var(--c-primary-hover);
+  font-weight: 600;
+  background: var(--c-primary-light);
+  border-color: transparent;
+}
+
+.entry__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
   font-size: 12.5px;
   color: var(--c-text-muted);
   font-variant-numeric: tabular-nums;
-}
-
-.entry__cat {
-  color: var(--c-primary-hover);
-  font-weight: 600;
 }
 
 .entry__title {
@@ -296,39 +348,65 @@ function goPage(p: number) {
   overflow: hidden;
 }
 
-/* ===== 翻页 ===== */
+/* ===== 翻页：上页 / 数字页码 / 下页 ===== */
 .pager {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin: 28px 0 40px;
-  font-size: 13.5px;
+  gap: 4px;
+  margin: 32px 0 40px;
+}
+
+.pager__nav {
+  min-width: 56px;
+  padding: 7px 10px;
+  font-size: 13px;
   color: var(--c-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
 
-  button {
-    padding: 7px 16px;
-    font-size: 13px;
-    color: var(--c-text-secondary);
-    background: var(--c-bg-card);
-    border: 1.5px solid var(--c-border);
-    border-radius: 999px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease,
-      transform 0.2s var(--ease-bounce);
-
-    &:hover:not(:disabled) {
-      color: var(--c-primary-hover);
-      border-color: color-mix(in srgb, var(--c-primary) 45%, transparent);
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+  &:hover:not(:disabled) {
+    color: var(--c-primary-hover);
   }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.pager__num {
+  display: inline-grid;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-secondary);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    color: var(--c-primary-hover);
+  }
+
+  &.is-active {
+    color: var(--c-on-primary);
+    background: var(--c-primary);
+  }
+}
+
+.pager__dots {
+  padding: 0 4px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+  user-select: none;
 }
 
 /* ===== 空态 ===== */
