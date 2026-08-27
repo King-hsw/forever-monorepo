@@ -143,8 +143,8 @@ export interface FriendLinkUpdateInput {
 
 export type CommentStatus = 'APPROVED' | 'PENDING' | 'REJECTED'
 
-/** 评论归属类型：文章 / 留言板 */
-export type CommentTarget = 'ARTICLE' | 'BOARD'
+/** 评论归属类型：文章 / 留言板 / 动态 */
+export type CommentTarget = 'ARTICLE' | 'BOARD' | 'MOMENT'
 
 /** 公开评论（对应 CommentResponse；两层楼结构，replies 为楼内回复） */
 export interface CommentNode {
@@ -186,11 +186,54 @@ export interface AdminComment {
 export interface CommentInput {
   articleId?: number
   targetType?: CommentTarget
+  /** MOMENT 评论的目标动态 id（articleId 对应 ARTICLE 评论） */
+  targetId?: number
   parentId?: number
   nickname: string
   email: string
   site?: string
   content: string
+}
+
+/** 动态媒体（media 字段：图片最多 9 张，音频 / 视频各最多 1 个） */
+export interface MomentMedia {
+  images: string[]
+  audio: string | null
+  video: string | null
+}
+
+/** 动态（对应 MomentResponse） */
+export interface Moment {
+  id: number
+  uid: number
+  /** 发布者账号名 */
+  username: string
+  /** 自定义头像；null 时前端按现有惯例回退首字占位 */
+  avatarUrl: string | null
+  content: string
+  media: MomentMedia
+  location: string | null
+  lat: number | null
+  lng: number | null
+  createdAt: string
+  likeCount: number
+  /** 当前访问者（登录时）是否已赞；匿名恒 false */
+  liked: boolean
+  /** 已过审评论数 */
+  commentCount: number
+  /** 作者本人或 ADMIN 角色可删；匿名恒 false */
+  canDelete: boolean
+}
+
+/** 发布动态请求 */
+export interface MomentInput {
+  content?: string
+  images?: string[]
+  audio?: string | null
+  video?: string | null
+  location?: string | null
+  lat?: number | null
+  lng?: number | null
 }
 
 /** 站点公开信息（对应 SiteInfoController.SiteInfo）；birthDate 未设置为 null */
@@ -334,6 +377,12 @@ export interface AdminArticleQuery {
   status?: PostStatus | ''
   keyword?: string
   categoryId?: number | null
+}
+
+/** 动态点赞响应 */
+export interface MomentLikeResult {
+  likeCount: number
+  liked: boolean
 }
 
 /** 归档条目（公开归档接口；按 publishedAt 倒序） */

@@ -42,3 +42,30 @@ export function formatShortDate(value: string | number | null | undefined): stri
   if (!value) return ''
   return new Date(value).toLocaleDateString('zh-CN')
 }
+
+/**
+ * 相对时间（动态 / 聊天时间线用）：刚刚 / N 分钟前 / 昨天 / N 天前，
+ * 更早的回落到短日期时间（带年份前缀）
+ */
+export function formatRelativeTime(value: string | number): string {
+  const t = new Date(value).getTime()
+  if (Number.isNaN(t)) return ''
+  const diff = Date.now() - t
+  if (diff < 60_000) return '刚刚'
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} 分钟前`
+  const d = new Date(value)
+  const yest = new Date()
+  yest.setDate(yest.getDate() - 1)
+  if (d.toDateString() === yest.toDateString()) return '昨天'
+  if (diff < 6 * 86_400_000) return `${Math.floor(diff / 86_400_000)} 天前`
+  return formatShortDateTime(value)
+}
+
+/** 短日期时间（时间分隔与相对时间回落用），如「12-25 14:30」，跨年带「2024/」前缀 */
+export function formatShortDateTime(value: string | number): string {
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const prefix = d.getFullYear() === new Date().getFullYear() ? '' : `${d.getFullYear()}/`
+  return `${prefix}${d.getMonth() + 1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}

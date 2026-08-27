@@ -171,6 +171,7 @@
 <script setup lang="ts">
 import type { CommentNode, PageResult } from '#shared/types'
 import { apiFetch } from '~/utils/api'
+import { formatRelativeTime, formatShortDateTime } from '~/utils/format'
 
 interface BoardInfo {
   title: string
@@ -473,29 +474,9 @@ async function send() {
 
 /* ---------- 时间格式 ---------- */
 
-function pad2(n: number) {
-  return String(n).padStart(2, '0')
-}
-
-function fmtSep(iso: string) {
-  const d = new Date(iso)
-  const prefix = d.getFullYear() === new Date().getFullYear() ? '' : `${d.getFullYear()}/`
-  return `${prefix}${d.getMonth() + 1}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`
-}
-
-function fmtRel(iso: string) {
-  const t = new Date(iso).getTime()
-  const diff = Date.now() - t
-  if (Number.isNaN(t)) return ''
-  if (diff < 60_000) return '刚刚'
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} 分钟前`
-  const d = new Date(iso)
-  const yest = new Date()
-  yest.setDate(yest.getDate() - 1)
-  if (d.toDateString() === yest.toDateString()) return '昨天'
-  if (diff < 6 * 86_400_000) return `${Math.floor(diff / 86_400_000)} 天前`
-  return fmtSep(iso)
-}
+// 时间展示统一走 utils/format（动态页同款）
+const fmtRel = formatRelativeTime
+const fmtSep = formatShortDateTime
 
 usePageSeo({
   title: computed(() => `${board.value?.title || '留言板'} · 聊天 - 补陋阁`),

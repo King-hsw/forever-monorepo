@@ -12,8 +12,21 @@ export const useCommentsStore = defineStore('comments', () => {
     })
   }
 
-  /** 发表评论/留言：targetType=BOARD 走留言板接口，否则按 articleId 发文章评论 */
+  /** 发表评论/留言：targetType=BOARD 走留言板接口，MOMENT 走动态评论接口，否则按 articleId 发文章评论 */
   async function create(input: CommentInput): Promise<AdminComment> {
+    if (input.targetType === 'MOMENT') {
+      // 归属目标由 URL 决定，body 与留言板 CommentInput 同形
+      return apiFetch<AdminComment>(`/api/v1/moments/${input.targetId}/comments`, {
+        method: 'POST',
+        body: {
+          parentId: input.parentId,
+          nickname: input.nickname,
+          email: input.email,
+          site: input.site,
+          content: input.content,
+        },
+      })
+    }
     const url = input.targetType === 'BOARD' ? '/api/v1/board/messages' : '/api/v1/comments'
     return apiFetch<AdminComment>(url, {
       method: 'POST',
