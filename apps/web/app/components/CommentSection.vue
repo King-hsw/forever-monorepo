@@ -4,7 +4,7 @@
       <h2 class="comments__title">评论 <small v-if="total">({{ total }})</small></h2>
     </header>
 
-    <div class="card comments__form-wrap fade-up">
+    <div class="comments__form-wrap">
       <CommentForm
         target-type="ARTICLE"
         :target-id="articleId"
@@ -34,9 +34,9 @@
 
       <!-- 分页：根评论分页，楼内回复随根返回 -->
       <nav v-if="totalPages > 1" class="comments__pager" aria-label="评论分页">
-        <button type="button" class="comments__pager-btn" :disabled="page <= 1 || loading" @click="go(page - 1)">← 上一页</button>
+        <button type="button" class="btn comments__pager-btn" :disabled="page <= 1 || loading" @click="go(page - 1)">← 上一页</button>
         <span class="comments__pager-info">{{ page }} / {{ totalPages }}</span>
-        <button type="button" class="comments__pager-btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 →</button>
+        <button type="button" class="btn comments__pager-btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 →</button>
       </nav>
       <template #fallback><span /></template>
     </ClientOnly>
@@ -116,20 +116,20 @@ watch(
 
 .comments__title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--c-text);
 
   small {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 400;
     color: var(--c-text-muted);
   }
 }
 
+/* 表单不再包卡片（全站已去外壳），输入控件自带描边 */
 .comments__form-wrap {
-  padding: 18px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .comments__empty {
@@ -142,24 +142,40 @@ watch(
 .comments__list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.comment__replies {
-  margin: 4px 0 0;
-  padding: 0 0 0 52px;
-  list-style: none;
+/* 楼层卡片：与相关文章卡片同款的白底描边，楼内回复同卡 */
+.comments__list > .comment {
+  padding: 16px 18px;
+  background: var(--c-bg-card);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
 
   @media (max-width: 560px) {
-    padding-left: 24px;
+    padding: 14px;
   }
 }
 
+/* 楼内回复：墨线（目录同款竖发丝线）+ 缩进，替代卡片套卡片 */
+.comment__replies {
+  margin: 12px 0 0 20px;
+  padding: 0 0 0 14px;
+  border-left: 1px solid var(--c-border);
+  list-style: none;
+
+  @media (max-width: 560px) {
+    margin-left: 12px;
+    padding-left: 10px;
+  }
+}
+
+
 .comment__replies > li + li {
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .comments__pager {
@@ -170,25 +186,10 @@ watch(
   margin-top: 20px;
 }
 
+/* 分页沿用全站 .btn 胶囊语言，只收窄尺寸 */
 .comments__pager-btn {
-  padding: 6px 14px;
+  padding: 5px 16px;
   font-size: 13px;
-  color: var(--c-text-secondary);
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
-
-  &:hover:not(:disabled) {
-    color: var(--c-primary);
-    border-color: var(--c-primary);
-  }
-
-  &:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
 }
 
 .comments__pager-info {

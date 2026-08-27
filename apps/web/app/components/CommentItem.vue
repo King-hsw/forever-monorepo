@@ -35,17 +35,16 @@ defineEmits<{ reply: [comment: CommentNode] }>()
 </script>
 
 <style scoped>
+/* 外壳由楼层卡片（CommentSection 的 li）提供，条目自身不再套盒子 */
 .comment-item {
   display: flex;
   gap: 12px;
-  padding: 14px;
-  background: var(--c-bg-soft);
-  border: 1px solid var(--c-border);
-  border-radius: 10px;
 }
 
+/* 楼内回复：挂在墨线（目录同款竖发丝线）下，视觉权重更小 */
 .comment-item.is-reply {
-  padding: 10px 12px;
+  padding: 8px 0;
+  gap: 10px;
 }
 
 .comment-item__avatar {
@@ -77,6 +76,10 @@ defineEmits<{ reply: [comment: CommentNode] }>()
   font-weight: 600;
   color: var(--c-text);
   text-decoration: none;
+
+  .is-reply & {
+    font-size: 13px;
+  }
 }
 
 /* 带主页链接的昵称：悬停提示可点击（&--xxx 后缀嵌套在原生 CSS 中不合法，需平铺） */
@@ -117,6 +120,11 @@ defineEmits<{ reply: [comment: CommentNode] }>()
   color: var(--c-text-secondary);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+
+  .is-reply & {
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
 }
 
 .comment-item__reply-btn {
@@ -131,6 +139,10 @@ defineEmits<{ reply: [comment: CommentNode] }>()
 
   &:hover {
     color: var(--c-primary);
+  }
+
+  .is-reply & {
+    margin-top: 4px;
   }
 }
 </style>
