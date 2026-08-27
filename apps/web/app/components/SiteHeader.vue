@@ -2,7 +2,7 @@
   <header class="site-header" :class="{ 'site-header--scrolled': scrolled }">
     <div class="site-header__inner" :style="{ maxWidth: width }">
       <NuxtLink to="/" class="brand" aria-label="回到首页" @click="onBrandClick">
-        <span class="brand__mark" aria-hidden="true" />
+        <img class="brand__mark" src="/icons/avatar.png" alt="" aria-hidden="true" width="32" height="32" />
         <span class="brand__name">补陋阁</span>
       </NuxtLink>
 
@@ -225,42 +225,11 @@ function onBrandClick() {
 }
 
 .brand__mark {
-  position: relative;
-  display: grid;
-  place-items: center;
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 12px; /* 圆润的小方块，像一颗软糖 */
+  object-fit: cover;
   box-shadow: 0 4px 12px rgb(13 148 136 / 35%);
-}
-
-/* 笑脸：两颗眼睛 + 微笑嘴 */
-.brand__mark::before {
-  content: '';
-  position: absolute;
-  top: 38%;
-  left: 28%;
-  width: 3.5px;
-  height: 5px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 11px 0 0 #fff; /* 第二只眼睛 */
-}
-
-.brand__mark::after {
-  content: '';
-  position: absolute;
-  bottom: 22%;
-  left: 50%;
-  width: 10px;
-  height: 6px;
-  border: 2px solid #fff;
-  border-top: none;
-  border-left-color: transparent;
-  border-right-color: transparent;
-  border-radius: 0 0 12px 12px;
-  transform: translateX(-50%);
 }
 
 .brand__name {
