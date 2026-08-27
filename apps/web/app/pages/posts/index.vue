@@ -8,73 +8,68 @@
         <p class="posts-head__sub">Articles · 全部笔墨，按时间倒序</p>
       </header>
 
-      <!-- 筛选：分类 / 标签，状态写入 URL，可直接分享 -->
+      <!-- 筛选：分类，状态写入 URL，可直接分享 -->
       <div class="filters">
-        <div class="filters__row">
-          <span class="filters__label">分类</span>
-          <button
-            type="button"
-            class="filter-chip"
-            :class="{ 'is-active': !categoryId }"
-            @click="setFilter({ categoryId: undefined })"
-          >
-            全部
-          </button>
-          <button
-            v-for="c in categories"
-            :key="c.id"
-            type="button"
-            class="filter-chip"
-            :class="{ 'is-active': categoryId === c.id }"
-            @click="setFilter({ categoryId: c.id })"
-          >
-            {{ c.name }}<small v-if="c.articleCount > 0">{{ c.articleCount }}</small>
-          </button>
-        </div>
-        <div class="filters__row">
-          <span class="filters__label">标签</span>
-          <button
-            v-for="t in tags"
-            :key="t.id"
-            type="button"
-            class="filter-chip filter-chip--tag"
-            :class="{ 'is-active': tagId === t.id }"
-            @click="setFilter({ tagId: t.id })"
-          >
-            {{ t.name }}<small v-if="t.articleCount > 0">{{ t.articleCount }}</small>
-          </button>
-        </div>
+        <button
+          type="button"
+          class="filter-chip"
+          :class="{ 'is-active': !categoryId }"
+          @click="setFilter(undefined)"
+        >
+          全部
+        </button>
+        <button
+          v-for="c in categories"
+          :key="c.id"
+          type="button"
+          class="filter-chip"
+          :class="{ 'is-active': categoryId === c.id }"
+          @click="setFilter(c.id)"
+        >
+          {{ c.name }}<small v-if="c.articleCount > 0">{{ c.articleCount }}</small>
+        </button>
       </div>
 
       <!-- 结果统计 -->
       <p v-if="data" class="posts-meta">
-        <template v-if="categoryId || tagId">筛选出 {{ data.total }} 篇文章</template>
+        <template v-if="categoryId">筛选出 {{ data.total }} 篇文章</template>
         <template v-else>共 {{ data.total }} 篇文章</template>
       </p>
 
-      <!-- 时间线列表 -->
+      <!-- 封面卡片网格 -->
       <template v-if="list.length">
-        <ul
-          class="posts-list"
+        <div
+          class="posts-grid"
           :class="{ 'is-loading': pending }"
         >
-          <li v-for="post in list" :key="post.id">
-            <NuxtLink :to="`/posts/${post.slug}`" class="post-item">
-              <span class="post-item__dot" aria-hidden="true" />
-              <time
-                class="post-item__date"
-                :datetime="(post.publishedAt ?? post.createdAt).slice(0, 10)"
-              >{{ formatDate(post.publishedAt ?? post.createdAt) }}</time>
-              <h3 class="post-item__title">{{ post.title }}</h3>
-              <p class="post-item__summary">{{ post.summary }}</p>
-              <span class="post-item__foot">
-                <span v-if="post.categoryName" class="post-item__cat">{{ post.categoryName }}</span>
-                <span v-for="tag in post.tags" :key="tag.id" class="post-item__tag"># {{ tag.name }}</span>
-                <span class="post-item__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
+          <NuxtLink
+            v-for="post in list"
+            :key="post.id"
+            :to="`/posts/${post.slug}`"
+            class="card"
+          >
+            <span class="card__cover">
+              <img
+                v-if="post.coverImage"
+                :src="post.coverImage"
+                :alt="post.title"
+                width="1600"
+                height="900"
+                loading="lazy"
+              >
+              <span v-else class="card__ph" aria-hidden="true">文</span>
+            </span>
+            <span class="card__body">
+              <h2 class="card__title">{{ post.title }}</h2>
+              <p class="card__summary">{{ post.summary }}</p>
+              <span class="card__foot">
+                <span v-if="post.categoryName" class="card__cat">{{ post.categoryName }}</span>
+                <time :datetime="(post.publishedAt ?? post.createdAt).slice(0, 10)">{{ formatDate(post.publishedAt ?? post.createdAt) }}</time>
+                <span class="card__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
               </span>
-            </NuxtLink>
-          </li>
-        </ul>
+            </span>
+          </NuxtLink>
+        </div>
 
         <!-- 翻页 -->
         <nav v-if="totalPages > 1" class="pager" aria-label="文章分页">
@@ -87,7 +82,7 @@
       <!-- 空态：区分「页码越界 / 筛选无结果 / 尚未发文」 -->
       <p v-else-if="data" class="posts-empty">
         <template v-if="data.total > 0 && page > 1">翻到页尾了，这一页没有文章。</template>
-        <template v-else-if="categoryId || tagId">这个筛选条件下暂时没有文章。</template>
+        <template v-else-if="categoryId">这个分类下暂时没有文章。</template>
         <template v-else>还没有公开的文章，先去别处逛逛吧 🍃</template>
       </p>
     </main>
@@ -97,11 +92,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Category, PageResult, Post, Tag } from '#shared/types'
+import type { Category, PageResult, Post } from '#shared/types'
 
 usePageSeo({
   title: '文章 - 补陋阁',
-  description: '补陋阁 的全部文章列表 —— 按时间倒序，支持按分类与标签筛选。',
+  description: '补陋阁 的全部文章列表 —— 按时间倒序，支持按分类筛选。',
   path: '/posts',
 })
 
@@ -118,43 +113,35 @@ function toId(value: unknown): number | undefined {
 }
 
 const categoryId = computed(() => toId(route.query.categoryId))
-const tagId = computed(() => toId(route.query.tagId))
 const page = computed(() => Math.max(1, Number(route.query.page) || 1))
 
-/** SSR 也执行：首屏直出第一页；筛选变化时按 key 重新拉取 */
+/** SSR 也执行：首屏直出第一页；筛选 / 翻页变化时按 key 重新拉取 */
 const { data, pending } = await useAsyncData(
-  () => `posts-list-${categoryId.value ?? 'all'}-${tagId.value ?? 'all'}-${page.value}`,
+  () => `posts-list-${categoryId.value ?? 'all'}-${page.value}`,
   () =>
     apiFetch<PageResult<Post>>('/api/v1/articles', {
       query: cleanQuery({
         page: page.value,
         size: SIZE,
         categoryId: categoryId.value,
-        tagId: tagId.value,
       }),
     }),
-  { watch: [categoryId, tagId, page] },
+  { watch: [categoryId, page] },
 )
 
-// 筛选选项：与首页共用同一份公开分类 / 标签数据
+// 与首页共用同一份公开分类数据
 const { data: categories } = await useAsyncData('home-categories', () =>
   apiFetch<Category[]>('/api/v1/categories'),
-)
-const { data: tags } = await useAsyncData('public-tags', () =>
-  apiFetch<Tag[]>('/api/v1/tags'),
 )
 
 const list = computed(() => data.value?.list ?? [])
 const totalPages = computed(() => (data.value ? Math.max(1, Math.ceil(data.value.total / data.value.size)) : 1))
 
-/** 切换筛选：保留另一个维度，重置页码；再点已激活项取消 */
-function setFilter(patch: { categoryId?: number, tagId?: number }) {
-  const q: Record<string, string> = {}
-  const c = patch.categoryId === categoryId.value ? undefined : (patch.categoryId ?? categoryId.value)
-  const t = patch.tagId === tagId.value ? undefined : (patch.tagId ?? tagId.value)
-  if (c) q.categoryId = String(c)
-  if (t) q.tagId = String(t)
-  router.replace({ query: q })
+/** 切换分类：再点已激活项取消 */
+function setFilter(id?: number) {
+  router.replace({
+    query: { categoryId: id && id !== categoryId.value ? String(id) : undefined },
+  })
 }
 
 function goPage(p: number) {
@@ -176,14 +163,14 @@ function goPage(p: number) {
 .posts-main {
   flex: 1;
   width: 100%;
-  max-width: 780px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 96px 20px 56px;
 }
 
 /* ===== 页头 ===== */
 .posts-head {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .posts-head__title {
@@ -199,28 +186,15 @@ function goPage(p: number) {
 
 /* ===== 筛选 ===== */
 .filters {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
-.filters__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.filters__label {
-  flex-shrink: 0;
-  width: 44px;
-  font-size: 13px;
-  color: var(--c-text-muted);
-}
-
 .filter-chip {
-  padding: 5px 12px;
-  font-size: 13px;
+  padding: 5px 14px;
+  font-size: 13.5px;
   color: var(--c-text-secondary);
   background: var(--c-bg-card);
   border: 1.5px solid var(--c-border);
@@ -253,26 +227,18 @@ function goPage(p: number) {
   }
 }
 
-.filter-chip--tag.is-active {
-  background: var(--c-text);
-  border-color: var(--c-text);
-}
-
 /* ===== 结果统计 ===== */
 .posts-meta {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   font-size: 13px;
   color: var(--c-text-muted);
 }
 
-/* ===== 时间线列表 ===== */
-.posts-list {
-  position: relative;
+/* ===== 卡片网格 ===== */
+.posts-grid {
   display: grid;
-  gap: 14px;
-  margin: 0;
-  padding: 0 0 0 34px;
-  list-style: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
   transition: opacity var(--dur-soft) ease;
 
   &.is-loading {
@@ -281,27 +247,13 @@ function goPage(p: number) {
   }
 }
 
-/* 左侧虚线主轴 */
-.posts-list::before {
-  content: '';
-  position: absolute;
-  top: 18px;
-  bottom: 18px;
-  left: 11px;
-  width: 0;
-  border-left: 2px dashed var(--c-border);
-}
-
-.post-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: 84px 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 0 14px;
-  padding: 16px 18px;
+.card {
+  display: flex;
+  flex-direction: column;
   background: var(--c-bg-card);
   border: 1.5px solid var(--c-border);
   border-radius: var(--radius-card);
+  overflow: hidden;
   text-decoration: none;
   box-shadow: var(--shadow-card);
   transition:
@@ -311,54 +263,68 @@ function goPage(p: number) {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .post-item:hover {
+  .card:hover {
     border-color: color-mix(in srgb, var(--c-primary) 35%, var(--c-border));
     box-shadow: var(--shadow-card-hover);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+
+    .card__title {
+      color: var(--c-primary-hover);
+    }
+
+    .card__cover img {
+      transform: scale(1.04);
+    }
   }
+}
 
-  .post-item:hover .post-item__title {
-    color: var(--c-primary-hover);
+.card__cover {
+  display: block;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  background: var(--c-bg-soft);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.45s var(--ease-bounce);
   }
 }
 
-/* 节点：压在主轴顶端，对齐标题 */
-.post-item__dot {
-  position: absolute;
-  top: 19px;
-  left: -29px; /* 34px 缩进 - 6px 半径 - 17px 主轴偏移… 与归档页同款几何 */
-  width: 12px;
-  height: 12px;
-  background: var(--c-bg-card);
-  border: 3px solid var(--c-primary);
-  border-radius: 50%;
+/* 无封面兜底：玉纸渐变 + 一枚衬线「文」 */
+.card__ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-serif);
+  font-size: 44px;
+  color: color-mix(in srgb, var(--c-primary) 22%, transparent);
+  background: linear-gradient(135deg, var(--c-bg-soft), var(--c-primary-light));
 }
 
-.post-item__date {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+.card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px 14px;
 }
 
-.post-item__title {
-  grid-column: 2;
-  grid-row: 1;
+.card__title {
   margin: 0;
-  font-size: 16.5px;
+  font-size: 17px;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--c-text);
   transition: color var(--dur-soft) ease;
 }
 
-.post-item__summary {
-  grid-column: 2;
-  grid-row: 2;
-  margin: 6px 0 0;
+.card__summary {
+  margin: 0;
   font-size: 13.5px;
   line-height: 1.6;
   color: var(--c-text-secondary);
@@ -368,17 +334,18 @@ function goPage(p: number) {
   overflow: hidden;
 }
 
-.post-item__foot {
-  grid-column: 2;
-  grid-row: 3;
+.card__foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
 }
 
-.post-item__cat {
+.card__cat {
   padding: 2px 10px;
   font-size: 12px;
   font-weight: 600;
@@ -387,15 +354,8 @@ function goPage(p: number) {
   border-radius: 999px;
 }
 
-.post-item__tag {
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-}
-
-.post-item__views {
+.card__views {
   margin-left: auto;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
 }
 
 /* ===== 翻页 ===== */
@@ -404,7 +364,7 @@ function goPage(p: number) {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin: 24px 0 40px;
+  margin: 28px 0 40px;
   font-size: 13.5px;
   color: var(--c-text-secondary);
 
@@ -442,6 +402,12 @@ function goPage(p: number) {
 }
 
 /* ===== 移动端 ===== */
+@media (max-width: 900px) {
+  .posts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .posts-main {
     padding-top: 88px;
@@ -449,49 +415,6 @@ function goPage(p: number) {
 
   .posts-head__title {
     font-size: 24px;
-  }
-
-  .filters__label {
-    width: 36px;
-  }
-
-  .posts-list {
-    gap: 10px;
-    padding-left: 26px;
-  }
-
-  .posts-list::before {
-    top: 14px;
-    bottom: 14px;
-  }
-
-  .post-item {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    padding: 13px 14px;
-  }
-
-  /* 缩进变了，节点跟着挪 */
-  .post-item__dot {
-    top: 16px;
-    left: -23px;
-  }
-
-  /* 单列堆叠：日期 → 标题 → 摘要 → 元信息 */
-  .post-item__date,
-  .post-item__title,
-  .post-item__summary,
-  .post-item__foot {
-    grid-column: 1;
-  }
-
-  .post-item__date { grid-row: 1; }
-  .post-item__title { grid-row: 2; }
-  .post-item__summary { grid-row: 3; }
-  .post-item__foot { grid-row: 4; }
-
-  .post-item__views {
-    margin-left: 0;
   }
 }
 </style>

@@ -16,7 +16,7 @@ const route = useRoute()
 /** 各版面头部内容区宽度，与页面版心对齐；未列出的用 800px 兜底 */
 const HEADER_WIDTHS: [string, string][] = [
   ['/', '1080px'],
-  ['/posts/', '780px'],
+  ['/posts/', '1080px'],
   ['/moments', '960px'],
   ['/message', '960px'],
   ['/chat', '100%'],
