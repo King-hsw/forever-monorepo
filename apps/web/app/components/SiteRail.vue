@@ -16,6 +16,15 @@
     </nav>
 
     <div class="site-rail__foot">
+      <NuxtLink
+        v-if="guest.isRegistered"
+        to="/guest"
+        class="site-rail__btn site-rail__guest"
+        :title="`游客身份：${guest.nickname}`"
+        aria-label="游客身份"
+      >
+        {{ guest.nickname.slice(0, 1) }}
+      </NuxtLink>
       <button type="button" class="site-rail__btn" aria-label="搜索" title="搜索" @click="searchOpen = true">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
@@ -37,9 +46,11 @@
 
 <script setup lang="ts">
 const auth = useAuthStore()
+const guest = useGuestStore()
 const searchOpen = useState('global-search-open', () => false)
 
 auth.hydrate()
+guest.hydrate()
 
 const ICONS = {
   home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',
@@ -105,6 +116,14 @@ const navItems = [
   height: 26px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+/* 游客身份：昵称首字，点击进入 /guest 管理 */
+.site-rail__guest {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
 }
 
 @media (hover: hover) and (pointer: fine) {

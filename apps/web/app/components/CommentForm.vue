@@ -6,30 +6,16 @@
       <button type="button" class="comment-form__reply-cancel" aria-label="取消回复" @click="$emit('cancel-reply')">×</button>
     </div>
 
-    <div class="comment-form__row">
-      <input
-        v-model="identity.nickname"
-        class="comment-form__input"
-        type="text"
-        maxlength="50"
-        placeholder="昵称 *"
-        :aria-label="'昵称' + (placeholderSuffix ?? '')"
-      >
-      <input
-        v-model="identity.email"
-        class="comment-form__input"
-        type="email"
-        maxlength="100"
-        placeholder="邮箱 *（不公开，仅用于头像与回复通知）"
-      >
+    <!-- 发言人身份：游客身份全站通用（/guest 页维护） -->
+    <div v-if="guest.isRegistered" class="comment-form__identity">
+      <span>以 <strong>{{ guest.nickname }}</strong> 的身份评论</span>
+      <NuxtLink to="/guest" class="comment-form__link">换身份</NuxtLink>
     </div>
-    <input
-      v-model="identity.site"
-      class="comment-form__input"
-      type="url"
-      maxlength="200"
-      placeholder="个人主页（选填，昵称点击跳转）"
-    >
+    <div v-else class="comment-form__identity comment-form__identity--gate">
+      <span>发言需先注册游客身份</span>
+      <NuxtLink :to="registerUrl" class="comment-form__link">去注册</NuxtLink>
+    </div>
+
     <div class="comment-form__body">
       <textarea
         v-model="content"
@@ -71,38 +57,26 @@ const props = defineProps<{
 const emit = defineEmits<{ success: [comment: AdminComment], 'cancel-reply': [] }>()
 
 const commentsStore = useCommentsStore()
+const guest = useGuestStore()
+const route = useRoute()
 
-/** 访客身份记忆：昵称 / 邮箱 / 主页存 localStorage，下次自动带出 */
-const IDENTITY_KEY = 'forever-comment-identity'
+guest.hydrate()
 
-interface Identity { nickname: string, email: string, site: string }
-
-const identity = reactive<Identity>({ nickname: '', email: '', site: '' })
 const content = ref('')
 const submitting = ref(false)
 const tip = ref('')
 const tipIsError = ref(false)
 
-onMounted(() => {
-  try {
-    const raw = localStorage.getItem(IDENTITY_KEY)
-    if (raw) Object.assign(identity, JSON.parse(raw) as Partial<Identity>)
-  } catch {
-    /* 忽略损坏的本地数据 */
-  }
-})
+/** 未注册身份时的注册入口（带回跳，保存后回到本页） */
+const registerUrl = computed(() => ({ path: '/guest', query: { redirect: route.fullPath } }))
 
-const canSubmit = computed(() =>
-  identity.nickname.trim().length > 0
-  && identity.email.trim().length > 0
-  && content.value.trim().length > 0,
-)
+const canSubmit = computed(() => content.value.trim().length > 0)
 
 async function submit() {
-  if (!canSubmit.value || submitting.value) return
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity.email.trim())) {
-    tip.value = '邮箱格式不正确'
-    tipIsError.value = true
+  if (!canSubmit.value || submitting.value)
+    return
+  if (!guest.isRegistered) {
+    await navigateTo(registerUrl.value)
     return
   }
   // 文章评论必须有目标文章 id，否则会发出残缺请求
@@ -118,16 +92,11 @@ async function submit() {
     const created = await commentsStore.create({
       ...(props.targetType === 'BOARD' ? { targetType: 'BOARD' as const } : { articleId: props.targetId }),
       parentId: props.replyTo?.id,
-      nickname: identity.nickname.trim(),
-      email: identity.email.trim(),
-      site: identity.site.trim() || undefined,
+      nickname: guest.nickname,
+      email: guest.email,
+      site: guest.site || undefined,
       content: content.value.trim(),
     })
-
-    // 身份落盘，下次免输入
-    if (import.meta.client) {
-      localStorage.setItem(IDENTITY_KEY, JSON.stringify({ ...identity }))
-    }
 
     content.value = ''
     if (created.status === 'PENDING') {
@@ -185,18 +154,41 @@ async function submit() {
   }
 }
 
-.comment-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-
-  @media (max-width: 560px) {
-    grid-template-columns: 1fr;
-  }
+/* 身份栏：已注册 = 当前身份 + 换身份；未注册 = 注册引导 */
+.comment-form__identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+  border-radius: 8px;
 }
 
-.comment-form__input,
+.comment-form__identity strong {
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+.comment-form__identity--gate {
+  color: var(--c-text-muted);
+}
+
+.comment-form__link {
+  margin-left: auto;
+  color: var(--c-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-form__link:hover {
+  text-decoration: underline;
+}
+
 .comment-form__textarea {
+  display: block;
+  width: 100%;
   padding: 9px 12px;
   font-size: 14px;
   color: var(--c-text);
@@ -204,6 +196,8 @@ async function submit() {
   border: 1px solid var(--c-border);
   border-radius: 8px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
+  min-height: 96px;
 
   &::placeholder {
     color: var(--c-text-muted);
@@ -218,13 +212,6 @@ async function submit() {
 
 .comment-form__body {
   position: relative;
-}
-
-.comment-form__textarea {
-  display: block;
-  width: 100%;
-  resize: vertical;
-  min-height: 96px;
 }
 
 .comment-form__count {

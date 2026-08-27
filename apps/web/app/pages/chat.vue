@@ -135,19 +135,14 @@
 
         <!-- 发送区 -->
         <footer class="composer">
-          <p v-if="auth.isAuthenticated" class="composer__as">
-            以 <strong>{{ auth.username }}</strong> 的身份发言 · Enter 发送，Shift+Enter 换行
+          <p v-if="identity" class="composer__as">
+            以 <strong>{{ identity.name }}</strong> 的身份发言
+            <NuxtLink v-if="!auth.isAuthenticated" to="/guest" class="composer__link">换身份</NuxtLink>
+            <span aria-hidden="true"> · </span>Enter 发送，Shift+Enter 换行
           </p>
-          <div v-else class="composer__identity">
-            <label>
-              <span>昵称</span>
-              <input v-model="nick" type="text" maxlength="20" placeholder="你的昵称" />
-            </label>
-            <label class="composer__email">
-              <span>邮箱</span>
-              <input v-model="email" type="email" maxlength="60" placeholder="邮箱（不会公开展示）" />
-            </label>
-          </div>
+          <p v-else class="composer__as">
+            发言需先注册<NuxtLink to="/guest?redirect=/chat" class="composer__link">游客身份</NuxtLink>
+          </p>
           <div v-if="replyTo" class="composer__reply">
             <span class="composer__reply-text">
               回复 <strong>{{ replyTo.nickname }}</strong>：{{ replyTo.content }}
@@ -231,39 +226,28 @@ const flashKey = ref<number | null>(null)
 /** 只看某个成员的发言（null = 全员） */
 const filterMember = ref<string | null>(null)
 
-/* ---------- 身份：登录态用登录账号（邮箱先 mock），未登录用填写的昵称邮箱（本地记住） ---------- */
+/* ---------- 身份：后台登录优先，其次游客身份（/guest 页注册，localStorage 持久化） ---------- */
 
-const IDENTITY_KEY = 'forever-chat-identity'
 // ponytail: 登录态邮箱 mock，后端 /api/admin/me 返回真实邮箱后替换
 const MOCK_OWNER_EMAIL = '1125030435@qq.com'
 
-const nick = ref('')
-const email = ref('')
+const guest = useGuestStore()
+guest.hydrate()
 
-/** 当前发言身份；已登录固定为登录账号，未登录随输入框变化 */
+/** 当前发言身份：后台登录账号优先，其次游客身份；null = 尚未注册 */
 const identity = computed(() =>
   auth.isAuthenticated
-    ? { nickname: auth.username ?? '', email: MOCK_OWNER_EMAIL }
-    : { nickname: nick.value, email: email.value },
+    ? { name: auth.username ?? '站长', email: MOCK_OWNER_EMAIL, site: '' }
+    : guest.isRegistered
+      ? { name: guest.nickname, email: guest.email, site: guest.site }
+      : null,
 )
 
 function isSelfName(nickname: string) {
-  return nickname !== '' && nickname === identity.value.nickname
+  return !!identity.value && nickname !== '' && nickname === identity.value.name
 }
 
 onMounted(() => {
-  if (!auth.isAuthenticated) {
-    try {
-      const saved = JSON.parse(localStorage.getItem(IDENTITY_KEY) ?? 'null') as
-        | { nickname?: string; email?: string }
-        | null
-      nick.value = saved?.nickname ?? ''
-      email.value = saved?.email ?? ''
-    }
-    catch {
-      // 脏数据直接忽略
-    }
-  }
   void load()
 })
 
@@ -451,27 +435,19 @@ function onEnter(e: KeyboardEvent) {
 async function send() {
   const content = draft.value.trim()
   if (!content || sending.value) return
-  if (!auth.isAuthenticated) {
-    if (!nick.value.trim()) {
-      notice.value = '先填写昵称再发送'
-      return
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-      notice.value = '请填写正确的邮箱'
-      return
-    }
-    localStorage.setItem(IDENTITY_KEY, JSON.stringify({
-      nickname: nick.value.trim(),
-      email: email.value.trim(),
-    }))
+  if (!identity.value) {
+    // 尚未注册游客身份：先去注册，保存后自动回聊天页
+    await navigateTo({ path: '/guest', query: { redirect: '/chat' } })
+    return
   }
   sending.value = true
   notice.value = ''
   try {
     const created = await comments.create({
       targetType: 'BOARD',
-      nickname: identity.value.nickname,
+      nickname: identity.value.name,
       email: identity.value.email,
+      site: identity.value.site || undefined,
       content,
       parentId: replyTo.value?.id,
     })
@@ -935,31 +911,14 @@ usePageSeo({
   color: var(--c-text-muted);
 }
 
-.composer__identity {
-  display: flex;
-  gap: 10px;
+.composer__link {
+  color: var(--c-primary);
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.composer__identity label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  font-size: 12px;
-  color: var(--c-text-muted);
-}
-
-.composer__identity input {
-  flex: 1;
-  min-width: 0;
-  padding: 5px 9px;
-  font: inherit;
-  font-size: 12.5px;
-  color: var(--c-text);
-  background: transparent;
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
+.composer__link:hover {
+  text-decoration: underline;
 }
 
 .composer__reply {
@@ -1024,8 +983,7 @@ usePageSeo({
   border-radius: var(--radius-control);
 }
 
-.composer__input:focus-visible,
-.composer__identity input:focus-visible {
+.composer__input:focus-visible {
   outline: none;
   border-color: var(--c-primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-primary) 15%, transparent);

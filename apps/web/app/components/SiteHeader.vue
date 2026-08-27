@@ -48,6 +48,15 @@
           </svg>
         </button>
         <NuxtLink
+          v-if="guest.isRegistered"
+          class="site-header__guest"
+          to="/guest"
+          :title="`游客身份：${guest.nickname}`"
+          :aria-label="`游客身份：${guest.nickname}`"
+        >
+          {{ guest.nickname.slice(0, 1) }}
+        </NuxtLink>
+        <NuxtLink
           v-if="auth.isAuthenticated"
           class="site-header__icon-btn"
           to="/admin"
@@ -118,10 +127,12 @@ withDefaults(defineProps<{ width?: string }>(), { width: '1080px' })
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const guest = useGuestStore()
 const searchOpen = useState('global-search-open', () => false)
 
 // 登录态存于 localStorage，仅客户端可知；SSR 默认未登录，onMounted 恢复
 auth.hydrate()
+guest.hydrate()
 
 interface NavItem {
   label: string
@@ -381,6 +392,21 @@ function onBrandClick() {
 
 .site-header__icon-btn:active {
   transform: scale(0.92);
+}
+
+/* 游客身份：昵称首字，点击进入 /guest 管理 */
+.site-header__guest {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+  border: 1px solid var(--c-primary);
+  border-radius: 999px;
+  text-decoration: none;
 }
 
 /* 移动端汉堡按钮：三横线 → 叉号 */
