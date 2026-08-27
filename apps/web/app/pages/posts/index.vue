@@ -36,40 +36,24 @@
         <template v-else>共 {{ data.total }} 篇文章</template>
       </p>
 
-      <!-- 封面卡片网格 -->
+      <!-- 目录式列表 -->
       <template v-if="list.length">
-        <div
-          class="posts-grid"
+        <ul
+          class="posts-list"
           :class="{ 'is-loading': pending }"
         >
-          <NuxtLink
-            v-for="post in list"
-            :key="post.id"
-            :to="`/posts/${post.slug}`"
-            class="card"
-          >
-            <span class="card__cover">
-              <img
-                v-if="post.coverImage"
-                :src="post.coverImage"
-                :alt="post.title"
-                width="1600"
-                height="900"
-                loading="lazy"
-              >
-              <span v-else class="card__ph" aria-hidden="true">文</span>
-            </span>
-            <span class="card__body">
-              <h2 class="card__title">{{ post.title }}</h2>
-              <p class="card__summary">{{ post.summary }}</p>
-              <span class="card__foot">
-                <span v-if="post.categoryName" class="card__cat">{{ post.categoryName }}</span>
+          <li v-for="post in list" :key="post.id">
+            <NuxtLink :to="`/posts/${post.slug}`" class="entry">
+              <span class="entry__meta">
                 <time :datetime="(post.publishedAt ?? post.createdAt).slice(0, 10)">{{ formatDate(post.publishedAt ?? post.createdAt) }}</time>
-                <span class="card__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
+                <span v-if="post.categoryName" class="entry__cat">{{ post.categoryName }}</span>
+                <span class="entry__views">{{ post.viewCount.toLocaleString() }} 次阅读</span>
               </span>
-            </span>
-          </NuxtLink>
-        </div>
+              <h2 class="entry__title">{{ post.title }}</h2>
+              <p class="entry__summary">{{ post.summary }}</p>
+            </NuxtLink>
+          </li>
+        </ul>
 
         <!-- 翻页 -->
         <nav v-if="totalPages > 1" class="pager" aria-label="文章分页">
@@ -163,7 +147,7 @@ function goPage(p: number) {
 .posts-main {
   flex: 1;
   width: 100%;
-  max-width: 1080px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 96px 20px 56px;
 }
@@ -234,11 +218,11 @@ function goPage(p: number) {
   color: var(--c-text-muted);
 }
 
-/* ===== 卡片网格 ===== */
-.posts-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+/* ===== 目录式列表：细分隔线 + 悬停玉色微染 ===== */
+.posts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   transition: opacity var(--dur-soft) ease;
 
   &.is-loading {
@@ -247,84 +231,62 @@ function goPage(p: number) {
   }
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  background: var(--c-bg-card);
-  border: 1.5px solid var(--c-border);
-  border-radius: var(--radius-card);
-  overflow: hidden;
+.entry {
+  display: block;
+  padding: 18px 10px;
+  border-top: 1px solid var(--c-border);
   text-decoration: none;
-  box-shadow: var(--shadow-card);
   transition:
-    transform var(--dur-soft) var(--ease-bounce),
-    box-shadow var(--dur-soft) ease,
-    border-color var(--dur-soft) ease;
+    background-color var(--dur-soft) ease;
+
+  &:first-child {
+    border-top-color: transparent;
+  }
+
+  &:last-child {
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .entry__title {
+    transition: color var(--dur-soft) ease;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .card:hover {
-    border-color: color-mix(in srgb, var(--c-primary) 35%, var(--c-border));
-    box-shadow: var(--shadow-card-hover);
-    transform: translateY(-3px);
+  .entry:hover {
+    background: color-mix(in srgb, var(--c-primary) 4%, transparent);
 
-    .card__title {
+    .entry__title {
       color: var(--c-primary-hover);
     }
-
-    .card__cover img {
-      transform: scale(1.04);
-    }
   }
 }
 
-.card__cover {
-  display: block;
-  aspect-ratio: 16 / 9;
-  width: 100%;
-  overflow: hidden;
-  background: var(--c-bg-soft);
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.45s var(--ease-bounce);
-  }
-}
-
-/* 无封面兜底：玉纸渐变 + 一枚衬线「文」 */
-.card__ph {
+.entry__meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-family: var(--font-serif);
-  font-size: 44px;
-  color: color-mix(in srgb, var(--c-primary) 22%, transparent);
-  background: linear-gradient(135deg, var(--c-bg-soft), var(--c-primary-light));
-}
-
-.card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
   gap: 8px;
-  padding: 16px 18px 14px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.card__title {
-  margin: 0;
-  font-size: 17px;
+.entry__cat {
+  color: var(--c-primary-hover);
   font-weight: 600;
-  line-height: 1.4;
-  color: var(--c-text);
-  transition: color var(--dur-soft) ease;
 }
 
-.card__summary {
-  margin: 0;
+.entry__title {
+  margin: 6px 0 0;
+  font-size: 17.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--c-text);
+}
+
+.entry__summary {
+  margin: 4px 0 0;
   font-size: 13.5px;
   line-height: 1.6;
   color: var(--c-text-secondary);
@@ -332,30 +294,6 @@ function goPage(p: number) {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
-}
-
-.card__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 4px;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-}
-
-.card__cat {
-  padding: 2px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-primary-hover);
-  background: var(--c-primary-light);
-  border-radius: 999px;
-}
-
-.card__views {
-  margin-left: auto;
 }
 
 /* ===== 翻页 ===== */
@@ -402,12 +340,6 @@ function goPage(p: number) {
 }
 
 /* ===== 移动端 ===== */
-@media (max-width: 900px) {
-  .posts-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 640px) {
   .posts-main {
     padding-top: 88px;
@@ -415,6 +347,14 @@ function goPage(p: number) {
 
   .posts-head__title {
     font-size: 24px;
+  }
+
+  .entry {
+    padding: 15px 4px;
+  }
+
+  .entry__title {
+    font-size: 16.5px;
   }
 }
 </style>
