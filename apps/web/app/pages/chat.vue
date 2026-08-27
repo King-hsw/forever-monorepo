@@ -804,7 +804,6 @@ usePageSeo({
 }
 
 .msg--self {
-  flex-direction: row-reverse;
   margin-left: auto;
 }
 
@@ -874,19 +873,7 @@ usePageSeo({
   color: var(--c-text-secondary);
 }
 
-.msg--self .msg__quote {
-  color: color-mix(in srgb, var(--c-on-primary) 80%, transparent);
-  background: rgb(255 255 255 / 14%);
-  border-left-color: rgb(255 255 255 / 40%);
-}
-
-.msg--self .msg__quote-name {
-  color: var(--c-on-primary);
-}
-
 .msg--self .msg__bubble {
-  color: var(--c-on-primary);
-  background: var(--c-primary);
   border-radius: 14px 14px 4px 14px;
 }
 
