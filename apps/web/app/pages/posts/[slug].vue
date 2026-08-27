@@ -60,25 +60,12 @@
 
       <!-- 评论区 -->
       <CommentSection :article-id="post.id" class="fade-up" />
-
-      <section v-if="relatedPosts.length" class="related">
-        <h2 class="related__title">相关文章</h2>
-        <ul class="related__list">
-          <li v-for="(item, i) in relatedPosts" :key="item.id" class="related__item"
-              :style="{ animationDelay: `${i * 60}ms` }">
-            <NuxtLink :to="`/posts/${item.slug}`" class="related__link">
-              <span class="related__name">{{ item.title }}</span>
-              <time class="related__time">{{ formatDate(item.publishedAt ?? item.createdAt) }}</time>
-            </NuxtLink>
-          </li>
-        </ul>
-      </section>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { PageResult, Post } from '#shared/types'
+import type { Post } from '#shared/types'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -98,19 +85,6 @@ const { data: categories } = await useAsyncData('home-categories', () =>
 )
 const categorySlug = computed(() =>
   categories.value?.find(c => c.id === post.value?.categoryId)?.slug ?? '',
-)
-
-/** 同分类下已发布的其他文章，最多 4 篇 */
-const { data: related } = await useAsyncData(`related-${slug}`, () => {
-  if (!post.value?.categoryId) return Promise.resolve(null)
-  return apiFetch<PageResult<Post>>('/api/v1/articles', {
-    query: { categoryId: post.value.categoryId, page: 1, size: 5 },
-  })
-})
-const relatedPosts = computed(() =>
-  (related.value?.list ?? [])
-    .filter(p => p.id !== post.value?.id)
-    .slice(0, 4),
 )
 
 /** 从 Markdown 提取 h2~h6 标题生成目录（跳过围栏代码块；id 按出现顺序编号，渲染时按同样顺序写入 DOM） */
@@ -399,63 +373,6 @@ usePageSeo({
   }
 }
 
-.related {
-  margin-top: 28px;
-  animation: fade-up 0.4s ease 0.15s both;
-}
-
-.related__title {
-  margin: 0 0 12px;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-.related__list {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.related__item {
-  animation: fade-up 0.35s ease both;
-}
-
-.related__link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 18px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s var(--ease-bounce);
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      border-color: var(--c-primary);
-      transform: translateY(-2px);
-      box-shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 12px rgb(0 0 0 / 6%);
-    }
-  }
-}
-
-.related__name {
-  font-size: 14.5px;
-  font-weight: 500;
-  color: #33334a;
-}
-
-.related__time {
-  flex-shrink: 0;
-  font-size: 12.5px;
-  color: var(--c-text-muted);
-}
-
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -469,11 +386,8 @@ usePageSeo({
 
 @media (prefers-reduced-motion: reduce) {
   .article-card,
-  .related,
-  .related__item,
   .category-chip,
-  .tag-chip,
-  .related__link {
+  .tag-chip {
     animation: none !important;
     transition: none !important;
     transform: none !important;
