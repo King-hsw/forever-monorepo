@@ -79,7 +79,8 @@ export function clearAuth() {
 
 export interface ApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  body?: Record<string, unknown>
+  /** 普通对象序列化为 JSON；FormData（如头像上传）原样透传 */
+  body?: Record<string, unknown> | FormData
   query?: Record<string, unknown>
   /** 额外请求头（如登录时令牌尚未落盘，需要显式传入） */
   headers?: Record<string, string>

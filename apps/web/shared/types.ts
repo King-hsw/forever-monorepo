@@ -235,6 +235,23 @@ export interface MeInfo {
   username: string
 }
 
+/** 当前登录用户资料（对应 ProfileResponse；avatarUrl 已解析，可直接展示） */
+export interface ProfileInfo {
+  username: string
+  nickname: string | null
+  email: string | null
+  site: string | null
+  /** 自定义头像 URL；未上传时为按邮箱 hash 生成的 Gravatar 地址；均无时为 null */
+  avatarUrl: string | null
+}
+
+/** 资料更新请求（留空字符串表示清空字段） */
+export interface ProfileInput {
+  nickname: string
+  email: string
+  site: string
+}
+
 /** 角色（对应 SysRole） */
 export interface SysRole {
   id: number

@@ -31,7 +31,11 @@
 
     <div class="sidenav__footer">
       <p class="sidenav__user" title="当前登录用户">
-        <span class="sidenav__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
+        <!-- 资料由 admin 布局统一拉取，此处仅展示头像 -->
+        <ClientOnly>
+          <img v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="" class="sidenav__avatar">
+          <span v-else class="sidenav__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
+        </ClientOnly>
         <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
         <ClientOnly><span class="sidenav__text">{{ auth.username || '未登录' }}</span></ClientOnly>
       </p>
@@ -46,11 +50,15 @@
 </template>
 
 <script setup lang="ts">
+import type { ProfileInfo } from '#shared/types'
+
 defineProps<{ open: boolean }>()
 defineEmits<{ close: [] }>()
 
 const route = useRoute()
 const auth = useAuthStore()
+// 与 admin 布局共享的当前用户资料（含头像）
+const profile = useState<ProfileInfo | null>('admin-profile', () => null)
 
 // 折叠状态全局共享（布局据此调整内容区 padding），并持久化到 localStorage。
 // SSR 默认展开，客户端 onMounted 再同步，首帧可能有一次轻微跳动，可接受
@@ -79,6 +87,7 @@ const navItems = [
   { label: '友链管理', to: '/admin/friends', icon: '🤝' },
   { label: '站点设置', to: '/admin/settings', icon: '⚙️' },
   { label: '日志审计', to: '/admin/logs', icon: '📜' },
+  { label: '个人资料', to: '/admin/profile', icon: '👤' },
 ]
 
 
@@ -245,6 +254,8 @@ function isActive(to: string): boolean {
   color: var(--c-on-primary);
   background: var(--c-primary);
   border-radius: 50%;
+  /* 作为 img 展示真实头像时裁切 */
+  object-fit: cover;
 }
 
 .sidenav__close-btn {

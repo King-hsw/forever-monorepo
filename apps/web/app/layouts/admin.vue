@@ -23,7 +23,10 @@
 
         <div class="topbar__right">
           <span class="topbar__user">
-            <span class="topbar__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
+            <ClientOnly>
+              <img v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="" class="topbar__avatar">
+              <span v-else class="topbar__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
+            </ClientOnly>
             <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->
             <ClientOnly>{{ auth.username || '未登录' }}</ClientOnly>
           </span>
@@ -39,10 +42,22 @@
 </template>
 
 <script setup lang="ts">
+import type { ProfileInfo } from '#shared/types'
+import { apiFetch } from '~/utils/api'
+
 // 后台页面不希望被搜索引擎收录
 useHead({ meta: [{ name: 'robots', content: 'noindex, nofollow' }] })
 
 const sidebarOpen = ref(false)
+
+// 当前登录用户资料：布局统一拉一次，顶栏 / 侧边栏 / 个人资料页共用
+const profile = useState<ProfileInfo | null>('admin-profile', () => null)
+onMounted(() => {
+  // 401 时 apiFetch 自身会续期 / 跳登录，这里静默即可
+  apiFetch<ProfileInfo>('/api/admin/profile')
+    .then(p => { profile.value = p })
+    .catch(() => {})
+})
 
 // 各页面通过 useState('admin-page-title') 设置顶栏标题
 const pageTitle = useState('admin-page-title', () => '')
@@ -148,6 +163,8 @@ async function handleLogout() {
   color: var(--c-on-primary);
   background: var(--c-primary);
   border-radius: 50%;
+  /* 作为 img 展示真实头像时裁切 */
+  object-fit: cover;
 }
 
 .topbar__logout {
