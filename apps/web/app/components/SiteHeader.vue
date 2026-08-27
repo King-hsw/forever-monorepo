@@ -169,6 +169,7 @@ const navItems: NavItem[] = [
   { label: '首页', to: '/' },
   { label: '文章', to: '/posts' },
   { label: '归档', to: '/archive' },
+  { label: '动态', to: '/moments' },
   { label: '聊天', to: '/chat' },
 ]
 

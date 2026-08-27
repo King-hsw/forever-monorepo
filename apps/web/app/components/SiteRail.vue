@@ -73,12 +73,14 @@ const ICONS = {
   friends: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   list: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
   about: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  moments: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
 } as const
 
 const navItems = [
   { label: '首页', to: '/', icon: ICONS.home },
   { label: '文章', to: '/posts', icon: ICONS.list },
   { label: '归档', to: '/archive', icon: ICONS.posts },
+  { label: '动态', to: '/moments', icon: ICONS.moments },
   { label: '聊天', to: '/chat', icon: ICONS.chat },
 ]
 

@@ -44,9 +44,9 @@ import type { AdminComment } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 
 const props = defineProps<{
-  /** 评论归属类型：文章评论 / 留言板留言 */
-  targetType?: 'ARTICLE' | 'BOARD'
-  /** 文章 id；targetType=ARTICLE 时必传 */
+  /** 评论归属类型：文章评论 / 留言板留言 / 动态评论 */
+  targetType?: 'ARTICLE' | 'BOARD' | 'MOMENT'
+  /** 文章 id（ARTICLE）/ 动态 id（MOMENT）；targetType=ARTICLE 时必传 */
   targetId?: number
   /** 被回复的评论；为空则发根评论 */
   replyTo?: { id: number, nickname: string } | null
