@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import type { PostInput, PostStatus } from '#shared/types'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'article:create' })
 
 useHead({ title: '新建文章 - 补陋阁 后台' })
 useState('admin-page-title', () => '新建文章')

@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import type { Post } from '#shared/types'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'article:list' })
 
 useHead({ title: '文章管理 - 补陋阁 后台' })
 useState('admin-page-title', () => '文章管理')

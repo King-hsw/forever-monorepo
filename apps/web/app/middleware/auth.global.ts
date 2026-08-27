@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   // localStorage 仅客户端可用，SSR 阶段放行，由客户端接管跳转
   if (import.meta.server) return
 
@@ -13,5 +13,17 @@ export default defineNuxtRouteMiddleware((to) => {
   }
   if (auth.isAuthenticated && isLoginPage) {
     return navigateTo('/admin')
+  }
+
+  // 权限门禁（仅客户端）：等权限码就绪后，按页面 meta.permission 判断能否展示
+  if (auth.isAuthenticated && isAdminPath && !isLoginPage) {
+    await auth.ensureMe()
+    const need = to.meta.permission as string | string[] | undefined
+    if (need) {
+      const codes = Array.isArray(need) ? need : [need]
+      if (!codes.some(c => auth.hasPermission(c))) {
+        return navigateTo('/admin')
+      }
+    }
   }
 })

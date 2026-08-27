@@ -149,7 +149,7 @@
 <script setup lang="ts">
 import type { Category, Tag } from '#shared/types'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'category:list' })
 
 useHead({ title: '分类 & 标签 - 补陋阁 后台' })
 useState('admin-page-title', () => '分类 & 标签')

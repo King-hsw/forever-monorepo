@@ -86,7 +86,7 @@ import type { AdminComment, CommentStatus, CommentTarget } from '#shared/types'
 import { useCommentsStore } from '~/stores/comments'
 import { formatDateTime } from '~/utils/format'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'comment:list' })
 
 useHead({ title: '评论管理 - 补陋阁 后台' })
 useState('admin-page-title', () => '评论管理')

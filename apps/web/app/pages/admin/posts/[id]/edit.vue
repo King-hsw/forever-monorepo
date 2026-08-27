@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import type { PostInput, PostStatus } from '#shared/types'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'article:update' })
 
 useHead({ title: '编辑文章 - 补陋阁 后台' })
 useState('admin-page-title', () => '编辑文章')

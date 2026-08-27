@@ -231,7 +231,7 @@
 import type { SysPermission, SysRole, UserView } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'rbac:role:list' })
 
 useHead({ title: '用户权限 - 补陋阁 后台' })
 useState('admin-page-title', () => '用户权限')

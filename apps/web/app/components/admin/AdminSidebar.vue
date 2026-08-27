@@ -11,7 +11,7 @@
     <nav class="sidenav__nav" aria-label="后台导航">
       <p class="sidenav__group sidenav__text">菜单</p>
       <NuxtLink
-        v-for="item in navItems"
+        v-for="item in visibleNavItems"
         :key="item.to"
         :to="item.to"
         class="sidenav__link"
@@ -77,18 +77,23 @@ function toggleCollapsed() {
   collapsed.value = !collapsed.value
 }
 
+// perm 与页面 meta.permission 对应：无权限码的项对任何登录用户可见
 const navItems = [
   { label: '仪表盘', to: '/admin', icon: '📊' },
-  { label: '文章管理', to: '/admin/posts', icon: '📝' },
-  { label: '评论管理', to: '/admin/comments', icon: '💬' },
-  { label: '分类标签', to: '/admin/categories', icon: '🗂️' },
-  { label: '用户权限', to: '/admin/permissions', icon: '🔐' },
-  { label: 'RSS 订阅', to: '/admin/rss', icon: '📡' },
-  { label: '友链管理', to: '/admin/friends', icon: '🤝' },
-  { label: '站点设置', to: '/admin/settings', icon: '⚙️' },
-  { label: '日志审计', to: '/admin/logs', icon: '📜' },
+  { label: '文章管理', to: '/admin/posts', icon: '📝', perm: 'article:list' },
+  { label: '评论管理', to: '/admin/comments', icon: '💬', perm: 'comment:list' },
+  { label: '分类标签', to: '/admin/categories', icon: '🗂️', perm: 'category:list' },
+  { label: '用户权限', to: '/admin/permissions', icon: '🔐', perm: 'rbac:role:list' },
+  { label: 'RSS 订阅', to: '/admin/rss', icon: '📡', perm: 'rss:list' },
+  { label: '友链管理', to: '/admin/friends', icon: '🤝', perm: 'friend-link:list' },
+  { label: '站点设置', to: '/admin/settings', icon: '⚙️', perm: 'setting:list' },
+  { label: '日志审计', to: '/admin/logs', icon: '📜', perm: 'log:list' },
   { label: '个人资料', to: '/admin/profile', icon: '👤' },
 ]
+
+const visibleNavItems = computed(() =>
+  navItems.filter(i => !i.perm || auth.hasPermission(i.perm)),
+)
 
 
 function isActive(to: string): boolean {

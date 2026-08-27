@@ -5,7 +5,23 @@ import { AUTH_COOKIE, apiFetch, clearAuth, loadAuth, saveAuth, type AuthStorage,
 export const useAuthStore = defineStore('admin-auth', () => {
   const accessToken = ref<string | null>(null)
   const username = ref<string | null>(null)
+  const permissions = ref<string[]>([])
   const isAuthenticated = computed(() => !!accessToken.value)
+  let meLoaded = false
+
+  /** 拉取一次 /api/admin/me 的权限码（进入后台时）；失败保持空权限（fail-closed），401 由 apiFetch 处理 */
+  async function ensureMe() {
+    if (meLoaded || !accessToken.value) return
+    meLoaded = true
+    try {
+      const me = await apiFetch<MeInfo>('/api/admin/me')
+      permissions.value = me.permissions ?? []
+    } catch { /* 网络失败保持空权限，登出/重新登录时重置 */ }
+  }
+
+  function hasPermission(code: string): boolean {
+    return permissions.value.includes(code)
+  }
 
   /** SSR 端从请求 cookie 解析登录信息；需在 Nuxt 上下文中调用 */
   function parseAuthCookie(): AuthStorage | null {
@@ -45,13 +61,15 @@ export const useAuthStore = defineStore('admin-auth', () => {
         method: 'POST',
         body: { username: user, password },
       })
-      // 用新令牌拉取当前用户信息，确认令牌可用并取真实用户名
+      // 用新令牌拉取当前用户信息，确认令牌可用并取真实用户名与权限
       const me = await apiFetch<MeInfo>('/api/admin/me', {
         headers: { Authorization: `Bearer ${data.accessToken}` },
       }).catch(() => null)
 
       accessToken.value = data.accessToken
       username.value = me?.username ?? user
+      permissions.value = me?.permissions ?? []
+      meLoaded = true
       saveAuth({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
@@ -71,8 +89,20 @@ export const useAuthStore = defineStore('admin-auth', () => {
     }
     accessToken.value = null
     username.value = null
+    permissions.value = []
+    meLoaded = false
     clearAuth()
   }
 
-  return { token: accessToken, username, isAuthenticated, hydrate, login, logout }
+  return {
+    token: accessToken,
+    username,
+    permissions,
+    isAuthenticated,
+    hydrate,
+    login,
+    logout,
+    ensureMe,
+    hasPermission,
+  }
 })

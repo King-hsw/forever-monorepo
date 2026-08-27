@@ -75,7 +75,7 @@ import type { ActionLog, ActionLogQuery, PageResult } from '#shared/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 import { formatDateTime } from '~/utils/format'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'log:list' })
 
 useHead({ title: '日志审计 - 补陋阁 后台' })
 useState('admin-page-title', () => '日志审计')

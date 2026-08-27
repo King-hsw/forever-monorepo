@@ -140,7 +140,7 @@ import type { RssFeed, RssFeedInput } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 import { formatDateTime } from '~/utils/format'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'rss:list' })
 
 useHead({ title: 'RSS 订阅 - 补陋阁 后台' })
 useState('admin-page-title', () => 'RSS 订阅')

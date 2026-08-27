@@ -233,6 +233,8 @@ export type SearchResponse = PageResult<SearchItem>
 export interface MeInfo {
   uid: number
   username: string
+  roles: string[]
+  permissions: string[]
 }
 
 /** 当前登录用户资料（对应 ProfileResponse；avatarUrl 已解析，可直接展示） */

@@ -131,7 +131,7 @@
 import type { SettingItem } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'setting:list' })
 
 useHead({ title: '站点设置 - 补陋阁 后台' })
 useState('admin-page-title', () => '站点设置')

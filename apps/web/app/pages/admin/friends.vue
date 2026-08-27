@@ -214,7 +214,7 @@ import type { FriendLink, FriendLinkApplyInput, FriendLinkStatus, FriendLinkUpda
 import { apiFetch } from '~/utils/api'
 import { formatDateTime } from '~/utils/format'
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: 'admin', permission: 'friend-link:list' })
 
 useHead({ title: '友链管理 - 补陋阁 后台' })
 useState('admin-page-title', () => '友链管理')
