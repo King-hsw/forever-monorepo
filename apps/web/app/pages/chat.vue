@@ -13,7 +13,12 @@
         </div>
         <ul class="members__list">
           <li v-for="m in members" :key="m.nickname">
-            <button type="button" class="member" @click="jumpTo(m)">
+            <button
+              type="button"
+              class="member"
+              :class="{ 'member--active': filterMember === m.nickname }"
+              @click="selectMember(m)"
+            >
               <img
                 class="member__avatar"
                 :src="m.avatarUrl"
@@ -60,7 +65,11 @@
           </button>
           <div class="room__title-wrap">
             <h1 class="room__title">{{ board?.title || '留言板' }}</h1>
-            <p class="room__meta">{{ members.length }} 位成员 · {{ msgs.length }} 条消息</p>
+            <p class="room__meta">{{ members.length }} 位成员 · {{ visibleMsgs.length }} 条消息</p>
+          </div>
+          <div v-if="filterMember" class="room__filter">
+            <span>只看 <strong>{{ filterMember }}</strong> 的发言</span>
+            <button type="button" aria-label="查看全部" @click="clearFilter">×</button>
           </div>
         </header>
 
@@ -219,6 +228,8 @@ const msgs = ref<ChatMsg[]>([])
 const scrollEl = ref<HTMLElement | null>(null)
 const membersOpen = ref(false)
 const flashKey = ref<number | null>(null)
+/** 只看某个成员的发言（null = 全员） */
+const filterMember = ref<string | null>(null)
 
 /* ---------- 身份：登录态用登录账号（邮箱先 mock），未登录用填写的昵称邮箱（本地记住） ---------- */
 
@@ -335,12 +346,20 @@ const members = computed<Member[]>(() => {
 
 /* ---------- 聊天时间线：根留言 + 回复按时间摊平，群聊流 ---------- */
 
+/** 时间线可见消息：按选中成员过滤 */
+const visibleMsgs = computed(() =>
+  filterMember.value
+    ? msgs.value.filter(m => m.nickname === filterMember.value)
+    : msgs.value,
+)
+
 const rows = computed<Row[]>(() => {
+  // 引用查找用全量（过滤视图里引用的可能是不在场的人）
   const byId = new Map(msgs.value.map(m => [m.id, m]))
   const out: Row[] = []
   let lastT = 0
   let lastName = ''
-  for (const m of msgs.value) {
+  for (const m of visibleMsgs.value) {
     const t = new Date(m.createdAt).getTime()
     if (t - lastT > GAP_MS)
       out.push({ kind: 'sep', key: `sep-${m.id}`, text: fmtSep(m.createdAt) })
@@ -362,20 +381,36 @@ const rows = computed<Row[]>(() => {
   return out
 })
 
-function jumpTo(member: Member) {
-  let targetId: number | null = null
-  for (let i = msgs.value.length - 1; i >= 0; i--) {
-    const cur = msgs.value[i]
-    if (cur?.nickname === member.nickname) {
-      targetId = cur.id
-      break
-    }
-  }
-  if (targetId !== null) focusMessage(targetId)
+function selectMember(member: Member) {
+  // 再点一次当前选中成员 = 取消过滤
+  filterMember.value = filterMember.value === member.nickname ? null : member.nickname
+  membersOpen.value = false
+  scrollToFiltered()
 }
 
-/** 滚动定位到指定消息并闪烁提示（成员跳转 / 引用回跳共用） */
+function clearFilter() {
+  filterMember.value = null
+  scrollToFiltered()
+}
+
+/** 过滤视图从最早的消息看起，恢复全员则回到最新消息 */
+function scrollToFiltered() {
+  nextTick(() => {
+    const el = scrollEl.value
+    if (!el) return
+    if (filterMember.value)
+      el.scrollTo({ top: 0 })
+    else
+      scrollToBottom()
+  })
+}
+
+/** 滚动定位到指定消息并闪烁提示（引用回跳） */
 function focusMessage(id: number) {
+  const target = msgs.value.find(m => m.id === id)
+  // 引用目标被当前过滤挡住时，先回到全员视图
+  if (filterMember.value && target && target.nickname !== filterMember.value)
+    filterMember.value = null
   membersOpen.value = false
   nextTick(() => {
     document
@@ -583,6 +618,14 @@ usePageSeo({
   transform: scale(0.98);
 }
 
+.member--active {
+  background: color-mix(in srgb, var(--c-primary) 10%, var(--c-bg-card));
+}
+
+.member--active .member__name {
+  color: var(--c-primary);
+}
+
 .member__avatar {
   flex-shrink: 0;
   width: 38px;
@@ -677,6 +720,42 @@ usePageSeo({
   margin: 2px 0 0;
   font-size: 12.5px;
   color: var(--c-text-muted);
+}
+
+.room__filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 4px 6px 4px 12px;
+  font-size: 12px;
+  color: var(--c-text-secondary);
+  background: color-mix(in srgb, var(--c-primary) 10%, var(--c-bg-card));
+  border-radius: 999px;
+}
+
+.room__filter strong {
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
+.room__filter button {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--c-text-muted);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.room__filter button:hover {
+  color: var(--c-text);
 }
 
 .room__members-btn {
