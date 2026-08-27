@@ -9,7 +9,6 @@
         target-type="ARTICLE"
         :target-id="articleId"
         :reply-to="replyTo"
-        :mention="replyTo?.nickname"
         placeholder-suffix="（评论）"
         @success="onCreated"
         @cancel-reply="replyTo = null"

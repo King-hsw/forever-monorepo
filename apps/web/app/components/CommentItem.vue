@@ -10,6 +10,9 @@
         <span v-else class="comment-item__name">{{ comment.nickname }}</span>
         <time class="comment-item__time">{{ formatDateTime(comment.createdAt) }}</time>
       </header>
+      <p v-if="comment.parentNickname" class="comment-item__quote">
+        回复 <span class="comment-item__quote-name">{{ comment.parentNickname }}</span>：{{ comment.parentContent }}
+      </p>
       <p class="comment-item__content">{{ comment.content }}</p>
       <button type="button" class="comment-item__reply-btn" @click="$emit('reply', comment)">
         回复
@@ -87,6 +90,24 @@ defineEmits<{ reply: [comment: CommentNode] }>()
   margin-left: auto;
   font-size: 12px;
   color: var(--c-text-muted);
+}
+
+/* 楼内回复再回复楼内回复时的引用，最多两行 */
+.comment-item__quote {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--c-text-muted);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.comment-item__quote-name {
+  color: var(--c-text-secondary);
+  font-weight: 500;
 }
 
 .comment-item__content {

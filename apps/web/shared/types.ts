@@ -157,6 +157,10 @@ export interface CommentNode {
   content: string
   createdAt: string
   replies: CommentNode[] | null
+  /** 所回复的楼内回复昵称（仅回复楼内回复时非 null，回复根评论为 null） */
+  parentNickname?: string | null
+  /** 所回复的楼内回复内容，供前端展示引用 */
+  parentContent?: string | null
 }
 
 /** 管理端评论（对应 CommentAdminResponse；比公开版多邮箱/IP/状态/归属目标） */

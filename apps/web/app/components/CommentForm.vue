@@ -64,8 +64,6 @@ const props = defineProps<{
   targetId?: number
   /** 被回复的评论；为空则发根评论 */
   replyTo?: { id: number, nickname: string } | null
-  /** 回复对象昵称：非空时提交内容自动加 @前缀（用于记录回复对象，公开接口不返回该信息） */
-  mention?: string
   /** 输入框 aria 标签后缀（区分文章评论 / 留言墙） */
   placeholderSuffix?: string
 }>()
@@ -123,9 +121,7 @@ async function submit() {
       nickname: identity.nickname.trim(),
       email: identity.email.trim(),
       site: identity.site.trim() || undefined,
-      content: props.mention
-        ? `@${props.mention} ${content.value.trim()}`
-        : content.value.trim(),
+      content: content.value.trim(),
     })
 
     // 身份落盘，下次免输入
