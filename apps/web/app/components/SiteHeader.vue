@@ -134,6 +134,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: '首页', to: '/' },
   { label: '归档', to: '/archive' },
+  { label: '聊天', to: '/chat' },
 ]
 
 /** Esc 收起「更多」下拉：面板由 focus-within 控制，失焦即关 */

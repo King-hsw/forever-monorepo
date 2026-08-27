@@ -19,6 +19,7 @@ const HEADER_WIDTHS: [string, string][] = [
   ['/posts/', '780px'],
   ['/moments', '960px'],
   ['/message', '960px'],
+  ['/chat', '100%'],
 ]
 
 const headerWidth = computed(() => {
