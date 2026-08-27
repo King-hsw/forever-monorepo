@@ -167,6 +167,7 @@ interface NavItem {
 /** 后续加菜单只改这里 */
 const navItems: NavItem[] = [
   { label: '首页', to: '/' },
+  { label: '文章', to: '/posts' },
   { label: '归档', to: '/archive' },
   { label: '聊天', to: '/chat' },
 ]

@@ -28,6 +28,7 @@ h1, h2 {
 /* 各页大标题：衬线墨字，文人气质（类名分散在各页，这里统一接管字体） */
 .page-head__cn,
 .arch-head__title,
+.posts-head__title,
 .moments-head__title,
 .wall-head__title,
 .section-head__title {
