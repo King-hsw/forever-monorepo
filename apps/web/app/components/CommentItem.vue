@@ -11,7 +11,7 @@
         <time class="comment-item__time">{{ formatDateTime(comment.createdAt) }}</time>
       </header>
       <p class="comment-item__content">{{ comment.content }}</p>
-      <button v-if="!isReply && !hideReply" type="button" class="comment-item__reply-btn" @click="$emit('reply', comment)">
+      <button type="button" class="comment-item__reply-btn" @click="$emit('reply', comment)">
         回复
       </button>
     </div>
@@ -24,9 +24,8 @@ import { formatDateTime } from '~/utils/format'
 
 defineProps<{
   comment: CommentNode
-  /** 楼内回复不再展示「回复」按钮（后端只支持两层楼） */
+  /** 楼内回复视觉样式（更小的头像与内边距） */
   isReply?: boolean
-  hideReply?: boolean
 }>()
 
 defineEmits<{ reply: [comment: CommentNode] }>()
