@@ -339,17 +339,24 @@ async function onDelete() {
   margin-top: 12px;
 }
 
+/* 预览区限宽：单图 480px 宽，多图宫格每格约 156px，不再整卡铺满 */
 .media-grid {
   display: grid;
   gap: 6px;
+  max-width: 480px;
 }
 
 .media-grid--1 {
   grid-template-columns: 1fr;
 }
 
+.media-grid--1 img {
+  max-height: 420px; /* 长图限高，object-fit: cover 裁剪 */
+}
+
 .media-grid--2 {
   grid-template-columns: repeat(2, 1fr);
+  max-width: 318px; /* 两列时保持与九宫格相近的格宽 */
 }
 
 .media-grid--3 {
