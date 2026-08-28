@@ -59,7 +59,7 @@
         </button>
         <button
           type="button"
-          class="site-header__icon-btn"
+          class="site-header__icon-btn search-toggle"
           aria-label="搜索"
           title="搜索"
           @click="searchOpen = true"
@@ -466,15 +466,15 @@ function onBrandClick() {
   background: var(--c-primary-light);
 }
 
-/* 移动端：主导航与登录入口收进底部 Tab Bar，顶栏只留品牌和主题切换 */
+/* 移动端：主导航与登录入口收进底部 Tab Bar，顶栏留品牌、主题切换和搜索 */
 @media (max-width: 640px) {
   .site-nav,
   .site-header__divider {
     display: none;
   }
 
-  /* actions 组里只保留主题切换按钮（search / guest / 登录移入 Tab Bar） */
-  .site-header__actions > :not(.site-header__icon-btn.theme-toggle) {
+  /* actions 组里保留主题切换和搜索（guest / 登录移入 Tab Bar「更多」） */
+  .site-header__actions > :not(.site-header__icon-btn.theme-toggle):not(.search-toggle) {
     display: none;
   }
 }

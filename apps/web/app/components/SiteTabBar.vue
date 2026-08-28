@@ -1,8 +1,6 @@
 <template>
-  <!-- 移动端底部 Tab Bar（≤640px）：导航 + 居中搜索异形钮；「更多」上拉菜单收纳归档/聊天/登录 -->
+  <!-- 移动端底部 Tab Bar（≤640px）：四格导航；搜索在移动端顶栏；「更多」上拉菜单收纳归档/聊天/登录 -->
   <nav class="tabbar" aria-label="移动端底部导航">
-    <!-- 磨砂玻璃底层:异形凹槽用 mask 挖在这一层,不能挖在容器上(mask 会连凸出的搜索钮与面板一起裁掉) -->
-    <span class="tabbar__glass" aria-hidden="true"></span>
     <NuxtLink to="/" class="tabbar__item" aria-label="首页">
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z" /></svg>
       <span>首页</span>
@@ -12,10 +10,6 @@
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><circle cx="4" cy="6" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="4" cy="18" r="1" /></svg>
       <span>文章</span>
     </NuxtLink>
-
-    <button type="button" class="tabbar__search" aria-label="搜索" title="搜索" @click="searchOpen = true">
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
-    </button>
 
     <NuxtLink to="/moments" class="tabbar__item" aria-label="动态">
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
@@ -62,7 +56,6 @@
 <script setup lang="ts">
 const route = useRoute()
 const auth = useAuthStore()
-const searchOpen = useState('global-search-open', () => false)
 
 auth.hydrate()
 
@@ -106,55 +99,21 @@ watch(() => route.fullPath, () => {
   left: calc(12px + env(safe-area-inset-left));
   z-index: 49;
   display: none;
-  /* 五等分列:五个入口中心等距,左右镜像对称(此前 1fr/1.8fr/1.2fr 混排导致间距忽宽忽窄) */
-  grid-template-columns: repeat(5, 1fr);
+  /* 四等分列:四个入口中心等距,左右镜像对称 */
+  grid-template-columns: repeat(4, 1fr);
   align-items: end;
   gap: 2px;
-  /* 上下留白严格相等(12px);__glass 层用同样的负 inset 反向撑回,铺满整个卡片 */
+  /* 上下留白严格相等(12px) */
   padding: 12px 6px;
-}
-
-/* 磨砂玻璃底层:质感与异形凹槽都在这层,搜索钮/面板等子元素不受 mask 裁剪 */
-.tabbar__glass {
-  position: absolute;
-  /* 反向撑回容器内边距,覆盖整个卡片 border-box */
-  inset: -12px -6px;
-  pointer-events: none;
-  /* 苹果式玻璃材质:低不透明度底色 + 大半径高斯模糊 + 饱和度提升,滚动内容从卡下透出 */
-  background: color-mix(in srgb, var(--c-bg-card) 65%, transparent);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  /* MoviePilot 式透明磨砂:卡片底色 80% 不透明 + 轻模糊,不提升饱和度 */
+  background: color-mix(in srgb, var(--c-bg-card) 80%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
-  border-radius: 28px;
+  border-radius: 16px;
   /* 顶部内侧一条高光是玻璃沿(令牌随深浅色切换),后面是柔和投影 */
   box-shadow: inset 0 1px 0 var(--hl-line), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
-  /* 半嵌托座:搜索钮(68px)中心沉到卡顶下 12px,挖半径 39px 圆弧凹口(钮 34px + 5px 环绕缝隙) */
-  -webkit-mask: radial-gradient(circle 39px at 50% 12px, transparent 38px, #000 39px);
-  mask: radial-gradient(circle 39px at 50% 12px, transparent 38px, #000 39px);
 }
-
-/* 凹槽描边:沿挖口一圈细线,只显示卡片内的下半段(卡外上半裁掉) */
-.tabbar::before {
-  content: "";
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  z-index: 1;
-  width: 78px;
-  height: 78px;
-  border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  /* 环线盒顶在卡顶上 27px,只保留 y≥0 段 */
-  clip-path: inset(27px 0 0 0);
-  pointer-events: none;
-}
-
-/* 搜索钮脱流后不占网格位,四个流内项显式落位(1/2/4/5 列),中列留给凹槽 */
-.tabbar > .tabbar__item:nth-of-type(1) { grid-column: 1; }
-.tabbar > .tabbar__item:nth-of-type(2) { grid-column: 2; }
-.tabbar > .tabbar__item:nth-of-type(3) { grid-column: 4; }
-.tabbar__more { grid-column: 5; }
 
 @media (max-width: 640px) {
   .tabbar {
@@ -163,7 +122,7 @@ watch(() => route.fullPath, () => {
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .tabbar__glass,
+  .tabbar,
   .tabbar__panel {
     background: var(--c-bg-card);
     backdrop-filter: none;
@@ -178,8 +137,6 @@ watch(() => route.fullPath, () => {
   gap: 3px;
   min-width: 0;
   padding: 2px 0;
-  /* 玻璃底层是定位元素会盖住静态内容,导航项需同为定位元素保持在其上 */
-  position: relative;
   font-size: 11px;
   line-height: 1.2;
   color: var(--c-text-secondary);
@@ -199,36 +156,6 @@ watch(() => route.fullPath, () => {
 
 .tabbar__item:active {
   opacity: 0.7;
-}
-
-/* 居中搜索：凸起异形圆钮。绝对定位脱流(不撑高导航行,保证上下留白相等),
-   中心沉到卡顶下 12px:top = 12 - 34(半径);margin-left = -半径 水平居中 */
-.tabbar__search {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  margin-left: -34px;
-  display: grid;
-  place-items: center;
-  width: 68px;
-  height: 68px;
-  color: var(--c-primary-hover);
-  /* 浅玉底以卡片底色为混合基色:浅色=白底浅玉,暗色=暗卡底玉青,随主题自适应 */
-  background: color-mix(in srgb, var(--c-primary) 22%, var(--c-bg-card));
-  border: 1px solid color-mix(in srgb, var(--c-primary) 28%, transparent);
-  border-radius: 50%;
-  box-shadow: 0 8px 20px rgb(13 148 136 / 28%);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
-}
-
-.tabbar__search:hover {
-  box-shadow: 0 10px 24px rgb(13 148 136 / 36%);
-}
-
-.tabbar__search:active {
-  transform: scale(0.94);
 }
 
 .tabbar__more {
