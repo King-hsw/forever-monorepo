@@ -31,3 +31,6 @@ deploy/forever.yml
 
 # Claude Code local files
 .claude/
+
+.worktrees/
+/docs

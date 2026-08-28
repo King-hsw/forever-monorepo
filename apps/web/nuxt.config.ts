@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   // 开发服务绑定所有网卡（0.0.0.0），局域网设备可直接通过本机 IP 访问
   devServer: {
-    host: true,
+    host: '0.0.0.0',
   },
   // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
   routeRules: {
@@ -37,6 +37,10 @@ export default defineNuxtConfig({
         changeOrigin: true,
         // Spring Security 会校验 Origin，改写为后端自身地址以通过 CORS 校验
         headers: { origin: 'http://localhost:8080' },
+      },
+      '/images': {
+            target: 'http://10.0.0.16:9011/blog',  // target 里带上 /blog
+            changeOrigin: true,
       },
       '/rss.xml': { target: 'http://localhost:8080/rss.xml', changeOrigin: true },
       '/sitemap.xml': { target: 'http://localhost:8080/sitemap.xml', changeOrigin: true },
