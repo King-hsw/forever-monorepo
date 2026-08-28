@@ -248,7 +248,7 @@ async function onDelete() {
 
 <style scoped>
 .moment-card {
-  padding: 18px 20px;
+  padding: 16px 18px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-card);
@@ -392,12 +392,15 @@ async function onDelete() {
   background: var(--c-text);
 }
 
-/* ===== 底部操作 ===== */
+/* ===== 底部操作：扁平灰字栏（朋友圈式，右对齐） ===== */
 .moment-card__foot {
   display: flex;
   align-items: center;
-  gap: 18px;
+  justify-content: flex-end;
+  gap: 2px;
   margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--c-border);
 }
 
 .moment-card__like,
@@ -405,9 +408,9 @@ async function onDelete() {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 4px 12px;
   font-size: 13px;
-  color: var(--c-text-secondary);
+  color: var(--c-text-muted);
   background: none;
   border: none;
   border-radius: 999px;
@@ -443,9 +446,8 @@ async function onDelete() {
 }
 
 .moment-card__delete {
-  margin-left: auto;
-  padding: 3px 10px;
-  font-size: 12.5px;
+  padding: 4px 12px;
+  font-size: 13px;
   color: var(--c-text-muted);
   background: none;
   border: none;

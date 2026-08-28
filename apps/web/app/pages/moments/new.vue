@@ -17,107 +17,145 @@
         <NuxtLink to="/moments" class="btn">返回动态</NuxtLink>
       </div>
 
-      <form v-else class="newpage-card" @submit.prevent="submit">
-        <!-- 文本：≤1000 字 -->
-        <div class="newpage-field">
-          <div class="newpage-field__body">
-            <textarea
-              v-model="content"
-              class="newpage-textarea"
-              rows="6"
-              maxlength="1000"
-              placeholder="此刻的想法，或最近发生的事…"
-            />
-            <span class="newpage-count" :class="{ 'is-limit': content.length >= 1000 }">{{ content.length }}/1000</span>
-          </div>
+      <form v-else class="composer" @submit.prevent="submit">
+        <!-- 作者：头像 + 昵称 -->
+        <div class="composer__author">
+          <img
+            v-if="profile?.avatarUrl"
+            class="composer__avatar"
+            :src="profile.avatarUrl"
+            :alt="auth.username ?? ''"
+          >
+          <span v-else class="composer__avatar composer__avatar--initial" aria-hidden="true">
+            {{ initialOf(auth.username ?? '?') }}
+          </span>
+          <span class="composer__name">{{ auth.username }}</span>
         </div>
 
-        <!-- 附件：图片 ≤9 / 音频 ≤1 / 视频 ≤1，选择后立即上传 -->
-        <div class="newpage-field">
-          <div class="newpage-attach__actions">
-            <label class="btn newpage-attach__btn">
-              📷 图片
-              <input
-                type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
-                class="newpage-file"
-                @change="pick('image', $event)"
-              >
-            </label>
-            <label class="btn newpage-attach__btn">
-              🎵 音频
-              <input
-                type="file" accept="audio/mpeg,audio/mp4,audio/wav"
-                class="newpage-file"
-                @change="pick('audio', $event)"
-              >
-            </label>
-            <label class="btn newpage-attach__btn">
-              🎬 视频
-              <input
-                type="file" accept="video/mp4,video/webm"
-                class="newpage-file"
-                @change="pick('video', $event)"
-              >
-            </label>
-          </div>
+        <!-- 文本 -->
+        <textarea
+          v-model="content"
+          class="composer__textarea"
+          maxlength="1000"
+          placeholder="此刻的想法，或最近发生的事…"
+        ></textarea>
+        <div class="composer__count-row">
+          <span class="composer__count" :class="{ 'is-limit': content.length >= 1000 }">{{ content.length }}/1000</span>
+        </div>
 
-          <ul v-if="items.length" class="newpage-items">
-            <li
-              v-for="item in items"
-              :key="item.id"
-              class="newpage-item"
-              :class="`newpage-item--${item.kind}`"
+        <!-- 图片九宫格：选择即上传，完成前显示进度 -->
+        <div v-if="imageItems.length" class="composer__images">
+          <div
+            v-for="item in imageItems"
+            :key="item.id"
+            class="composer__image"
+            :class="{ 'is-error': item.status === 'error' }"
+          >
+            <img v-if="item.url" :src="item.url" alt="">
+            <span v-else class="composer__image__ph">{{ item.status === 'error' ? '上传失败' : '上传中…' }}</span>
+            <span v-if="item.status === 'error'" class="composer__image__retry">
+              <button type="button" @click="retry(item)">重试</button>
+            </span>
+            <button
+              type="button"
+              class="composer__image__rm"
+              :aria-label="`移除 ${item.file.name}`"
+              @click="removeItem(item)"
             >
-              <img v-if="item.kind === 'image' && item.url" :src="item.url" class="newpage-item__thumb" alt="">
-              <span v-else class="newpage-item__icon" aria-hidden="true">{{ item.kind === 'audio' ? '🎵' : '🎬' }}</span>
-              <div class="newpage-item__info">
-                <span class="newpage-item__name">{{ item.file.name }}</span>
-                <span v-if="item.status === 'uploading'" class="newpage-item__status">上传中…</span>
-                <span v-else-if="item.status === 'error'" class="newpage-item__status is-error">
-                  上传失败
-                  <button type="button" class="newpage-item__retry" @click="retry(item)">重试</button>
-                </span>
-                <span v-else class="newpage-item__size">{{ fmtSize(item.file.size) }}</span>
-              </div>
-              <button type="button" class="newpage-item__remove" :aria-label="`移除 ${item.file.name}`" @click="removeItem(item)">
-                ×
-              </button>
-            </li>
-          </ul>
-          <p v-else class="newpage-hint">
-            图片最多 9 张（单张 ≤5MB）、音频 1 个（≤20MB）、视频 1 个（≤100MB），可只发文字
-          </p>
-        </div>
-
-        <!-- 地点：文本可随手填；「获取当前位置」走高德逆地理，失败不阻塞 -->
-        <div class="newpage-field">
-          <div class="newpage-loc__head">
-            <span class="newpage-loc__label">地点（选填）</span>
-            <button type="button" class="newpage-loc__btn" :disabled="locating" @click="getLocation">
-              {{ locating ? '定位中…' : '📍 获取当前位置' }}
+              ×
             </button>
           </div>
-          <input
-            v-model="locationText"
-            type="text"
-            class="field-input"
-            maxlength="100"
-            placeholder="如：杭州 · 西湖"
-          >
         </div>
 
-        <p v-if="noticeText" class="newpage-notice" aria-live="polite">{{ noticeText }}</p>
-        <p v-if="error" class="newpage-notice is-error" role="alert">{{ error }}</p>
+        <!-- 音频 / 视频：单行小卡片（最多各 1 个） -->
+        <div
+          v-for="item in mediaItems"
+          :key="item.id"
+          class="composer__media"
+        >
+          <span class="composer__media__icon" aria-hidden="true">{{ item.kind === 'audio' ? '🎵' : '🎬' }}</span>
+          <div class="composer__media__info">
+            <span class="composer__media__name">{{ item.file.name }}</span>
+            <span v-if="item.status === 'uploading'" class="composer__media__status">上传中…</span>
+            <span v-else-if="item.status === 'error'" class="composer__media__status is-error">
+              上传失败
+              <button type="button" class="composer__media__retry" @click="retry(item)">重试</button>
+            </span>
+            <span v-else class="composer__media__status">{{ fmtSize(item.file.size) }}</span>
+          </div>
+          <button
+            type="button"
+            class="composer__media__rm"
+            :aria-label="`移除 ${item.file.name}`"
+            @click="removeItem(item)"
+          >
+            ×
+          </button>
+        </div>
 
-        <div class="newpage-submit">
+        <!-- 底部工具条：图片 / 音频 / 视频 / 位置 + 发布 -->
+        <div class="composer__bar">
+          <label class="composer__tool">
+            📷 图片
+            <input
+              type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
+              class="composer__file"
+              @change="pick('image', $event)"
+            >
+          </label>
+          <label class="composer__tool">
+            🎵 音频
+            <input
+              type="file" accept="audio/mpeg,audio/mp4,audio/wav"
+              class="composer__file"
+              @change="pick('audio', $event)"
+            >
+          </label>
+          <label class="composer__tool">
+            🎬 视频
+            <input
+              type="file" accept="video/mp4,video/webm"
+              class="composer__file"
+              @change="pick('video', $event)"
+            >
+          </label>
+          <button
+            type="button"
+            class="composer__tool"
+            :class="{ 'is-active': showLocation }"
+            @click="showLocation = !showLocation"
+          >
+            📍 位置
+          </button>
+
           <button
             type="submit"
-            class="btn btn--primary"
+            class="composer__post"
             :disabled="submitting || uploading"
           >
             {{ submitting ? '发布中…' : uploading ? '附件上传中…' : '发布' }}
           </button>
         </div>
+
+        <!-- 地点行：工具条「位置」展开；经纬度随表单提交 -->
+        <div v-if="showLocation" class="composer__location">
+          <input
+            v-model="locationText"
+            type="text"
+            class="composer__location-input"
+            maxlength="100"
+            placeholder="如：杭州 · 西湖"
+          >
+          <button type="button" class="composer__location-btn" :disabled="locating" @click="getLocation">
+            {{ locating ? '定位中…' : '📍 获取当前位置' }}
+          </button>
+        </div>
+
+        <p v-if="noticeText" class="composer__notice" aria-live="polite">{{ noticeText }}</p>
+        <p v-if="error" class="composer__notice is-error" role="alert">{{ error }}</p>
+        <p class="composer__hint">
+          图片最多 9 张（单张 ≤5MB）、音频 1 个（≤20MB）、视频 1 个（≤100MB），可只发文字
+        </p>
       </form>
     </main>
 
@@ -126,8 +164,10 @@
 </template>
 
 <script setup lang="ts">
+import type { ProfileInfo } from '#shared/types'
 import { useAuthStore } from '~/stores/auth'
 import { useMomentsStore } from '~/stores/moments'
+import { initialOf } from '~/utils/format'
 import { uploadFile } from '~/utils/upload'
 
 usePageSeo({
@@ -143,9 +183,13 @@ const momentsStore = useMomentsStore()
 const canPost = computed(() => auth.isAuthenticated && auth.hasPermission('moment:post'))
 /** 登录态需拉权限码后才能判定，SSR 阶段先按加载态渲染 */
 const ready = ref(!auth.isAuthenticated)
+/** 作者头像：取登录用户资料（自定义头像 / Gravatar），失败兜底首字头像 */
+const profile = ref<ProfileInfo | null>(null)
 onMounted(async () => {
-  if (auth.isAuthenticated)
+  if (auth.isAuthenticated) {
     await auth.ensureMe()
+    profile.value = await apiFetch<ProfileInfo>('/api/admin/profile').catch(() => null)
+  }
   ready.value = true
 })
 
@@ -174,6 +218,8 @@ const KIND_LABEL: Record<AttachKind, string> = { image: '图片', audio: '音频
 const items = ref<AttachItem[]>([])
 let seq = 0
 
+const imageItems = computed(() => items.value.filter(i => i.kind === 'image'))
+const mediaItems = computed(() => items.value.filter(i => i.kind !== 'image'))
 const uploading = computed(() => items.value.some(i => i.status === 'uploading'))
 
 function fmtSize(bytes: number): string {
@@ -239,6 +285,7 @@ function removeItem(item: AttachItem) {
 
 /* ---------- 地点：高德逆地理（留空降级），经纬度随表单提交 ---------- */
 const locationText = ref('')
+const showLocation = ref(false)
 const geo = ref<{ lat: number, lng: number } | null>(null)
 const locating = ref(false)
 
@@ -361,46 +408,83 @@ async function submit() {
   }
 }
 
-.newpage-card {
+/* ===== composer：朋友圈式发布卡片 ===== */
+.composer {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
   max-width: 720px;
-  padding: 24px;
+  padding: 22px 24px 18px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 
-.newpage-field__body {
+/* 作者 */
+.composer__author {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
 }
 
-.newpage-textarea {
+.composer__avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.composer__avatar--initial {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+}
+
+.composer__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+
+/* 文本 */
+.composer__textarea {
   width: 100%;
-  min-height: 160px;
-  padding: 14px 16px;
+  min-height: 110px;
+  padding: 12px 14px;
   font-size: 15px;
   font-family: var(--font-sans);
   line-height: 1.7;
   color: var(--c-text);
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
+  background: var(--c-bg-soft);
+  border: 1px solid transparent;
+  border-radius: 14px;
   outline: none;
-  transition: border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease;
+  resize: vertical;
+  field-sizing: content;
+  transition:
+    border-color var(--dur-soft) ease,
+    box-shadow var(--dur-soft) ease,
+    background-color var(--dur-soft) ease;
 
   &:focus {
+    background: var(--c-bg-card);
     border-color: var(--c-primary);
     box-shadow: 0 0 0 3px var(--c-primary-light);
   }
 }
 
-.newpage-count {
+.composer__count-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -8px;
+}
+
+.composer__count {
   font-size: 12px;
   color: var(--c-text-muted);
 
@@ -410,39 +494,87 @@ async function submit() {
   }
 }
 
-/* ===== 附件 ===== */
-.newpage-attach__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+/* 图片九宫格 */
+.composer__images {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
-.newpage-attach__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.composer__image {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--c-bg-soft);
+
+  &.is-error {
+    background: rgb(220 38 38 / 6%);
+  }
 }
 
-.newpage-file {
-  display: none;
+.composer__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.newpage-hint {
-  margin: 12px 0 0;
-  font-size: 12.5px;
+.composer__image__ph {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
   color: var(--c-text-muted);
 }
 
-.newpage-items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
+.composer__image.is-error .composer__image__ph {
+  color: var(--c-danger);
 }
 
-.newpage-item {
+.composer__image__retry {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  right: 0;
+  text-align: center;
+
+  button {
+    padding: 0;
+    font-size: 12px;
+    color: var(--c-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
+
+.composer__image__rm {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  line-height: 1;
+  color: #fff;
+  background: rgb(0 0 0 / 45%);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color var(--dur-soft) ease;
+
+  &:hover {
+    background: rgb(0 0 0 / 65%);
+  }
+}
+
+/* 音频 / 视频小卡片 */
+.composer__media {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -452,27 +584,18 @@ async function submit() {
   border-radius: 12px;
 }
 
-.newpage-item__thumb {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 10px;
-  background: var(--c-bg-soft);
-}
-
-.newpage-item__icon {
+.composer__media__icon {
   display: grid;
   place-items: center;
   flex-shrink: 0;
   width: 64px;
   height: 64px;
   font-size: 26px;
-  background: var(--c-bg-soft);
+  background: var(--c-bg-card);
   border-radius: 10px;
 }
 
-.newpage-item__info {
+.composer__media__info {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -480,7 +603,7 @@ async function submit() {
   gap: 3px;
 }
 
-.newpage-item__name {
+.composer__media__name {
   font-size: 13px;
   color: var(--c-text);
   overflow: hidden;
@@ -488,7 +611,7 @@ async function submit() {
   white-space: nowrap;
 }
 
-.newpage-item__status {
+.composer__media__status {
   font-size: 12px;
   color: var(--c-text-muted);
 
@@ -497,7 +620,7 @@ async function submit() {
   }
 }
 
-.newpage-item__retry {
+.composer__media__retry {
   margin-left: 8px;
   padding: 0;
   font-size: 12px;
@@ -508,12 +631,7 @@ async function submit() {
   text-decoration: underline;
 }
 
-.newpage-item__size {
-  font-size: 12px;
-  color: var(--c-text-muted);
-}
-
-.newpage-item__remove {
+.composer__media__rm {
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -526,38 +644,111 @@ async function submit() {
   border-radius: 50%;
   cursor: pointer;
   transition: color var(--dur-soft) ease, background-color var(--dur-soft) ease;
+
+  &:hover {
+    color: var(--c-danger);
+    background: rgb(220 38 38 / 8%);
+  }
 }
 
-.newpage-item__remove:hover {
-  color: var(--c-danger);
-  background: rgb(220 38 38 / 8%);
-}
-
-/* ===== 地点 ===== */
-.newpage-loc__head {
+/* ===== 底部工具条 ===== */
+.composer__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
 }
 
-.newpage-loc__label {
+.composer__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
   font-size: 13px;
   color: var(--c-text-secondary);
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    color var(--dur-soft) ease,
+    background-color var(--dur-soft) ease;
+
+  &:hover,
+  &.is-active {
+    color: var(--c-primary-hover);
+    background: var(--c-primary-light);
+  }
 }
 
-.newpage-loc__btn {
-  padding: 0;
+.composer__file {
+  display: none;
+}
+
+.composer__post {
+  margin-left: auto;
+  padding: 8px 30px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color var(--dur-soft) ease, opacity var(--dur-soft) ease;
+
+  &:hover:not(:disabled) {
+    background: var(--c-primary-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+/* 地点行 */
+.composer__location {
+  display: flex;
+  gap: 8px;
+
+  .composer__location-input {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    color: var(--c-text);
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color var(--dur-soft) ease, box-shadow var(--dur-soft) ease;
+
+    &:focus {
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 3px var(--c-primary-light);
+    }
+  }
+}
+
+.composer__location-btn {
+  flex-shrink: 0;
+  padding: 0 14px;
   font-size: 13px;
   color: var(--c-primary);
   background: none;
-  border: none;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
   cursor: pointer;
-  transition: color var(--dur-soft) ease;
+  transition:
+    color var(--dur-soft) ease,
+    border-color var(--dur-soft) ease;
 
   &:hover:not(:disabled) {
     color: var(--c-primary-hover);
+    border-color: var(--c-primary);
   }
 
   &:disabled {
@@ -566,7 +757,7 @@ async function submit() {
   }
 }
 
-.newpage-notice {
+.composer__notice {
   margin: 0;
   font-size: 13px;
   color: var(--c-text-secondary);
@@ -576,11 +767,10 @@ async function submit() {
   }
 }
 
-.newpage-submit {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 4px;
-  border-top: 1px solid var(--c-border);
+.composer__hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
 }
 
 @media (max-width: 640px) {
@@ -588,12 +778,17 @@ async function submit() {
     padding-top: 88px;
   }
 
-  .newpage-card {
-    padding: 16px;
+  .composer {
+    padding: 16px 14px 12px;
   }
 
   .newpage-head__title {
     font-size: 24px;
+  }
+
+  .composer__post {
+    width: 100%;
+    margin-left: 0;
   }
 }
 </style>
