@@ -14,7 +14,7 @@
     </NuxtLink>
 
     <button type="button" class="tabbar__search" aria-label="搜索" title="搜索" @click="searchOpen = true">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
     </button>
 
     <NuxtLink to="/moments" class="tabbar__item" aria-label="动态">
@@ -128,9 +128,9 @@ watch(() => route.fullPath, () => {
   border-radius: 28px;
   /* 顶部内侧一条白高光是玻璃沿,后面是柔和投影 */
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
-  /* 半嵌托座:搜索钮中心锚在卡顶边(y=0),挖半径 33px 半圆凹口(钮 28px + 5px 环绕缝隙) */
-  -webkit-mask: radial-gradient(circle 33px at 50% 0px, transparent 32px, #000 33px);
-  mask: radial-gradient(circle 33px at 50% 0px, transparent 32px, #000 33px);
+  /* 半嵌托座:搜索钮中心锚在卡顶边(y=0),挖半径 36px 半圆凹口(钮 31px + 5px 环绕缝隙) */
+  -webkit-mask: radial-gradient(circle 36px at 50% 0px, transparent 35px, #000 36px);
+  mask: radial-gradient(circle 36px at 50% 0px, transparent 35px, #000 36px);
 }
 
 /* 凹槽描边:沿挖口一圈细线,只显示卡片内的下半段(卡外上半裁掉) */
@@ -140,13 +140,13 @@ watch(() => route.fullPath, () => {
   top: 0;
   left: 50%;
   z-index: 1;
-  width: 66px;
-  height: 66px;
+  width: 72px;
+  height: 72px;
   border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   /* 挖口是卡顶边以下的下半圆,环线只保留 y≥0 段 */
-  clip-path: inset(33px 0 0 0);
+  clip-path: inset(36px 0 0 0);
   pointer-events: none;
 }
 
@@ -195,27 +195,27 @@ watch(() => route.fullPath, () => {
   opacity: 0.7;
 }
 
-/* 居中搜索：凸起异形圆钮,中心锚在卡顶边上,一半脱出栏面(docked FAB 姿态) */
+/* 居中搜索：凸起异形圆钮,中心锚在卡顶边上,一半脱出栏面(docked FAB 姿态);浅玉底+深玉图标,不用深绿色块 */
 .tabbar__search {
   position: relative;
-  top: -36px;
+  top: -39px;
   justify-self: center;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  color: #fff;
-  background: var(--c-primary);
-  border: none;
+  width: 62px;
+  height: 62px;
+  color: var(--c-primary-hover);
+  background: color-mix(in srgb, var(--c-primary) 22%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c-primary) 28%, transparent);
   border-radius: 50%;
-  box-shadow: 0 8px 20px rgb(13 148 136 / 35%);
+  box-shadow: 0 8px 20px rgb(13 148 136 / 28%);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .tabbar__search:hover {
-  box-shadow: 0 10px 24px rgb(13 148 136 / 45%);
+  box-shadow: 0 10px 24px rgb(13 148 136 / 36%);
 }
 
 .tabbar__search:active {
