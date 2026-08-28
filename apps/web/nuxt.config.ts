@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   // 开发服务绑定所有网卡（0.0.0.0），局域网设备可直接通过本机 IP 访问
   devServer: {
-    host: '0.0.0.0',
+    host: true,
   },
   // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
   routeRules: {
@@ -112,13 +112,15 @@ export default defineNuxtConfig({
         // 禁双指捏合缩放页面：Android 靠 viewport 即可；iOS Safari 自 10 起无视这两项，由下方内联脚本拦截
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no' }
       ],
-      // 主题防闪烁：渲染前定下 html[data-theme]（localStorage 优先，无记录跟随系统）
+      // 主题防闪烁：渲染前定下 html[data-theme]（实际生效主题，全站 CSS 用）与
+      // html[data-theme-mode]（用户选择 light/dark/system，按钮图标用）；
+      // localStorage 优先，无记录或记录为 system 时跟随系统
       // 禁移动端双指捏合缩放页面：iOS Safari 无视 viewport 的 user-scalable=no，需拦原生 gesture 事件；
       // touchmove 双指兜底覆盖其余浏览器。PhotoSwipe 图片预览用自家手势系统（touch-action: none），
       // 不依赖浏览器默认缩放，故不受影响
       script: [
         {
-          innerHTML: `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()`,
+          innerHTML: `(function(){try{var m=localStorage.getItem('theme');if(m!=='light'&&m!=='dark')m='system';var d=m==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:m==='dark';var e=document.documentElement;e.dataset.theme=d?'dark':'light';e.dataset.themeMode=m}catch(x){var e=document.documentElement;e.dataset.theme='light';e.dataset.themeMode='system'}})()`,
         },
         {
           innerHTML: `(function(){var stop=function(e){e.preventDefault()};document.addEventListener('gesturestart',stop,{passive:false});document.addEventListener('gesturechange',stop,{passive:false});document.addEventListener('touchmove',function(e){if(e.touches.length>1)stop(e)},{passive:false})})()`,

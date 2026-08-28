@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const { theme, initTheme } = useTheme()
+const { resolved, initTheme } = useTheme()
 
 // 浏览器工具栏 / 状态栏颜色跟随主题（Android Chrome / iOS PWA）
 useHead({
   meta: [{
     name: 'theme-color',
-    content: computed(() => (theme.value === 'dark' ? '#131514' : '#ffffff')),
+    content: computed(() => (resolved.value === 'dark' ? '#131514' : '#ffffff')),
   }],
 })
 

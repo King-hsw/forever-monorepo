@@ -1,41 +1,68 @@
-export type ThemeMode = 'light' | 'dark'
+export type ThemeMode = 'light' | 'dark' | 'system'
+export type ResolvedTheme = 'light' | 'dark'
+
+/** 三态循环顺序：浅色 → 深色 → 跟随系统 */
+const MODE_ORDER: ThemeMode[] = ['light', 'dark', 'system']
+
+const NEXT_LABEL: Record<ThemeMode, string> = {
+  light: '切换到深色模式',
+  dark: '切换为跟随系统',
+  system: '切换到浅色模式',
+}
 
 /** 系统偏好变化的监听只需注册一次 */
 let watcherInstalled = false
 
+function resolveMode(mode: ThemeMode): ResolvedTheme {
+  if (mode !== 'system')
+    return mode
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
 /**
- * 深浅色主题：显式选择存 localStorage，无记录跟随系统。
- * html[data-theme] 由 head 内联脚本在渲染前先行写入（防首屏闪烁），
- * 本 composable 负责运行时切换与状态同步。
+ * 深浅色主题，三态：浅色 / 深色 / 跟随系统。
+ * 用户选择存 localStorage（键 theme），html[data-theme] 写实际生效主题（全站 CSS 令牌用），
+ * html[data-theme-mode] 写用户选择（按钮图标显隐用）。两者都由 head 内联脚本渲染前先行写入（防首屏闪烁）。
  */
 export function useTheme() {
-  const theme = useState<ThemeMode>('theme', () => 'light')
+  const mode = useState<ThemeMode>('theme-mode', () => 'system')
+  const resolved = useState<ResolvedTheme>('theme-resolved', () => 'light')
 
-  function apply(next: ThemeMode) {
-    theme.value = next
-    document.documentElement.dataset.theme = next
+  /** 下一次点击将进入的模式的提示文案 */
+  const nextLabel = computed(() => NEXT_LABEL[mode.value])
+
+  function apply(nextMode: ThemeMode, nextResolved: ResolvedTheme) {
+    mode.value = nextMode
+    resolved.value = nextResolved
+    document.documentElement.dataset.themeMode = nextMode
+    document.documentElement.dataset.theme = nextResolved
   }
 
-  function persist(next: ThemeMode) {
+  function persist(nextMode: ThemeMode) {
     try {
-      localStorage.setItem('theme', next)
+      localStorage.setItem('theme', nextMode)
     }
     catch {}
   }
 
   /**
-   * 切换主题。支持 View Transition 且未要求减少动效时，
-   * 按 transition.css 的 custom 思路做圆形揭示：动画参数（圆心/半径）
-   * 走 CSS 自定义属性传给 main.css 里的 theme-circle-in keyframes，
-   * 新主题快照用 clip-path 从点击处展开盖满全屏。
+   * 循环切换三态。实际主题变化时按 transition.css 的 custom 思路做圆形揭示：
+   * 动画参数（圆心/半径）走 CSS 自定义属性传给 main.css 里的 theme-circle-in keyframes；
+   * 实际主题没变（如浅色 ⇄ 跟随系统但系统本就浅色）则只转图标，不放全屏动画。
    */
-  function toggle(event?: MouseEvent) {
-    const next: ThemeMode = theme.value === 'dark' ? 'light' : 'dark'
-    persist(next)
+  function setNext(event?: MouseEvent) {
+    const nextMode = MODE_ORDER[(MODE_ORDER.indexOf(mode.value) + 1) % MODE_ORDER.length]!
+    persist(nextMode)
+
+    const nextResolved = resolveMode(nextMode)
+    if (nextResolved === resolved.value) {
+      apply(nextMode, nextResolved)
+      return
+    }
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (!document.startViewTransition || reducedMotion) {
-      apply(next)
+      apply(nextMode, nextResolved)
       return
     }
 
@@ -51,27 +78,33 @@ export function useTheme() {
 
     // 门控属性让圆形揭示只作用于本次过渡，不干扰页面导航的 View Transition
     root.dataset.themeTransition = ''
-    const viewTransition = document.startViewTransition(() => apply(next))
+    const viewTransition = document.startViewTransition(() => apply(nextMode, nextResolved))
     viewTransition.finished.finally(() => {
       delete root.dataset.themeTransition
     })
   }
 
-  /** 挂载后从 html[data-theme] 读回内联脚本定下的真实主题，并跟随系统偏好变化 */
+  /**
+   * 挂载后从 html[data-theme]/[data-theme-mode] 读回内联脚本定下的真实状态，
+   * mode 为跟随系统时监听系统偏好变化实时切换（全局只装一次监听）。
+   */
   function initTheme() {
-    const fromDom = document.documentElement.dataset.theme as ThemeMode | undefined
-    if (fromDom === 'dark' || fromDom === 'light')
-      theme.value = fromDom
+    const dom = document.documentElement.dataset
+    if (dom.theme === 'dark' || dom.theme === 'light')
+      resolved.value = dom.theme
+    if (dom.themeMode === 'dark' || dom.themeMode === 'light' || dom.themeMode === 'system')
+      mode.value = dom.themeMode
 
     if (watcherInstalled)
       return
     watcherInstalled = true
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      // 用户显式选过主题后不再跟随系统
-      if (!localStorage.getItem('theme'))
-        apply(e.matches ? 'dark' : 'light')
+      // 仅跟随系统态响应系统切换；显式选择不受影响
+      if (mode.value !== 'system')
+        return
+      apply('system', e.matches ? 'dark' : 'light')
     })
   }
 
-  return { theme, toggle, initTheme }
+  return { mode, resolved, nextLabel, setNext, initTheme }
 }

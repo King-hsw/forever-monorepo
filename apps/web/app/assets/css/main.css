@@ -220,31 +220,49 @@ html[data-theme-transition]::view-transition-new(root) {
   }
 }
 
-/* ===== 主题切换按钮：日/月图标随主题交叉旋转（纯 CSS 驱动，无水合闪烁） ===== */
+/* ===== 主题切换按钮：三态图标随选择交叉旋转（纯 CSS 驱动，无水合闪烁） =====
+ * 显隐由 html[data-theme-mode]（用户选择 light/dark/system）驱动而非 data-theme：
+ * mode=system 时实际主题可能是浅色，但图标要显示"跟随系统"而不是太阳 */
 .theme-toggle {
-  position: relative; /* 太阳图标的绝对定位锚点 */
+  position: relative; /* 图标的绝对定位锚点 */
 }
 
 .theme-toggle__ico {
-  transition: opacity 0.25s ease, transform 0.45s var(--ease-bounce);
-}
-
-.theme-toggle__ico--sun {
   position: absolute;
   top: 50%;
   left: 50%;
-  opacity: 0;
-  transform: translate(-50%, -50%) rotate(-90deg) scale(0.5);
+  transition: opacity 0.25s ease, transform 0.45s var(--ease-bounce);
 }
 
-html[data-theme='dark'] .theme-toggle__ico--sun {
+/* 默认（浅色）：太阳在位，月/自动收起 */
+.theme-toggle__ico--sun {
+  transform: translate(-50%, -50%);
+}
+
+.theme-toggle__ico--moon,
+.theme-toggle__ico--auto {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(90deg) scale(0.5);
+}
+
+html[data-theme-mode='dark'] .theme-toggle__ico--moon {
   opacity: 1;
   transform: translate(-50%, -50%);
 }
 
-html[data-theme='dark'] .theme-toggle__ico--moon {
+html[data-theme-mode='dark'] .theme-toggle__ico--sun {
   opacity: 0;
-  transform: rotate(90deg) scale(0.5);
+  transform: translate(-50%, -50%) rotate(-90deg) scale(0.5);
+}
+
+html[data-theme-mode='system'] .theme-toggle__ico--auto {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+html[data-theme-mode='system'] .theme-toggle__ico--sun {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-90deg) scale(0.5);
 }
 
 @media (prefers-reduced-motion: reduce) {
