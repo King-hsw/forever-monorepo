@@ -109,12 +109,14 @@ watch(() => route.fullPath, () => {
   gap: 2px;
   /* 卡片内部只做常规内边距,不再补安全区 */
   padding: 8px 6px 10px;
-  background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border: 1px solid var(--c-border);
+  /* 透明磨砂:底色只到七成不透明,靠 backdrop-filter 透出滚动内容(配方对齐顶栏 78% 一档) */
+  background: color-mix(in srgb, var(--c-bg-card) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
   border-radius: 18px;
-  box-shadow: 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
+  /* 顶部内侧一条白高光是玻璃沿,后面是柔和投影 */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
 }
 
 @media (max-width: 640px) {
@@ -124,7 +126,8 @@ watch(() => route.fullPath, () => {
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .tabbar {
+  .tabbar,
+  .tabbar__panel {
     background: var(--c-bg-card);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -201,7 +204,10 @@ watch(() => route.fullPath, () => {
   grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
   gap: 6px;
   padding: 14px 10px;
-  background: var(--c-bg-card);
+  /* 与 Tab Bar 同一磨砂质感,但收起项是小字菜单,底色略提不透明度保可读性 */
+  background: color-mix(in srgb, var(--c-bg-card) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid var(--c-border);
   border-radius: 18px;
   box-shadow: 0 -10px 30px rgb(0 0 0 / 14%);
