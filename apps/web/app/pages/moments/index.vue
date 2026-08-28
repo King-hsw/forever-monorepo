@@ -9,10 +9,7 @@
 
       <!-- 顶部操作条：发布入口 + 按人筛选 chip -->
       <div class="moments-bar">
-        <NuxtLink v-if="canPost" to="/moments/new" class="btn btn--primary">发布动态</NuxtLink>
-        <span v-else-if="auth.isAuthenticated" class="moments-bar__tip">暂无发布权限</span>
-        <NuxtLink v-else to="/admin/login?redirect=/moments" class="btn">登录后发布动态</NuxtLink>
-
+        <NuxtLink to="/moments/new" class="btn btn--primary">发布动态</NuxtLink>
         <span v-if="userUid" class="moments-chip">
           只看 <strong>{{ filterName }}</strong> 的动态
           <button type="button" class="moments-chip__close" aria-label="清除筛选" @click="clearUser">×</button>
@@ -38,8 +35,7 @@
         </div>
       </template>
       <p v-else class="moments-empty">
-        还没有动态
-        <template v-if="canPost">，<NuxtLink to="/moments/new">去发第一条</NuxtLink>吧 ✍️</template>
+        还没有动态，<NuxtLink to="/moments/new">去发第一条</NuxtLink>吧 ✍️
       </p>
     </main>
 
@@ -125,9 +121,6 @@ function clearUser() {
   router.replace({ query: {} })
 }
 
-/** 发布权限：登录 + moment:post 权限码 */
-const canPost = computed(() => auth.isAuthenticated && auth.hasPermission('moment:post'))
-
 onMounted(async () => {
   if (!auth.isAuthenticated) return
   // SSR 首屏按匿名渲染；登录态刷新一次，带回 liked / canDelete
@@ -180,11 +173,6 @@ function removeFromList(id: number) {
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
-}
-
-.moments-bar__tip {
-  font-size: 13px;
-  color: var(--c-text-muted);
 }
 
 /* 按人筛选 chip：玉色描边胶囊，✕ 清除参数 */

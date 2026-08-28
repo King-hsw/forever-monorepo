@@ -6,18 +6,7 @@
         <p class="newpage-head__sub">说说最近的事 ✍️</p>
       </header>
 
-      <!-- 身份门槛：加载中 / 未登录 / 无权限 -->
-      <div v-if="!ready" class="newpage-state">加载中…</div>
-      <div v-else-if="!auth.isAuthenticated" class="newpage-state">
-        <p>登录后才能发布</p>
-        <NuxtLink to="/admin/login?redirect=/moments/new" class="btn btn--primary">去登录</NuxtLink>
-      </div>
-      <div v-else-if="!canPost" class="newpage-state">
-        <p>无发布权限</p>
-        <NuxtLink to="/moments" class="btn">返回动态</NuxtLink>
-      </div>
-
-      <form v-else class="composer" @submit.prevent="submit">
+      <form class="composer" @submit.prevent="submit">
         <!-- 作者：头像 + 昵称 -->
         <div class="composer__author">
           <img
@@ -26,10 +15,18 @@
             :src="profile.avatarUrl"
             :alt="auth.username ?? ''"
           >
-          <span v-else class="composer__avatar composer__avatar--initial" aria-hidden="true">
-            {{ initialOf(auth.username ?? '?') }}
+          <span
+            v-else
+            class="composer__avatar"
+            :class="auth.isAuthenticated ? 'composer__avatar--initial' : 'composer__avatar--guest'"
+            aria-hidden="true"
+          >
+            {{ auth.isAuthenticated ? initialOf(auth.username ?? '?') : '游' }}
           </span>
-          <span class="composer__name">{{ auth.username }}</span>
+          <span class="composer__name">
+            <template v-if="auth.isAuthenticated">{{ auth.username }}</template>
+            <template v-else>未登录 · <NuxtLink to="/admin/login?redirect=/moments/new">去登录</NuxtLink></template>
+          </span>
         </div>
 
         <!-- 文本 -->
@@ -133,7 +130,7 @@
             class="composer__post"
             :disabled="submitting || uploading"
           >
-            {{ submitting ? '发布中…' : uploading ? '附件上传中…' : '发布' }}
+            {{ !auth.isAuthenticated ? '登录后发布' : submitting ? '发布中…' : uploading ? '附件上传中…' : '发布' }}
           </button>
         </div>
 
@@ -180,17 +177,11 @@ const auth = useAuthStore()
 auth.hydrate()
 const momentsStore = useMomentsStore()
 
-const canPost = computed(() => auth.isAuthenticated && auth.hasPermission('moment:post'))
-/** 登录态需拉权限码后才能判定，SSR 阶段先按加载态渲染 */
-const ready = ref(!auth.isAuthenticated)
-/** 作者头像：取登录用户资料（自定义头像 / Gravatar），失败兜底首字头像 */
+/** 作者头像：取登录用户资料（自定义头像 / Gravatar）；未登录 / 失败兜底首字头像 */
 const profile = ref<ProfileInfo | null>(null)
 onMounted(async () => {
-  if (auth.isAuthenticated) {
-    await auth.ensureMe()
+  if (auth.isAuthenticated)
     profile.value = await apiFetch<ProfileInfo>('/api/admin/profile').catch(() => null)
-  }
-  ready.value = true
 })
 
 /* ---------- 文本 ---------- */
@@ -235,6 +226,10 @@ function notice(msg: string) {
 }
 
 function pick(kind: AttachKind, event: Event) {
+  if (!auth.isAuthenticated) {
+    notice('登录后才能添加附件')
+    return
+  }
   const input = event.target as HTMLInputElement
   const files = Array.from(input.files ?? [])
   input.value = ''
@@ -334,6 +329,10 @@ const error = ref('')
 
 async function submit() {
   if (submitting.value || uploading.value) return
+  if (!auth.isAuthenticated) {
+    await navigateTo('/admin/login?redirect=/moments/new')
+    return
+  }
   const text = content.value.trim()
   const images = items.value.filter(i => i.kind === 'image' && i.status === 'done').map(i => i.url!)
   const audio = items.value.find(i => i.kind === 'audio' && i.status === 'done')
@@ -396,18 +395,6 @@ async function submit() {
   color: var(--c-text-muted);
 }
 
-.newpage-state {
-  padding: 32px 0;
-  font-size: 14px;
-  color: var(--c-text-secondary);
-  text-align: center;
-
-  .btn {
-    display: inline-block;
-    margin-top: 12px;
-  }
-}
-
 /* ===== composer：朋友圈式发布卡片 ===== */
 .composer {
   display: flex;
@@ -443,6 +430,23 @@ async function submit() {
   font-weight: 600;
   color: var(--c-on-primary);
   background: var(--c-primary);
+}
+
+.composer__avatar--guest {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-text-secondary);
+  background: var(--c-bg-soft);
+}
+
+.composer__name a {
+  color: var(--c-primary);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .composer__name {
