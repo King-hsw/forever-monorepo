@@ -982,6 +982,13 @@ usePageSeo({
   transform: scale(0.92);
 }
 
+/* 手机端：按钮抬升到底部 Tab Bar 之上，避免被不透明栏遮住 */
+@media (max-width: 640px) {
+  .back-top {
+    bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
 .totop-enter-active,
 .totop-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;
