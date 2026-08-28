@@ -22,7 +22,7 @@
 
     <div class="tabbar__more">
       <button type="button" class="tabbar__item" :class="{ 'is-open': moreOpen }" :aria-expanded="moreOpen" aria-label="更多" @click="moreOpen = !moreOpen">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg>
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="19" cy="12" r="1.7" /></svg>
         <span>更多</span>
       </button>
     </div>
@@ -104,7 +104,8 @@ watch(() => route.fullPath, () => {
   left: calc(12px + env(safe-area-inset-left));
   z-index: 49;
   display: none;
-  grid-template-columns: 1fr 1fr 1.8fr 1fr 1.2fr;
+  /* 五等分列:五个入口中心等距,左右镜像对称(此前 1fr/1.8fr/1.2fr 混排导致间距忽宽忽窄) */
+  grid-template-columns: repeat(5, 1fr);
   align-items: end;
   gap: 2px;
   /* 卡片内部只做常规内边距,不再补安全区 */
