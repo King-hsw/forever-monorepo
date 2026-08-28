@@ -1,6 +1,8 @@
 <template>
   <!-- 移动端底部 Tab Bar（≤640px）：导航 + 居中搜索异形钮；「更多」上拉菜单收纳归档/聊天/登录 -->
   <nav class="tabbar" aria-label="移动端底部导航">
+    <!-- 磨砂玻璃底层:异形凹槽用 mask 挖在这一层,不能挖在容器上(mask 会连凸出的搜索钮与面板一起裁掉) -->
+    <span class="tabbar__glass" aria-hidden="true"></span>
     <NuxtLink to="/" class="tabbar__item" aria-label="首页">
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z" /></svg>
       <span>首页</span>
@@ -108,8 +110,16 @@ watch(() => route.fullPath, () => {
   grid-template-columns: repeat(5, 1fr);
   align-items: end;
   gap: 2px;
-  /* 卡片内部只做常规内边距,不再补安全区 */
-  padding: 8px 6px 10px;
+  /* 内边距对称;__glass 层用同样的负 inset 反向撑回,铺满整个卡片 */
+  padding: 8px 6px;
+}
+
+/* 磨砂玻璃底层:质感与异形凹槽都在这层,搜索钮/面板等子元素不受 mask 裁剪 */
+.tabbar__glass {
+  position: absolute;
+  /* 反向撑回容器内边距,覆盖整个卡片 border-box */
+  inset: -8px -6px;
+  pointer-events: none;
   /* 苹果式玻璃材质:低不透明度底色 + 大半径高斯模糊 + 饱和度提升,滚动内容从卡下透出 */
   background: color-mix(in srgb, var(--c-bg-card) 65%, transparent);
   backdrop-filter: blur(30px) saturate(180%);
@@ -118,6 +128,26 @@ watch(() => route.fullPath, () => {
   border-radius: 28px;
   /* 顶部内侧一条白高光是玻璃沿,后面是柔和投影 */
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
+  /* 半嵌托座:搜索钮中心在卡顶下 17px,挖半径 30px 圆洞(钮 25px + 5px 环绕缝隙) */
+  -webkit-mask: radial-gradient(circle 30px at 50% 17px, transparent 29px, #000 30px);
+  mask: radial-gradient(circle 30px at 50% 17px, transparent 29px, #000 30px);
+}
+
+/* 凹槽描边:沿挖口一圈细线,只显示卡片内的下半段(卡外上半裁掉) */
+.tabbar::before {
+  content: "";
+  position: absolute;
+  top: 17px;
+  left: 50%;
+  z-index: 1;
+  width: 60px;
+  height: 60px;
+  border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  /* 挖口从卡顶 y=0 开始,环线只保留 y≥0 段 */
+  clip-path: inset(13px 0 0 0);
+  pointer-events: none;
 }
 
 @media (max-width: 640px) {
@@ -127,7 +157,7 @@ watch(() => route.fullPath, () => {
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .tabbar,
+  .tabbar__glass,
   .tabbar__panel {
     background: var(--c-bg-card);
     backdrop-filter: none;
@@ -142,6 +172,8 @@ watch(() => route.fullPath, () => {
   gap: 3px;
   min-width: 0;
   padding: 2px 0;
+  /* 玻璃底层是定位元素会盖住静态内容,导航项需同为定位元素保持在其上 */
+  position: relative;
   font-size: 11px;
   line-height: 1.2;
   color: var(--c-text-secondary);
