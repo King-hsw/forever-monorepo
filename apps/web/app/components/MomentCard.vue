@@ -69,9 +69,8 @@
       <button
         type="button"
         class="moment-card__comments-btn"
-        :aria-expanded="showComments"
-        :disabled="showComments && loadingComments"
-        @click="toggleComments"
+        :aria-expanded="showForm"
+        @click="toggleForm"
       >
         💬 {{ moment.commentCount }} 条
       </button>
@@ -87,9 +86,10 @@
       </button>
     </footer>
 
-    <!-- 内联评论区：两层楼，与文章 / 留言板同一组件族 -->
-    <section v-if="showComments" class="moment-card__comments" aria-label="动态评论">
+    <!-- 内联评论区：两层楼，与文章 / 留言板同一组件族；评论内容常显，输入框点按钮才出现 -->
+    <section class="moment-card__comments" aria-label="动态评论">
       <CommentForm
+        v-if="showForm"
         target-type="MOMENT"
         :target-id="moment.id"
         :reply-to="replyTo"
@@ -104,10 +104,10 @@
       <template v-else>
         <ul class="moment-card__clist">
           <li v-for="root in roots" :key="root.id" class="moment-card__comment">
-            <CommentItem :comment="root" @reply="replyTo = $event" />
+            <CommentItem :comment="root" @reply="onReply" />
             <ul v-if="root.replies?.length" class="moment-card__replies" role="list">
               <li v-for="reply in root.replies" :key="reply.id">
-                <CommentItem :comment="reply" is-reply @reply="replyTo = $event" />
+                <CommentItem :comment="reply" is-reply @reply="onReply" />
               </li>
             </ul>
           </li>
@@ -179,8 +179,8 @@ async function toggleLike() {
   }
 }
 
-/* ---------- 内联评论区：默认展开（同文章页），挂载即拉取；按钮可收起 ---------- */
-const showComments = ref(true)
+/* ---------- 内联评论区：评论内容常显（挂载即拉取）；输入框由 💬 按钮显隐 ---------- */
+const showForm = ref(false)
 const roots = ref<CommentNode[]>([])
 const commentTotal = ref<number | null>(null)
 const commentPage = ref(1)
@@ -210,10 +210,14 @@ function goPage(p: number) {
   load(p)
 }
 
-function toggleComments() {
-  showComments.value = !showComments.value
-  if (showComments.value && roots.value.length === 0 && commentTotal.value === null)
-    void load(1)
+function toggleForm() {
+  showForm.value = !showForm.value
+}
+
+/** 点回复：先展开输入框，否则「回复 @xx」提示无处可去 */
+function onReply(node: CommentNode) {
+  replyTo.value = node
+  showForm.value = true
 }
 
 onMounted(() => {
