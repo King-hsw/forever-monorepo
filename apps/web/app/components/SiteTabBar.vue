@@ -110,7 +110,7 @@ watch(() => route.fullPath, () => {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
-  border-radius: 16px;
+  border-radius: 20px;
   /* 顶部内侧一条高光是玻璃沿(令牌随深浅色切换),后面是柔和投影 */
   box-shadow: inset 0 1px 0 var(--hl-line), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
 }
