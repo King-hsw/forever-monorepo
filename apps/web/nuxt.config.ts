@@ -80,7 +80,7 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
       runtimeCaching: [
         {
           urlPattern: ({ request, sameOrigin }) =>
@@ -127,6 +127,8 @@ export default defineNuxtConfig({
         },
       ],
       link: [
+        // 站点头像（webp 为主，favicon.ico 作为旧浏览器回退）
+        { rel: 'icon', type: 'image/webp', href: '/favicon.webp' },
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
         // 毛笔楷书字体（OFL 开源）：仅用于背景书法水印，Google Fonts 按 unicode-range 分包，只下载用到的十几个字
