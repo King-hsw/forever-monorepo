@@ -459,37 +459,33 @@ usePageSeo({
   margin: 0;
   font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
   font-size: 13.5px;
-  line-height: 2;
+  line-height: 1.8;
   color: var(--c-text-muted);
 }
 
-/* 右：衬线铭文 + 社交链接 */
+/* 右：衬线铭文 + 社交链接。块间距全由元素 margin 分组控制：
+   迎语 → 铭文组留一档呼吸，主次铭文同组紧排，避免 gap 叠加 margin 造成大空洞 */
 .hero__side {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-@media (max-width: 767px) {
-  .hero__side {
-    gap: 32px;
-  }
+  gap: 0;
 }
 
 /* 主铭文：最大最重的一级 */
 .hero__motto {
-  margin: 32px 0 0;
+  margin: 12px 0 0;
   font-family: var(--font-serif);
   font-size: clamp(24px, 3vw, 34px);
   font-weight: 600;
-  line-height: 1.625;
+  line-height: 1.5;
   letter-spacing: 0.02em;
   color: var(--c-text);
+  text-wrap: balance; /* 窄屏折行时两行均衡，避免"乎。"孤字悬行 */
 }
 
 /* 次铭文：紧随主铭文之下，小一号、弱化 */
 .hero__motto--sub {
-  margin: 6px 0 0;
+  margin: 4px 0 0;
   font-size: clamp(14px, 1.4vw, 16px);
   font-weight: 400;
   letter-spacing: 0.04em;
