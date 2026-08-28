@@ -2,12 +2,12 @@
   <div class="dashboard">
     <!-- 初始化引导：新环境关键配置未落库时提醒 -->
     <NuxtLink v-if="setupNeeded" to="/admin/setup" class="setup-banner card fade-up">
-      <span class="setup-banner__icon" aria-hidden="true">🧭</span>
+      <span class="setup-banner__icon" aria-hidden="true"><Icon name="lucide:compass" /></span>
       <div class="setup-banner__text">
         <strong>完成初始化配置</strong>
         <small>检测到站点地址、留言板等系统参数还未设置，建议先运行初始化引导</small>
       </div>
-      <span class="setup-banner__go">去配置 →</span>
+      <span class="setup-banner__go">去配置 <Icon name="lucide:chevron-right" /></span>
     </NuxtLink>
 
     <!-- 统计卡片 -->
@@ -18,7 +18,7 @@
         class="stat-card card fade-up"
         :style="{ '--stagger-index': i }"
       >
-        <span class="stat-card__icon" :class="`is-${stat.tone}`" aria-hidden="true">{{ stat.icon }}</span>
+        <span class="stat-card__icon" :class="`is-${stat.tone}`" aria-hidden="true"><Icon :name="stat.icon" /></span>
         <div>
           <strong class="stat-card__value">{{ stat.value }}</strong>
           <p class="stat-card__label">{{ stat.label }}</p>
@@ -38,7 +38,7 @@
       <div class="card dashboard__panel fade-up" style="--stagger-index: 5">
         <header class="panel-head">
           <h2>最近文章</h2>
-          <NuxtLink to="/admin/posts" class="panel-head__more">查看全部 →</NuxtLink>
+          <NuxtLink to="/admin/posts" class="panel-head__more">查看全部 <Icon name="lucide:arrow-right" /></NuxtLink>
         </header>
         <ul class="recent-list">
           <li
@@ -125,25 +125,25 @@ const stats = computed(() => [
   {
     label: '文章总数',
     value: postsStore.total.toLocaleString(),
-    icon: '📄',
+    icon: 'lucide:file-text',
     tone: 'primary',
   },
   {
     label: '已发布',
     value: postsStore.list.filter(p => p.status === 'PUBLISHED').length.toLocaleString(),
-    icon: '✅',
+    icon: 'lucide:circle-check',
     tone: 'success',
   },
   {
     label: '草稿',
     value: postsStore.list.filter(p => p.status === 'DRAFT').length.toLocaleString(),
-    icon: '✏️',
+    icon: 'lucide:pencil',
     tone: 'warning',
   },
   {
     label: '总浏览量',
     value: postsStore.list.reduce((sum, p) => sum + p.viewCount, 0).toLocaleString(),
-    icon: '👁️',
+    icon: 'lucide:eye',
     tone: 'default',
   },
 ])

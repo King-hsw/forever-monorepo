@@ -57,9 +57,9 @@
 
     <!-- 分页 -->
     <nav v-if="totalPages > 1" class="pager fade-up" style="--stagger-index: 3" aria-label="日志分页">
-      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="go(page - 1)">← 上一页</button>
+      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="go(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
       <span class="pager__info">{{ page }} / {{ totalPages }} · 共 {{ total }} 条</span>
-      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 →</button>
+      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
       <select class="field-input pager__size" :value="size" aria-label="每页条数"
               @change="changeSize(Number(($event.target as HTMLSelectElement).value))">
         <option :value="20">20 条/页</option>

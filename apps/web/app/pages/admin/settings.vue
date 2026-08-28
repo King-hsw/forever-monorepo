@@ -26,7 +26,7 @@
       :style="{ '--stagger-index': gi + 1 }"
     >
       <header class="settings-group__head">
-        <span class="settings-group__icon" aria-hidden="true">{{ group.icon }}</span>
+        <span class="settings-group__icon" aria-hidden="true"><Icon :name="group.icon" /></span>
         <div>
           <h3>{{ group.title }}</h3>
           <small v-if="group.desc">{{ group.desc }}</small>
@@ -209,26 +209,26 @@ interface Group {
 }
 
 const KNOWN_GROUPS: Group[] = [
-  { title: '站点', icon: '🌐', keys: ['site.url', 'site.birth-date'] },
+  { title: '站点', icon: 'lucide:globe', keys: ['site.url', 'site.birth-date'] },
   {
     title: '留言板',
-    icon: '📋',
+    icon: 'lucide:clipboard-list',
     keys: ['board.title', 'board.summary'],
   },
   {
     title: '评论',
-    icon: '💬',
+    icon: 'lucide:message-circle',
     keys: ['comment.auto-approve', 'comment.post-interval-seconds'],
   },
   {
     title: '评论邮件通知',
-    icon: '📧',
+    icon: 'lucide:mail',
     desc: '需已在服务端配置 spring.mail.* SMTP 基础设施，通知失败不影响评论本身',
     keys: ['comment.notify-mail', 'comment.owner-email', 'comment.from-email'],
   },
   {
     title: '动态',
-    icon: '📍',
+    icon: 'lucide:map-pin',
     desc: '发布页「获取当前位置」走高德逆地理编码；留空时该功能静默降级，可手动填写地点',
     keys: ['moments.amapKey'],
   },
@@ -239,7 +239,7 @@ const groups = computed<Group[]>(() => {
   const known = new Set(KNOWN_GROUPS.flatMap(g => g.keys))
   const rest = settingsStore.list.filter(s => !known.has(s.key))
   const list = [...KNOWN_GROUPS]
-  if (rest.length) list.push({ title: '其他', icon: '🧩', keys: rest.map(s => s.key) })
+  if (rest.length) list.push({ title: '其他', icon: 'lucide:puzzle', keys: rest.map(s => s.key) })
   return list
 })
 

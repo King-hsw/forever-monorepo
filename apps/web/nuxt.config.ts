@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   // 开发服务绑定所有网卡（0.0.0.0），局域网设备可直接通过本机 IP 访问
   devServer: {
-    host: true,
+    host: '0.0.0.0',
   },
   // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
   routeRules: {
@@ -45,7 +45,9 @@ export default defineNuxtConfig({
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
   // hljs-dark.css：代码高亮的深色 token 层（浅色基线是各组件引入的 highlight.js github.css）
   css: ['~/assets/css/main.css', '~/assets/css/prose.css', '~/assets/css/hljs-dark.css'],
-  modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
+  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/icon'],
+  // 图标：iconify 本地集合（@iconify-json/lucide），构建时打包、运行时不请求外网；
+  // 默认 css 模式用 mask 渲染，颜色随 currentColor、大小随 font-size，与现有线性 SVG 风格一致
   pwa: {
     registerType: 'autoUpdate',
     manifest: {

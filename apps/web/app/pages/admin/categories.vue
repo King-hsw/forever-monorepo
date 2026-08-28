@@ -128,8 +128,8 @@
         >
           {{ tag.name }}
           <small>{{ tag.articleCount }}</small>
-          <button type="button" aria-label="编辑" @click="openTagEdit(tag)">✎</button>
-          <button type="button" class="danger-text" aria-label="删除" @click="askRemove('tag', tag.id)">✕</button>
+          <button type="button" class="tags-cloud__edit" aria-label="编辑" @click="openTagEdit(tag)"><Icon name="lucide:pencil" /></button>
+          <button type="button" class="tags-cloud__remove danger-text" aria-label="删除" @click="askRemove('tag', tag.id)"><Icon name="lucide:x" /></button>
         </span>
         <p v-if="!tagsStore.list.length" class="tags-cloud__empty">还没有标签，新增一个吧</p>
       </div>

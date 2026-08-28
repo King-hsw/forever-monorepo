@@ -55,7 +55,7 @@
     </div>
 
     <div v-else class="card posts-empty fade-up">
-      <p>还没有文章，去写第一篇吧 ✍️</p>
+      <p>还没有文章，去写第一篇吧 <Icon name="lucide:pen-line" /></p>
       <NuxtLink to="/admin/posts/new" class="btn btn--primary">新建文章</NuxtLink>
     </div>
 

@@ -48,9 +48,9 @@
 
         <!-- 翻页 -->
         <nav v-if="totalPages > 1" class="pager" aria-label="搜索结果分页">
-          <button type="button" :disabled="page <= 1" @click="goPage(page - 1)">← 上一页</button>
+          <button type="button" :disabled="page <= 1" @click="goPage(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
           <span>{{ page }} / {{ totalPages }}</span>
-          <button type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">下一页 →</button>
+          <button type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
         </nav>
       </section>
 

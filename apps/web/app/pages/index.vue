@@ -79,7 +79,7 @@
                 </div>
                 <span class="featured__cta">
                   阅读全文
-                  <span class="featured__cta-circle">→</span>
+                  <span class="featured__cta-circle"><Icon name="lucide:arrow-right" /></span>
                 </span>
               </div>
             </NuxtLink>
@@ -115,7 +115,7 @@
 
             <NuxtLink v-if="totalPosts > homeCount" to="/posts" class="more-link">
               查看全部 {{ totalPosts }} 篇
-              <span class="more-link__arrow">→</span>
+              <span class="more-link__arrow"><Icon name="lucide:arrow-right" /></span>
             </NuxtLink>
           </div>
         </div>
@@ -133,7 +133,7 @@
         class="back-top"
         aria-label="回到顶部"
         @click="scrollToTop"
-      >↑</button>
+      ><Icon name="lucide:arrow-up" /></button>
     </Transition>
   </div>
 </template>
@@ -723,8 +723,7 @@ usePageSeo({
 }
 
 .featured__badge::before {
-  content: '✦';
-  font-size: 11px;
+  content: '';
 }
 
 .featured__title {

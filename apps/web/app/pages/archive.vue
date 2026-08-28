@@ -37,7 +37,7 @@
                     :datetime="item.publishedAt.slice(0, 10)"
                   >{{ formatDate(item.publishedAt) }}</time>
                   <span class="arch-item__title">{{ item.title }}</span>
-                  <span class="arch-item__arrow" aria-hidden="true">→</span>
+                  <span class="arch-item__arrow" aria-hidden="true"><Icon name="lucide:arrow-right" /></span>
                 </NuxtLink>
               </li>
             </ul>
@@ -46,7 +46,7 @@
       </template>
 
       <!-- 空态 / 加载失败降级 -->
-      <p v-else class="arch-empty">还没有公开的文章，先去别处逛逛吧 🍃</p>
+      <p v-else class="arch-empty">还没有公开的文章，先去别处逛逛吧 <Icon name="lucide:leaf" /></p>
     </main>
 
     <SiteFooter />

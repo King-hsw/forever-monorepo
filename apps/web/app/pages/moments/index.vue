@@ -33,12 +33,12 @@
           <button v-if="hasMore" type="button" class="btn" :disabled="loadingMore" @click="loadMore">
             {{ loadingMore ? '加载中…' : '加载更多' }}
           </button>
-          <p v-else class="moments-more__end">已经到底啦 🍃</p>
+          <p v-else class="moments-more__end">已经到底啦 <Icon name="lucide:leaf" /></p>
         </div>
       </template>
       <p v-else class="moments-empty">
-        <template v-if="canPost">还没有动态，<NuxtLink to="/moments/new">去发第一条</NuxtLink>吧 ✍️</template>
-        <template v-else>还没有动态 ✍️</template>
+        <template v-if="canPost">还没有动态，<NuxtLink to="/moments/new">去发第一条</NuxtLink>吧 <Icon name="lucide:pen-line" /></template>
+        <template v-else>还没有动态 <Icon name="lucide:pen-line" /></template>
       </p>
     </main>
 

@@ -18,14 +18,14 @@
         :class="{ 'is-active': isActive(item.to) }"
         :title="collapsed ? item.label : undefined"
       >
-        <span class="sidenav__icon" aria-hidden="true">{{ item.icon }}</span>
+        <span class="sidenav__icon" aria-hidden="true"><Icon :name="item.icon" /></span>
         <span class="sidenav__text">{{ item.label }}</span>
       </NuxtLink>
     </nav>
 
     <!-- 前往博客前台：站内直接跳转 -->
     <NuxtLink to="/" class="sidenav__link sidenav__blog-link" title="前往博客">
-      <span class="sidenav__icon" aria-hidden="true">🌐</span>
+      <span class="sidenav__icon" aria-hidden="true"><Icon name="lucide:globe" /></span>
       <span class="sidenav__text">前往博客</span>
     </NuxtLink>
 
@@ -43,7 +43,7 @@
         {{ collapsed ? '»' : '« 收起' }}
       </button>
       <button type="button" class="sidenav__close-btn" aria-label="关闭菜单" @click="$emit('close')">
-        ✕ 关闭
+        <Icon name="lucide:x" /> 关闭
       </button>
     </div>
   </aside>
@@ -79,15 +79,15 @@ function toggleCollapsed() {
 
 // perm 与页面 meta.permission 对应：无权限码的项对任何登录用户可见
 const navItems = [
-  { label: '仪表盘', to: '/admin', icon: '📊' },
-  { label: '文章管理', to: '/admin/posts', icon: '📝', perm: 'article:list' },
-  { label: '评论管理', to: '/admin/comments', icon: '💬', perm: 'comment:list' },
-  { label: '分类标签', to: '/admin/categories', icon: '🗂️', perm: 'category:list' },
-  { label: '用户权限', to: '/admin/permissions', icon: '🔐', perm: 'rbac:role:list' },
-  { label: 'RSS 订阅', to: '/admin/rss', icon: '📡', perm: 'rss:list' },
-  { label: '友链管理', to: '/admin/friends', icon: '🤝', perm: 'friend-link:list' },
-  { label: '站点设置', to: '/admin/settings', icon: '⚙️', perm: 'setting:list' },
-  { label: '日志审计', to: '/admin/logs', icon: '📜', perm: 'log:list' },
+  { label: '仪表盘', to: '/admin', icon: 'lucide:layout-dashboard' },
+  { label: '文章管理', to: '/admin/posts', icon: 'lucide:file-text', perm: 'article:list' },
+  { label: '评论管理', to: '/admin/comments', icon: 'lucide:message-circle', perm: 'comment:list' },
+  { label: '分类标签', to: '/admin/categories', icon: 'lucide:tags', perm: 'category:list' },
+  { label: '用户权限', to: '/admin/permissions', icon: 'lucide:lock-keyhole', perm: 'rbac:role:list' },
+  { label: 'RSS 订阅', to: '/admin/rss', icon: 'lucide:rss', perm: 'rss:list' },
+  { label: '友链管理', to: '/admin/friends', icon: 'lucide:link', perm: 'friend-link:list' },
+  { label: '站点设置', to: '/admin/settings', icon: 'lucide:settings', perm: 'setting:list' },
+  { label: '日志审计', to: '/admin/logs', icon: 'lucide:scroll-text', perm: 'log:list' },
   // 个人资料入口在顶栏头像下拉里，不再进菜单
 ]
 
@@ -225,8 +225,10 @@ function isActive(to: string): boolean {
 }
 
 .sidenav__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 22px;
-  text-align: center;
   font-size: 15px;
 }
 

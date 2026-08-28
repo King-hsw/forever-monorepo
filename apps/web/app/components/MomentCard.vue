@@ -23,7 +23,7 @@
           {{ moment.username }}
         </button>
         <span v-if="locationText || locationHref" class="moment-card__loc">
-          <span aria-hidden="true">📍</span>
+          <Icon name="lucide:map-pin" />
           <!-- 无文本但有经纬度：「位置」链接新标签打开高德 marker 页 -->
           <a v-if="locationHref" :href="locationHref" target="_blank" rel="noopener">位置</a>
           <template v-else>{{ locationText }}</template>
@@ -65,7 +65,9 @@
         :disabled="likePending"
         @click="toggleLike"
       >
-        <span class="moment-card__like-emoji" aria-hidden="true">{{ moment.liked ? '❤️' : '🤍' }}</span>
+        <span class="moment-card__like-icon" aria-hidden="true">
+          <Icon name="lucide:heart" mode="svg" />
+        </span>
         <span>{{ moment.likeCount }}</span>
       </button>
       <button
@@ -74,7 +76,7 @@
         :aria-expanded="showForm"
         @click="toggleForm"
       >
-        💬 {{ moment.commentCount }} 条
+        <Icon name="lucide:message-circle" /> {{ moment.commentCount }} 条
       </button>
       <button
         v-if="moment.canDelete"
@@ -114,9 +116,9 @@
           </li>
         </ul>
         <nav v-if="totalPages > 1" class="moment-card__pager" aria-label="评论分页">
-          <button type="button" :disabled="commentPage <= 1" @click="goPage(commentPage - 1)">← 上一页</button>
+          <button type="button" :disabled="commentPage <= 1" @click="goPage(commentPage - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
           <span>{{ commentPage }} / {{ totalPages }}</span>
-          <button type="button" :disabled="commentPage >= totalPages" @click="goPage(commentPage + 1)">下一页 →</button>
+          <button type="button" :disabled="commentPage >= totalPages" @click="goPage(commentPage + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
         </nav>
       </template>
     </section>
@@ -471,12 +473,22 @@ async function onDelete() {
   color: var(--c-primary-hover);
 }
 
-.moment-card__like-emoji {
-  display: inline-block;
+.moment-card__like-icon {
+  display: inline-flex;
   transition: transform 0.2s var(--ease-bounce);
 }
 
-.moment-card__like.is-liked .moment-card__like-emoji {
+.moment-card__like-icon :deep(svg) {
+  width: 15px;
+  height: 15px;
+}
+
+/* 已赞：描边心形填充为实心 */
+.moment-card__like.is-liked .moment-card__like-icon :deep(svg) {
+  fill: currentColor;
+}
+
+.moment-card__like.is-liked .moment-card__like-icon {
   transform: scale(1.15);
 }
 

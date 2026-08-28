@@ -2,7 +2,7 @@
   <div class="heatmap">
     <p class="heatmap__summary">
       近一年发文 <strong>{{ data.yearTotal }}</strong> 篇
-      <template v-if="data.streak > 0">· 连续更文 {{ data.streak }} 天 🔥</template>
+      <template v-if="data.streak > 0">· 连续更文 {{ data.streak }} 天 <Icon name="lucide:flame" /></template>
     </p>
 
     <div class="heatmap__scroll">
@@ -82,7 +82,7 @@
     </footer>
 
     <p v-if="data.yearTotal === 0" class="heatmap__empty">
-      <slot name="empty">最近一年还没有发文记录 ✍️</slot>
+      <slot name="empty">最近一年还没有发文记录 <Icon name="lucide:pen-line" /></slot>
     </p>
   </div>
 </template>

@@ -5,7 +5,7 @@
     </header>
     <PostHeatmap :posts="posts">
       <template #empty>
-        最近一年还没有发文记录，<NuxtLink to="/admin/posts/new">写下第一篇</NuxtLink>吧 ✍️
+        最近一年还没有发文记录，<NuxtLink to="/admin/posts/new">写下第一篇</NuxtLink>吧 <Icon name="lucide:pen-line" />
       </template>
     </PostHeatmap>
   </div>

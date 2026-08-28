@@ -11,6 +11,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@iconify-json/lucide": "^1.2.126",
+    "@nuxt/icon": "^2.5.1",
     "@pinia/nuxt": "^1.0.2",
     "@tiptap/extension-code-block-lowlight": "3.30.2",
     "@tiptap/extension-image": "3.30.2",

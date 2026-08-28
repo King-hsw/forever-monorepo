@@ -65,9 +65,9 @@
 
     <!-- 分页 -->
     <nav v-if="totalPages > 1" class="pager fade-up" style="--stagger-index: 2" aria-label="评论分页">
-      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="go(page - 1)">← 上一页</button>
+      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="go(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
       <span class="pager__info">{{ page }} / {{ totalPages }} · 共 {{ total }} 条</span>
-      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 →</button>
+      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
     </nav>
 
     <AdminConfirmDialog

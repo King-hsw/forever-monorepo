@@ -17,7 +17,7 @@
           aria-label="打开菜单"
           @click="sidebarOpen = true"
         >
-          ☰
+          <Icon name="lucide:menu" />
         </button>
         <strong class="topbar__title">{{ pageTitle }}</strong>
 

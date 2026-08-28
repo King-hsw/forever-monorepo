@@ -39,7 +39,7 @@
                   <span v-if="r.highlights?.excerpt" class="global-search__item-excerpt" v-html="r.highlights.excerpt" />
                 </NuxtLink>
                 <NuxtLink :to="`/search?kw=${encodeURIComponent(kw.trim())}`" class="global-search__all" @click="close()">
-                  查看全部 {{ total }} 条结果 →
+                  查看全部 {{ total }} 条结果 <Icon name="lucide:arrow-right" />
                 </NuxtLink>
               </template>
               <p v-else class="global-search__hint">没有找到「{{ kw.trim() }}」相关内容</p>

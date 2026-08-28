@@ -16,7 +16,9 @@
         :class="{ 'is-active': i === current, 'is-done': i < current }"
         :aria-current="i === current ? 'step' : undefined"
       >
-        <span class="setup-steps__dot">{{ i < current ? '✓' : i + 1 }}</span>
+        <span class="setup-steps__dot">
+          <Icon v-if="i < current" name="lucide:check" /><template v-else>{{ i + 1 }}</template>
+        </span>
         <span class="setup-steps__label">{{ step.title }}</span>
       </li>
     </ol>
@@ -24,7 +26,7 @@
     <!-- 当前步骤表单 -->
     <section v-if="step" class="card setup-card fade-up" style="--stagger-index: 2">
       <header class="setup-card__head">
-        <span aria-hidden="true">{{ step.icon }}</span>
+        <span class="setup-card__icon" aria-hidden="true"><Icon :name="step.icon" /></span>
         <div>
           <h3>{{ step.title }}</h3>
           <small v-if="step.desc">{{ step.desc }}</small>
@@ -82,7 +84,7 @@
 
     <!-- 完成态 -->
     <section v-if="done" class="card setup-done fade-up" style="--stagger-index: 2">
-      <span aria-hidden="true">🎉</span>
+      <span class="setup-done__icon" aria-hidden="true"><Icon name="lucide:party-popper" /></span>
       <h3>初始化完成</h3>
       <p>所有参数已保存，可以开始使用了。</p>
       <footer>
@@ -135,12 +137,12 @@ interface Step {
 }
 
 const steps: Step[] = [
-  { title: '站点信息', icon: '🌐', desc: '站点对外展示的访问地址，用于 RSS、友链等场景', keys: ['site.url'] },
-  { title: '留言板', icon: '📋', keys: ['board.title', 'board.summary'] },
-  { title: '评论规则', icon: '💬', keys: ['comment.auto-approve', 'comment.post-interval-seconds'] },
+  { title: '站点信息', icon: 'lucide:globe', desc: '站点对外展示的访问地址，用于 RSS、友链等场景', keys: ['site.url'] },
+  { title: '留言板', icon: 'lucide:clipboard-list', keys: ['board.title', 'board.summary'] },
+  { title: '评论规则', icon: 'lucide:message-circle', keys: ['comment.auto-approve', 'comment.post-interval-seconds'] },
   {
     title: '邮件通知（可选）',
-    icon: '📧',
+    icon: 'lucide:mail',
     desc: '需服务端已配置 SMTP；不配置则评论通知保持关闭',
     keys: ['comment.notify-mail', 'comment.owner-email', 'comment.from-email'],
   },

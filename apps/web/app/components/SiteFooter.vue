@@ -37,10 +37,10 @@
             <h3 class="site-footer__heading">站外</h3>
             <ul>
               <li>
-                <a href="https://www.travellings.cn/" target="_blank" rel="noopener" title="开往">开往 ↗</a>
+                <a href="https://www.travellings.cn/" target="_blank" rel="noopener" title="开往">开往 <Icon name="lucide:arrow-up-right" /></a>
               </li>
               <li>
-                <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约 ↗</a>
+                <a href="https://www.foreverblog.cn/" target="_blank" rel="noopener" title="十年之约">十年之约 <Icon name="lucide:arrow-up-right" /></a>
               </li>
 
             </ul>
@@ -71,7 +71,7 @@
 
       <!-- ===== 底部信息条：版权 + 备案 ===== -->
       <div class="site-footer__bottom">
-        <span>© 2024 - {{ year }} 补陋阁 · 用 <span class="site-footer__heart" aria-hidden="true">♥</span> 书写</span>
+        <span>© 2024 - {{ year }} 补陋阁 · 用 <span class="site-footer__heart" aria-hidden="true"><Icon name="lucide:heart" mode="svg" /></span> 书写</span>
         <span class="site-footer__beian">
           <a href="https://icp.gov.moe/?keyword=20251208" target="_blank" rel="noopener">萌ICP备20251208号</a>
           <a href="https://beian.miit.gov.cn" target="_blank" rel="noopener noreferrer">闽ICP备202200094号-2</a>
@@ -325,7 +325,16 @@ onUnmounted(() => {
 }
 
 .site-footer__heart {
+  display: inline-flex;
+  vertical-align: -2px;
   color: var(--c-primary);
+}
+
+.site-footer__heart :deep(svg),
+.site-footer__heart svg {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
 }
 
 @media (max-width: 720px) {

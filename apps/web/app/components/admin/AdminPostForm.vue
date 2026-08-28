@@ -3,14 +3,14 @@
     <!-- 粘性操作条：返回 / 状态 / 全屏 / 设置 / 发布，参考 Ghost 顶部发布栏 -->
     <div class="composer__bar fade-up">
       <div class="composer__bar-left">
-        <NuxtLink to="/admin/posts" class="btn btn--ghost">← 返回列表</NuxtLink>
+        <NuxtLink to="/admin/posts" class="btn btn--ghost"><Icon name="lucide:arrow-left" /> 返回列表</NuxtLink>
         <span v-if="status" class="badge" :class="`badge--${statusClass(status)}`">{{ statusLabel(status) }}</span>
       </div>
       <div class="composer__bar-right">
         <button type="button" class="btn btn--ghost" :title="fullscreen ? '退出全屏 (Esc)' : '全屏专注模式'" @click="toggleFullscreen">
-          {{ fullscreen ? '⤢ 退出全屏' : '⛶ 全屏' }}
+          <Icon :name="fullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" /> {{ fullscreen ? '退出全屏' : '全屏' }}
         </button>
-        <button type="button" class="btn btn--ghost" @click="drawerOpen = true">⚙ 设置</button>
+        <button type="button" class="btn btn--ghost" @click="drawerOpen = true"><Icon name="lucide:settings" /> 设置</button>
         <button type="button" class="btn btn--ghost" :disabled="saving" @click="submit('DRAFT')">存为草稿</button>
         <button type="submit" class="btn btn--primary" :disabled="saving">{{ saving ? '保存中…' : '保存并发布' }}</button>
       </div>
@@ -45,7 +45,7 @@
         <aside v-if="drawerOpen" class="composer__drawer">
           <header class="drawer-head">
             <h3>文章设置</h3>
-            <button type="button" aria-label="关闭" @click="drawerOpen = false">✕</button>
+            <button type="button" class="drawer-head__close" aria-label="关闭" @click="drawerOpen = false"><Icon name="lucide:x" /></button>
           </header>
 
           <section class="drawer-section">

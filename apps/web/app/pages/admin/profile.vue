@@ -15,7 +15,7 @@
     <!-- 头像 -->
     <section class="profile-card fade-up" style="--stagger-index: 1">
       <header class="profile-card__head">
-        <span class="profile-card__icon" aria-hidden="true">🖼️</span>
+        <span class="profile-card__icon" aria-hidden="true"><Icon name="lucide:image" /></span>
         <div>
           <h3>头像</h3>
           <small>未上传时按邮箱 hash 自动生成 Gravatar 头像</small>
@@ -55,7 +55,7 @@
     <!-- 基本资料 -->
     <section class="profile-card fade-up" style="--stagger-index: 2">
       <header class="profile-card__head">
-        <span class="profile-card__icon" aria-hidden="true">📝</span>
+        <span class="profile-card__icon" aria-hidden="true"><Icon name="lucide:pencil" /></span>
         <div>
           <h3>基本资料</h3>
         </div>
@@ -136,7 +136,7 @@
     <!-- 修改密码 -->
     <section class="profile-card fade-up" style="--stagger-index: 3">
       <header class="profile-card__head">
-        <span class="profile-card__icon" aria-hidden="true">🔒</span>
+        <span class="profile-card__icon" aria-hidden="true"><Icon name="lucide:lock" /></span>
         <div>
           <h3>修改密码</h3>
           <small>需 6-100 位，建议与常用密码不同</small>

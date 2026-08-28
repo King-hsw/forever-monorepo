@@ -3,7 +3,7 @@
     <main class="newpage-main">
       <header class="newpage-head">
         <h1 class="newpage-head__title">发布动态</h1>
-        <p class="newpage-head__sub">说说最近的事 ✍️</p>
+        <p class="newpage-head__sub">说说最近的事 <Icon name="lucide:pen-line" /></p>
       </header>
 
       <form class="composer" @submit.prevent="submit">
@@ -70,7 +70,9 @@
           :key="item.id"
           class="composer__media"
         >
-          <span class="composer__media__icon" aria-hidden="true">{{ item.kind === 'audio' ? '🎵' : '🎬' }}</span>
+          <span class="composer__media__icon" aria-hidden="true">
+            <Icon :name="item.kind === 'audio' ? 'lucide:music' : 'lucide:clapperboard'" />
+          </span>
           <div class="composer__media__info">
             <span class="composer__media__name">{{ item.file.name }}</span>
             <span v-if="item.status === 'uploading'" class="composer__media__status">上传中…</span>
@@ -93,7 +95,7 @@
         <!-- 底部工具条：图片 / 音频 / 视频 / 位置 + 发布 -->
         <div class="composer__bar">
           <label class="composer__tool">
-            📷 图片
+            <Icon name="lucide:camera" /> 图片
             <input
               type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
               class="composer__file"
@@ -101,7 +103,7 @@
             >
           </label>
           <label class="composer__tool">
-            🎵 音频
+            <Icon name="lucide:music" /> 音频
             <input
               type="file" accept="audio/mpeg,audio/mp4,audio/wav"
               class="composer__file"
@@ -109,7 +111,7 @@
             >
           </label>
           <label class="composer__tool">
-            🎬 视频
+            <Icon name="lucide:clapperboard" /> 视频
             <input
               type="file" accept="video/mp4,video/webm"
               class="composer__file"
@@ -122,7 +124,7 @@
             :class="{ 'is-active': showLocation }"
             @click="showLocation = !showLocation"
           >
-            📍 位置
+            <Icon name="lucide:map-pin" /> 位置
           </button>
 
           <button
@@ -144,7 +146,7 @@
             placeholder="如：杭州 · 西湖"
           >
           <button type="button" class="composer__location-btn" :disabled="locating" @click="getLocation">
-            {{ locating ? '定位中…' : '📍 获取当前位置' }}
+            <Icon v-if="!locating" name="lucide:locate-fixed" /> {{ locating ? '定位中…' : '获取当前位置' }}
           </button>
         </div>
 

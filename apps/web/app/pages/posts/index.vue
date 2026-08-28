@@ -83,7 +83,7 @@
       <p v-else-if="data" class="posts-empty">
         <template v-if="data.total > 0 && page > 1">翻到页尾了，这一页没有文章。</template>
         <template v-else-if="categoryId">这个分类下暂时没有文章。</template>
-        <template v-else>还没有公开的文章，先去别处逛逛吧 🍃</template>
+        <template v-else>还没有公开的文章，先去别处逛逛吧 <Icon name="lucide:leaf" /></template>
       </p>
     </main>
 

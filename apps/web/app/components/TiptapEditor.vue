@@ -4,10 +4,10 @@
     <div v-if="editor" class="tiptap-editor__toolbar">
       <div class="tiptap-editor__group">
         <button type="button" title="撤销 (⌘Z)" :disabled="!editor.can().undo()" @click="editor.chain().focus().undo().run()">
-          ↩
+          <Icon name="lucide:undo-2" />
         </button>
         <button type="button" title="重做 (⌘⇧Z)" :disabled="!editor.can().redo()" @click="editor.chain().focus().redo().run()">
-          ↪
+          <Icon name="lucide:redo-2" />
         </button>
       </div>
 

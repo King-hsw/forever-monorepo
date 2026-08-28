@@ -92,6 +92,9 @@ md.use(
 /** 复制成功后的反馈展示时长（与编辑器代码块的复制反馈一致） */
 const COPY_FEEDBACK_MS = 1500
 
+/** 复制成功反馈里的小对勾（内联 SVG，随按钮文字颜色） */
+const CHECK_SVG = '<svg viewBox="0 0 24 24" width="12" height="12" style="vertical-align:-1px" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>'
+
 /**
  * 给每个高亮代码块包一层外壳：右上角工具条（语言标签 + 复制按钮），
  * 与 Tiptap 编辑器的代码块工具条保持同一交互。
@@ -154,7 +157,7 @@ function onClick(event: MouseEvent) {
   const code = btn.closest('.md-code-block')?.querySelector('pre')?.textContent ?? ''
   navigator.clipboard.writeText(code)
     .then(() => {
-      btn.textContent = '已复制 ✓'
+      btn.innerHTML = `已复制 ${CHECK_SVG}`
       btn.classList.add('is-copied')
       btn.disabled = true
       clearTimeout(resetTimers.get(btn))
