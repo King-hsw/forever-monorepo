@@ -59,9 +59,15 @@
 }
 
 /* 正文段落首行缩进 2 字符（标准文章排版）：
- * 只作用于顶层段落，块引用（夹注）、列表、表格等内部段落不缩进 */
+ * 只作用于顶层段落，块引用（夹注）、列表、表格等内部段落不缩进；
+ * 整段只有链接或图片的段落（参考文献、独立配图）由 MarkdownView
+ * 渲染期打上 md-nonprose 标，同样不缩进 */
 :is(.markdown-view, .tiptap .ProseMirror) > p {
   text-indent: 2em;
+}
+
+:is(.markdown-view, .tiptap .ProseMirror) > p.md-nonprose {
+  text-indent: 0;
 }
 
 :is(.markdown-view, .tiptap) :is(ul, ol) {

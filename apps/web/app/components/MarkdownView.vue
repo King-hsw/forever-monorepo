@@ -120,6 +120,21 @@ const decorateCodeBlocks = (html: string): string =>
     },
   )
 
+/**
+ * 给「非正文段落」打 md-nonprose 标：整段剥掉链接 / 图片 / 换行后
+ * 不再有任何实际内容的段落（典型：参考文献一节整行一个链接、独立成段的配图）。
+ * prose.css 据此取消其首行缩进——首行缩进只留给真正的正文文字段落。
+ * marked 输出的 <p> 恒为裸标签，可安全地按 <p>…</p> 整块匹配。
+ */
+const markNonProseParagraphs = (html: string): string =>
+  html.replace(/<p>([\s\S]*?)<\/p>/g, (whole, inner: string) =>
+    inner
+      .replace(/<a\b[^>]*>[\s\S]*?<\/a>|<img\b[^>]*>|<br\s*\/?>/gi, '')
+      .trim()
+      ? whole
+      : `<p class="md-nonprose">${inner}</p>`,
+  )
+
 const props = defineProps<{
   /** Markdown 源码 */
   source?: string
@@ -129,9 +144,11 @@ const html = computed(() => {
   if (!props.source) {
     return ''
   }
-  return decorateCodeBlocks(md.parse(props.source, { async: false }))
-    // 防盗链站点会拒给带 Referer 的图片，补上 no-referrer（已手动写过的跳过）
-    .replace(/<img(?![^>]*\sreferrerpolicy=)/g, '<img referrerpolicy="no-referrer"')
+  return markNonProseParagraphs(
+    decorateCodeBlocks(md.parse(props.source, { async: false }))
+      // 防盗链站点会拒给带 Referer 的图片，补上 no-referrer（已手动写过的跳过）
+      .replace(/<img(?![^>]*\sreferrerpolicy=)/g, '<img referrerpolicy="no-referrer"'),
+  )
 })
 
 /* ---------- 点击委托：正文图片浮层预览 + 代码块复制（已复制反馈） ---------- */
