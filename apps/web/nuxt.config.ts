@@ -135,10 +135,8 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/webp', href: '/favicon.webp' },
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
-        // 毛笔楷书字体（OFL 开源）：仅用于背景书法水印，Google Fonts 按 unicode-range 分包，只下载用到的十几个字
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap' },
+        // 不引任何外部样式表：Google Fonts 之类的外链 CSS 是渲染阻塞资源，
+        // 会让首帧白白等一个对外的网络往返（PWA 冷启动白屏的主要来源之一）
       ]
     }
   }
