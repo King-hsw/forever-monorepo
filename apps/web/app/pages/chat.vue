@@ -490,8 +490,8 @@ usePageSeo({
 
 <style scoped>
 .chat-page {
-  /* 布局层已为刘海下移安全区高度（app-shell__body padding-top），
-     这里减去同值保持恰好满屏，避免整页溢出滚动 */
+  /* 微信/QQ 式满视口布局：布局层已为刘海下移安全区高度（app-shell__body padding-top），
+     这里减去同值恰好占满视口，页面级不产生滚动，滚动只发生在消息列表内 */
   height: calc(100dvh - var(--safe-area-inset-top));
   display: flex;
   flex-direction: column;
@@ -1037,6 +1037,15 @@ usePageSeo({
     inset: 0;
     z-index: 39;
     background: rgb(28 25 23 / 35%);
+  }
+}
+
+/* 手机端（Tab Bar 出现区间）：发送区抬到悬浮 Tab Bar 上方。
+   border-box 下总高不变，整页仍恰好视口高；布局层此页已让出 padding-bottom，
+   让位由这里接管，页面级保持零滚动 */
+@media (max-width: 640px) {
+  .chat-page {
+    padding-bottom: calc(var(--tabbar-space) + var(--safe-area-inset-bottom));
   }
 }
 </style>

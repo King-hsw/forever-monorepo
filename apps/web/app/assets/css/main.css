@@ -90,6 +90,9 @@ h1, h2 {
   /* 安全区：iOS PWA standalone 注入手势条/刘海高度，无安全区设备回退 0 */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* 移动端悬浮 Tab Bar 的底部让位：卡片高 + 悬浮间隙（≤640px 时 Tab Bar 才存在） */
+  --tabbar-space: 96px;
   color-scheme: light;
 }
 
