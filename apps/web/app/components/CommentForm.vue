@@ -70,7 +70,7 @@ const route = useRoute()
 
 guest.hydrate()
 
-/** 登录资料发言身份：仅 useLoginIdentity 开启且登录时拉取；资料缺昵称/邮箱则回落游客身份流程 */
+/** 登录资料发言身份：仅 useLoginIdentity 开启且登录时拉取；资料缺昵称则回落游客身份流程（邮箱可为空） */
 const profile = ref<ProfileInfo | null>(null)
 if (props.useLoginIdentity) {
   auth.hydrate()
@@ -84,8 +84,7 @@ const loginIdentity = computed(() => {
   if (!p)
     return null
   const nickname = p.nickname || p.username
-  const email = p.email || ''
-  return nickname && email ? { nickname, email, site: p.site || '' } : null
+  return nickname ? { nickname, email: p.email || '', site: p.site || '' } : null
 })
 
 const content = ref('')

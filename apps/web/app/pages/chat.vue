@@ -276,11 +276,12 @@ async function load() {
 }
 
 function toMsg(n: CommentNode): ChatMsg {
+  // 留言板评论邮箱必填，avatarUrl 实际恒有值；类型上兼容动态评论的空头像
   return {
     id: n.id,
     parentId: n.parentId ?? null,
     nickname: n.nickname,
-    avatarUrl: n.avatarUrl,
+    avatarUrl: n.avatarUrl ?? '',
     site: n.site,
     content: n.content,
     createdAt: n.createdAt,

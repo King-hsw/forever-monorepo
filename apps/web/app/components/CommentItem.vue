@@ -1,7 +1,8 @@
 <template>
   <div class="comment-item" :class="{ 'is-reply': isReply }">
-    <img :src="comment.avatarUrl" alt="" class="comment-item__avatar" loading="lazy"
+    <img v-if="comment.avatarUrl" :src="comment.avatarUrl" alt="" class="comment-item__avatar" loading="lazy"
          @error="(e: Event) => ((e.target as HTMLImageElement).style.visibility = 'hidden')">
+    <span v-else class="comment-item__avatar comment-item__avatar--initial" aria-hidden="true">{{ initialOf(comment.nickname) }}</span>
     <div class="comment-item__body">
       <header class="comment-item__meta">
         <a v-if="comment.site" :href="comment.site" target="_blank" rel="noopener nofollow ugc" class="comment-item__name comment-item__name--link">
@@ -23,7 +24,7 @@
 
 <script setup lang="ts">
 import type { CommentNode } from '#shared/types'
-import { formatDateTime } from '~/utils/format'
+import { formatDateTime, initialOf } from '~/utils/format'
 
 defineProps<{
   comment: CommentNode
@@ -58,6 +59,16 @@ defineEmits<{ reply: [comment: CommentNode] }>()
     width: 28px;
     height: 28px;
   }
+}
+
+/* 无头像（登录用户未填邮箱）：昵称首字兜底 */
+.comment-item__avatar--initial {
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
 }
 
 .comment-item__body {

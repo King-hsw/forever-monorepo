@@ -150,8 +150,8 @@ export type CommentTarget = 'ARTICLE' | 'BOARD' | 'MOMENT'
 export interface CommentNode {
   id: number
   nickname: string
-  /** 由邮箱哈希生成的头像 URL */
-  avatarUrl: string
+  /** 由邮箱哈希生成的头像 URL；邮箱为空（登录用户未填资料邮箱）时为 null */
+  avatarUrl: string | null
   /** 个人主页，可为 null */
   site: string | null
   content: string
