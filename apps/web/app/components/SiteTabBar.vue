@@ -110,12 +110,12 @@ watch(() => route.fullPath, () => {
   gap: 2px;
   /* 卡片内部只做常规内边距,不再补安全区 */
   padding: 8px 6px 10px;
-  /* 透明磨砂:底色只到七成不透明,靠 backdrop-filter 透出滚动内容(配方对齐顶栏 78% 一档) */
-  background: color-mix(in srgb, var(--c-bg-card) 72%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  /* 苹果式玻璃材质:低不透明度底色 + 大半径高斯模糊 + 饱和度提升,滚动内容从卡下透出 */
+  background: color-mix(in srgb, var(--c-bg-card) 65%, transparent);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
-  border-radius: 18px;
+  border-radius: 28px;
   /* 顶部内侧一条白高光是玻璃沿,后面是柔和投影 */
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
 }
@@ -194,6 +194,12 @@ watch(() => route.fullPath, () => {
   position: relative;
 }
 
+/* button 设 display:flex 后是 fit-content 收缩盒,不像 <a> 网格项那样撑满整列;
+   不撑满会缩在列左缘,「更多」整体偏左、和动态贴得更近 */
+.tabbar__more .tabbar__item {
+  width: 100%;
+}
+
 /* 「更多」上拉菜单：全宽卡片，从底部升入停于栏上方 */
 .tabbar__panel {
   position: absolute;
@@ -205,12 +211,12 @@ watch(() => route.fullPath, () => {
   grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
   gap: 6px;
   padding: 14px 10px;
-  /* 与 Tab Bar 同一磨砂质感,但收起项是小字菜单,底色略提不透明度保可读性 */
+  /* 与 Tab Bar 同一玻璃材质,但收起项是小字菜单,底色略提不透明度保可读性 */
   background: color-mix(in srgb, var(--c-bg-card) 85%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid var(--c-border);
-  border-radius: 18px;
+  border-radius: 24px;
   box-shadow: 0 -10px 30px rgb(0 0 0 / 14%);
 }
 
