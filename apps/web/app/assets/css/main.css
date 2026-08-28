@@ -81,6 +81,9 @@ h1, h2 {
   /* 弹簧感缓动：平滑收敛无过冲（临界阻尼），变量名保留兼容旧引用 */
   --ease-bounce: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-soft: 260ms;
+
+  /* 安全区：iOS PWA standalone 注入手势条/刘海高度，无安全区设备回退 0 */
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
 }
 

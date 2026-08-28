@@ -984,10 +984,10 @@ usePageSeo({
   transform: scale(0.92);
 }
 
-/* 手机端：按钮抬升到底部 Tab Bar 之上，避免被不透明栏遮住 */
+/* 手机端：按钮抬升到悬浮 Tab Bar 之上，避免被遮挡 */
 @media (max-width: 640px) {
   .back-top {
-    bottom: calc(84px + env(safe-area-inset-bottom));
+    bottom: calc(94px + var(--safe-area-inset-bottom));
   }
 }
 

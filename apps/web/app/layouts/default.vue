@@ -43,10 +43,10 @@ const headerWidth = computed(() =>
 
 /* 移动端：隐藏桌面左栏（SiteRail 自身已 display:none），顶栏照常 */
 
-/* 移动端：给底部 Tab Bar 留出空间，避免遮住内容 */
+/* 移动端：主内容区预留底部空间（Tab Bar 卡片高 + 基础间隙 + 安全区），不被悬浮 Tab Bar 遮挡 */
 @media (max-width: 640px) {
   .app-shell__body {
-    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+    padding-bottom: calc(88px + var(--safe-area-inset-bottom));
   }
 }
 </style>

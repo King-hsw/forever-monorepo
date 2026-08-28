@@ -97,20 +97,24 @@ watch(() => route.fullPath, () => {
 <style scoped>
 .tabbar {
   position: fixed;
-  inset: auto 0 0;
+  /* 悬浮卡片不贴死屏幕底边:bottom = 基础间隙 + 手势条安全区,整卡抬升 */
+  right: calc(12px + env(safe-area-inset-right));
+  bottom: calc(10px + var(--safe-area-inset-bottom));
+  /* 横屏时左右让出灵动岛/安全区 */
+  left: calc(12px + env(safe-area-inset-left));
   z-index: 49;
   display: none;
   grid-template-columns: 1fr 1fr 1.8fr 1fr 1.2fr;
   align-items: end;
   gap: 2px;
-  /* 底部让出 home 指示条;横屏时左右再让出灵动岛/安全区 */
-  padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
-  padding-left: max(6px, env(safe-area-inset-left));
-  padding-right: max(6px, env(safe-area-inset-right));
-  background: color-mix(in srgb, var(--c-bg-card) 88%, transparent);
+  /* 卡片内部只做常规内边距,不再补安全区 */
+  padding: 8px 6px 10px;
+  background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
   backdrop-filter: blur(14px) saturate(180%);
   -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border-top: 1px solid var(--c-border);
+  border: 1px solid var(--c-border);
+  border-radius: 18px;
+  box-shadow: 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
 }
 
 @media (max-width: 640px) {
