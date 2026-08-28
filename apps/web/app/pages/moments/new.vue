@@ -498,11 +498,12 @@ async function submit() {
   }
 }
 
-/* 图片九宫格 */
+/* 图片九宫格：限宽，单张缩略约 128px，避免预览区过大 */
 .composer__images {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  max-width: 400px;
 }
 
 .composer__image {
