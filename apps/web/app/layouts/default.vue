@@ -3,6 +3,7 @@
     <!-- 桌面端左侧竖排导航（≥901px），移动端回落为顶部 Header -->
     <SiteRail />
     <SiteHeader :width="headerWidth" />
+    <SiteTabBar />
     <div class="app-shell__body">
       <slot />
     </div>
@@ -41,4 +42,11 @@ const headerWidth = computed(() =>
 }
 
 /* 移动端：隐藏桌面左栏（SiteRail 自身已 display:none），顶栏照常 */
+
+/* 移动端：给底部 Tab Bar 留出空间，避免遮住内容 */
+@media (max-width: 640px) {
+  .app-shell__body {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+}
 </style>

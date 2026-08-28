@@ -88,40 +88,8 @@
           </div>
         </div>
         <span class="site-header__divider" aria-hidden="true" />
-        <button
-          type="button"
-          class="site-header__burger"
-          :aria-expanded="menuOpen"
-          aria-label="打开菜单"
-          @click="menuOpen = !menuOpen"
-        >
-          <span :class="{ 'burger-open': menuOpen }" aria-hidden="true" />
-        </button>
       </div>
     </div>
-
-    <!-- 移动端下拉菜单 -->
-    <Transition name="menu">
-      <nav v-if="menuOpen" class="mobile-menu" aria-label="移动端导航">
-        <template v-for="item in navItems" :key="item.label">
-          <NuxtLink v-if="!item.children" class="mobile-menu__link" :to="item.to" @click="menuOpen = false">
-            {{ item.label }}
-          </NuxtLink>
-          <!-- 子菜单平铺缩进展示 -->
-          <NuxtLink
-            v-for="child in item.children ?? []"
-            :key="child.to"
-            class="mobile-menu__link mobile-menu__link--sub"
-            :to="child.to"
-            @click="menuOpen = false"
-          >
-            {{ child.label }}
-          </NuxtLink>
-        </template>
-        <NuxtLink v-if="auth.isAuthenticated" class="mobile-menu__link" to="/admin" @click="menuOpen = false">管理</NuxtLink>
-        <NuxtLink v-else class="mobile-menu__link" to="/admin/login" @click="menuOpen = false">登录</NuxtLink>
-      </nav>
-    </Transition>
   </header>
 
   </template>
@@ -160,7 +128,7 @@ function onDocKeydown(e: KeyboardEvent) {
 interface NavItem {
   label: string
   to: string
-  /** 有 children 时渲染为下拉分组（移动端平铺缩进） */
+  /** 有 children 时渲染为下拉分组 */
   children?: { label: string, to: string }[]
 }
 
@@ -180,7 +148,6 @@ function blurTarget(e: Event) {
 
 /* 滚动后切换为玻璃拟态背景 */
 const scrolled = ref(false)
-const menuOpen = ref(false)
 
 function onScroll() {
   scrolled.value = window.scrollY > 24
@@ -199,11 +166,8 @@ onUnmounted(() => {
   document.removeEventListener('keydown', onDocKeydown)
 })
 
-// 路由变化时收起移动端菜单、搜索下拉与登录菜单
-watch(() => route.fullPath, () => {
-  menuOpen.value = false
-  closeLogin()
-})
+// 路由变化时收起搜索下拉与登录菜单
+watch(() => route.fullPath, closeLogin)
 
 /** 已在首页时点品牌回到顶部，否则跳回首页 */
 function onBrandClick() {
@@ -475,120 +439,12 @@ function onBrandClick() {
   background: var(--c-primary-light);
 }
 
-/* 移动端汉堡按钮：三横线 → 叉号 */
-.site-header__burger {
-  position: relative;
-  display: none;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.site-header__burger span,
-.site-header__burger span::before,
-.site-header__burger span::after {
-  position: absolute;
-  left: 50%;
-  width: 16px;
-  height: 2px;
-  background: var(--c-text);
-  border-radius: 2px;
-  transition: transform 0.25s var(--ease-bounce), opacity 0.2s ease;
-}
-
-.site-header__burger span {
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.site-header__burger span::before,
-.site-header__burger span::after {
-  content: '';
-  transform: translateX(-50%);
-}
-
-.site-header__burger span::before { top: -5px; }
-.site-header__burger span::after { top: 5px; }
-
-.site-header__burger span.burger-open {
-  background: transparent;
-}
-
-.site-header__burger span.burger-open::before {
-  transform: translateX(-50%) translateY(5px) rotate(45deg);
-}
-
-.site-header__burger span.burger-open::after {
-  transform: translateX(-50%) translateY(-5px) rotate(-45deg);
-}
-
-/* ===== 移动端下拉菜单 ===== */
-.mobile-menu {
-  position: fixed;
-  top: 60px;
-  right: 12px;
-  left: 12px;
-  z-index: 49;
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-  background: color-mix(in srgb, var(--c-bg-card) 92%, transparent);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card-hover);
-}
-
-.mobile-menu__link {
-  padding: 12px 16px;
-  font-size: 14.5px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-  border-radius: var(--radius-control);
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.mobile-menu__link:hover,
-.mobile-menu__link.router-link-active {
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-}
-
-.mobile-menu__link--sub {
-  padding-left: 32px;
-  font-size: 13.5px;
-  color: var(--c-text-muted);
-}
-
-.menu-enter-active,
-.menu-leave-active {
-  transition: opacity 0.22s ease, transform 0.22s var(--ease-bounce);
-}
-
-.menu-enter-from,
-.menu-leave-to {
-  opacity: 0;
-  transform: translateY(-8px) scale(0.98);
-}
-
+/* 移动端：主导航与登录入口收进底部 Tab Bar，顶栏只留品牌 */
 @media (max-width: 640px) {
   .site-nav,
-  .site-nav__link--quiet,
-  .site-header__divider {
-    display: none;
-  }
-
+  .site-header__divider,
   .site-header__actions {
-    gap: 6px;
-    margin-left: auto;
-  }
-
-  .site-header__burger {
-    display: block;
+    display: none;
   }
 }
 
@@ -607,8 +463,7 @@ function onBrandClick() {
     -webkit-backdrop-filter: none;
   }
 
-  .global-search__panel,
-  .mobile-menu {
+  .global-search__panel {
     background: var(--c-bg-card);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
