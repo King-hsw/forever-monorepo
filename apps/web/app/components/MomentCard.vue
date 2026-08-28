@@ -146,9 +146,9 @@ const locationHref = computed(() =>
 
 const images = computed(() => props.moment.media?.images ?? [])
 const hasMedia = computed(() => images.value.length > 0 || !!props.moment.media?.audio || !!props.moment.media?.video)
-/** 1 图大图 / 2–4 两列 / 5–9 三列九宫格 */
+/** 1 图大图 / 多图三列宫格（朋友圈式小图，任何张数都一行三张） */
 const gridClass = computed(() =>
-  images.value.length === 1 ? 'media-grid--1' : images.value.length <= 4 ? 'media-grid--2' : 'media-grid--3',
+  images.value.length === 1 ? 'media-grid--1' : 'media-grid--3',
 )
 
 /** 头像 / 用户名点击：只看该用户的动态（?user= 过滤，可直接分享） */
@@ -354,11 +354,6 @@ async function onDelete() {
   max-height: 420px; /* 长图限高，object-fit: cover 裁剪 */
 }
 
-.media-grid--2 {
-  grid-template-columns: repeat(2, 1fr);
-  max-width: 318px; /* 两列时保持与九宫格相近的格宽 */
-}
-
 .media-grid--3 {
   grid-template-columns: repeat(3, 1fr);
 }
@@ -378,7 +373,6 @@ async function onDelete() {
 }
 
 /* 宫格保持正方形；单图保留原始比例 */
-.media-grid--2 .media-grid__item,
 .media-grid--3 .media-grid__item {
   aspect-ratio: 1 / 1;
 }
