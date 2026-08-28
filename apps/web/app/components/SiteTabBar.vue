@@ -1,5 +1,5 @@
 <template>
-  <!-- 移动端底部 Tab Bar（≤640px）：导航 + 居中搜索异形钮 + 更多面板 -->
+  <!-- 移动端底部 Tab Bar（≤640px）：导航 + 居中搜索异形钮；「更多」上拉菜单收纳归档/聊天/登录 -->
   <nav class="tabbar" aria-label="移动端底部导航">
     <NuxtLink to="/" class="tabbar__item" aria-label="首页">
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z" /></svg>
@@ -20,40 +20,40 @@
       <span>动态</span>
     </NuxtLink>
 
-    <NuxtLink to="/chat" class="tabbar__item" aria-label="聊天">
-      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
-      <span>聊天</span>
-    </NuxtLink>
-
     <div class="tabbar__more">
-      <button type="button" class="tabbar__item" :aria-expanded="moreOpen" aria-label="更多">
+      <button type="button" class="tabbar__item" :class="{ 'is-open': moreOpen }" :aria-expanded="moreOpen" aria-label="更多" @click="moreOpen = !moreOpen">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg>
         <span>更多</span>
       </button>
-
-      <Transition name="tabbar-panel">
-        <div v-if="moreOpen" class="tabbar__panel">
-          <NuxtLink to="/archive">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></svg>
-            归档
-          </NuxtLink>
-          <NuxtLink v-if="auth.isAuthenticated" to="/admin">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-            管理后台
-          </NuxtLink>
-          <template v-else>
-            <NuxtLink to="/admin/login">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-              账号登录
-            </NuxtLink>
-            <NuxtLink to="/guest">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-              游客登录
-            </NuxtLink>
-          </template>
-        </div>
-      </Transition>
     </div>
+
+    <!-- 「更多」上拉菜单：全宽卡片从底部升入，收纳归档/聊天/登录 -->
+    <Transition name="tabbar-panel">
+      <div v-if="moreOpen" class="tabbar__panel">
+        <NuxtLink to="/archive" @click="moreOpen = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7v14" /><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" /></svg>
+          <span>归档</span>
+        </NuxtLink>
+        <NuxtLink to="/chat" @click="moreOpen = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
+          <span>聊天</span>
+        </NuxtLink>
+        <NuxtLink v-if="auth.isAuthenticated" to="/admin" @click="moreOpen = false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+          <span>管理后台</span>
+        </NuxtLink>
+        <template v-else>
+          <NuxtLink to="/admin/login" @click="moreOpen = false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+            <span>账号登录</span>
+          </NuxtLink>
+          <NuxtLink to="/guest" @click="moreOpen = false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+            <span>游客登录</span>
+          </NuxtLink>
+        </template>
+      </div>
+    </Transition>
   </nav>
 </template>
 
@@ -67,7 +67,9 @@ auth.hydrate()
 const moreOpen = ref(false)
 
 function onDocMouseDown(e: MouseEvent) {
-  if (moreOpen.value && !(e.target as Element).closest('.tabbar__more'))
+  if (!moreOpen.value)
+    return
+  if (!(e.target as Element).closest('.tabbar__more, .tabbar__panel'))
     moreOpen.value = false
 }
 
@@ -98,7 +100,7 @@ watch(() => route.fullPath, () => {
   inset: auto 0 0;
   z-index: 49;
   display: none;
-  grid-template-columns: 1fr 1fr 1.8fr 1fr 1fr 1.2fr;
+  grid-template-columns: 1fr 1fr 1.8fr 1fr 1.2fr;
   align-items: end;
   gap: 2px;
   padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
@@ -141,7 +143,8 @@ watch(() => route.fullPath, () => {
 }
 
 .tabbar__item:hover,
-.tabbar__item.router-link-active {
+.tabbar__item.router-link-active,
+.tabbar__item.is-open {
   color: var(--c-primary);
 }
 
@@ -180,47 +183,71 @@ watch(() => route.fullPath, () => {
   position: relative;
 }
 
-/* 「更多」面板：栏上方小卡片 */
+/* 「更多」上拉菜单：全宽卡片，从底部升入停于栏上方 */
 .tabbar__panel {
   position: absolute;
-  bottom: calc(100% + 10px);
-  right: -4px;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
   z-index: 50;
-  display: flex;
-  flex-direction: column;
-  min-width: 150px;
-  padding: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 6px;
+  padding: 14px 10px;
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
-  box-shadow: var(--shadow-card-hover);
+  border-radius: 18px;
+  box-shadow: 0 -10px 30px rgb(0 0 0 / 14%);
 }
 
 .tabbar__panel a {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  font-size: 13.5px;
+  gap: 8px;
+  padding: 10px 4px 8px;
+  font-size: 12px;
   color: var(--c-text-secondary);
   text-decoration: none;
-  border-radius: 9px;
+  border-radius: 12px;
+  -webkit-tap-highlight-color: transparent;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 
-.tabbar__panel a:hover {
+.tabbar__panel a svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tabbar__panel a:hover,
+.tabbar__panel a.router-link-active {
   color: var(--c-primary);
+}
+
+.tabbar__panel a:hover {
   background: var(--c-primary-light);
 }
 
 .tabbar-panel-enter-active,
 .tabbar-panel-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s var(--ease-bounce);
+  transition: transform 0.3s var(--ease-bounce), opacity 0.2s ease;
 }
 
 .tabbar-panel-enter-from,
 .tabbar-panel-leave-to {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-panel-enter-active,
+  .tabbar-panel-leave-active {
+    transition: opacity 0.15s ease;
+  }
+
+  .tabbar-panel-enter-from,
+  .tabbar-panel-leave-to {
+    transform: none;
+  }
 }
 </style>
