@@ -19,14 +19,16 @@
       <!-- 时间线 -->
       <p v-if="pending && !list.length" class="moments-state">加载中…</p>
       <template v-else-if="list.length">
-        <MomentCard
-          v-for="(m, i) in list"
-          :key="m.id"
-          :moment="m"
-          class="fade-up"
-          :style="{ '--stagger-index': Math.min(i, 8) }"
-          @deleted="removeFromList"
-        />
+        <div class="moments-list">
+          <MomentCard
+            v-for="(m, i) in list"
+            :key="m.id"
+            :moment="m"
+            class="fade-up"
+            :style="{ '--stagger-index': Math.min(i, 8) }"
+            @deleted="removeFromList"
+          />
+        </div>
         <div class="moments-more">
           <button v-if="hasMore" type="button" class="btn" :disabled="loadingMore" @click="loadMore">
             {{ loadingMore ? '加载中…' : '加载更多' }}
@@ -213,9 +215,19 @@ function removeFromList(id: number) {
   color: var(--c-text);
 }
 
-/* ===== 列表 ===== */
-.moments-page :deep(.moment-card) {
-  margin-bottom: 14px;
+/* ===== 时间线：左侧竖线贯穿（同首页编号时间线），自上而下淡出，「越往下越旧」 ===== */
+.moments-list {
+  position: relative;
+}
+
+.moments-list::before {
+  content: '';
+  position: absolute;
+  left: 21px;
+  top: 24px;
+  bottom: 52px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--c-primary), var(--c-border) 75%, transparent);
 }
 
 .moments-state {

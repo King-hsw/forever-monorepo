@@ -1,21 +1,23 @@
 <template>
   <article class="moment-card">
-    <!-- 头部：头像 / 用户名（点击按人筛选）+ 地点 + 相对时间 -->
+    <!-- 头像压在线条上（点击按人筛选） -->
+    <button type="button" class="moment-card__avatar-btn" :title="`只看 ${moment.username} 的动态`" @click="goUser">
+      <img
+        v-if="moment.avatarUrl"
+        class="moment-card__avatar"
+        :src="moment.avatarUrl"
+        :alt="moment.username"
+        loading="lazy"
+        width="40"
+        height="40"
+      >
+      <span v-else class="moment-card__avatar moment-card__avatar--initial" aria-hidden="true">
+        {{ initialOf(moment.username) }}
+      </span>
+    </button>
+
+    <!-- 头部：用户名（点击按人筛选）+ 地点 + 相对时间 -->
     <header class="moment-card__head">
-      <button type="button" class="moment-card__avatar-btn" :title="`只看 ${moment.username} 的动态`" @click="goUser">
-        <img
-          v-if="moment.avatarUrl"
-          class="moment-card__avatar"
-          :src="moment.avatarUrl"
-          :alt="moment.username"
-          loading="lazy"
-          width="40"
-          height="40"
-        >
-        <span v-else class="moment-card__avatar moment-card__avatar--initial" aria-hidden="true">
-          {{ initialOf(moment.username) }}
-        </span>
-      </button>
       <div class="moment-card__info">
         <button type="button" class="moment-card__name" :title="`只看 ${moment.username} 的动态`" @click="goUser">
           {{ moment.username }}
@@ -255,28 +257,41 @@ async function onDelete() {
 </script>
 
 <style scoped>
+/* 扁平时间线：无卡片底（无背景 / 边框 / 阴影），头像压在竖线上 */
 .moment-card {
-  padding: 16px 18px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  position: relative;
+  padding: 2px 0 44px;
+}
+
+/* 内容整体右移，让出头像栏 */
+.moment-card__head,
+.moment-card__content,
+.moment-card__media,
+.moment-card__foot,
+.moment-card__comments {
+  padding-left: 56px;
 }
 
 /* ===== 头部 ===== */
 .moment-card__head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
+  min-height: 44px;
 }
 
+/* 头像压在线上：纸底圆遮罩遮住线段，留白自然断开 */
 .moment-card__avatar-btn {
-  flex-shrink: 0;
-  padding: 0;
-  background: none;
+  position: absolute;
+  left: 0;
+  top: 2px;
+  z-index: 1;
+  padding: 2px;
+  background: var(--c-bg);
   border: none;
-  cursor: pointer;
   border-radius: 50%;
+  cursor: pointer;
   transition: transform var(--dur-soft) var(--ease-bounce);
 }
 
@@ -545,7 +560,7 @@ async function onDelete() {
 
 @media (max-width: 560px) {
   .moment-card {
-    padding: 14px;
+    padding-bottom: 32px;
   }
 
   .moment-card__foot {
