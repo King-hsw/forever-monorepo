@@ -103,7 +103,10 @@ watch(() => route.fullPath, () => {
   grid-template-columns: 1fr 1fr 1.8fr 1fr 1.2fr;
   align-items: end;
   gap: 2px;
+  /* 底部让出 home 指示条;横屏时左右再让出灵动岛/安全区 */
   padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
+  padding-left: max(6px, env(safe-area-inset-left));
+  padding-right: max(6px, env(safe-area-inset-right));
   background: color-mix(in srgb, var(--c-bg-card) 88%, transparent);
   backdrop-filter: blur(14px) saturate(180%);
   -webkit-backdrop-filter: blur(14px) saturate(180%);

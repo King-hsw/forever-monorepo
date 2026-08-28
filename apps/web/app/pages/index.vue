@@ -341,6 +341,8 @@ usePageSeo({
 .scroll-progress {
   position: fixed;
   inset: 0 0 auto;
+  /* iOS standalone:贴物理顶边会被状态栏/刘海盖住,下移到安全区之下 */
+  top: env(safe-area-inset-top);
   z-index: 60;
   height: 3px;
   background: linear-gradient(90deg, var(--c-primary), var(--k-grape), var(--k-mint));

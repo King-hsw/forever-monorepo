@@ -222,6 +222,10 @@ function onBrandClick() {
   gap: 24px;
   margin: 0 auto;
   padding: 12px 24px;
+  /* iOS standalone:顶栏背景已延伸到状态栏之下,内容让出安全区(刘海/灵动岛);横屏时左右同样有安全区 */
+  padding-top: calc(12px + env(safe-area-inset-top));
+  padding-left: max(24px, env(safe-area-inset-left));
+  padding-right: max(24px, env(safe-area-inset-right));
 }
 
 .brand {
