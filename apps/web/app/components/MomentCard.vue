@@ -155,10 +155,12 @@ const gridClass = computed(() =>
 
 /** 图片预览：页面内浮层，同条动态多张可左右滑（Photoswipe 自带移动端手势） */
 function openPreview(index: number, event: MouseEvent) {
-  openPhotoPreview(
+  // 宫格缩略均为 cover 裁切，开场动画按裁切还原
+  void openPhotoPreview(
     images.value,
     index,
     (event.currentTarget as HTMLElement).querySelector('img'),
+    true,
   )
 }
 

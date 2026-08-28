@@ -145,7 +145,7 @@ function onClick(event: MouseEvent) {
     const list = Array.from(rootEl.value.querySelectorAll('img'))
     const index = list.indexOf(img)
     if (index >= 0)
-      openPhotoPreview(list.map(el => el.src), index, img)
+      void openPhotoPreview(list.map(el => el.src), index, img)
     return
   }
 
