@@ -205,7 +205,9 @@ h1, h2 {
 html[data-theme-transition]::view-transition-new(root) {
   z-index: 1;
   will-change: clip-path;
-  animation: theme-circle-in 560ms var(--ease-bounce) both;
+  /* 均匀 S 曲线：大面积揭示不用 --ease-bounce（ease-out 前段冲完 83% 半径，
+   * 剩余一半时间龟速爬边缘，观感是"扫过中部后卡住再突然收尾"） */
+  animation: theme-circle-in 500ms cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 @keyframes theme-circle-in {
