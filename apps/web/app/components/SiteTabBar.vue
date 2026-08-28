@@ -14,7 +14,7 @@
     </NuxtLink>
 
     <button type="button" class="tabbar__search" aria-label="搜索" title="搜索" @click="searchOpen = true">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.8-3.8" /></svg>
     </button>
 
     <NuxtLink to="/moments" class="tabbar__item" aria-label="动态">
@@ -128,25 +128,25 @@ watch(() => route.fullPath, () => {
   border-radius: 28px;
   /* 顶部内侧一条白高光是玻璃沿,后面是柔和投影 */
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
-  /* 半嵌托座:搜索钮中心在卡顶下 17px,挖半径 30px 圆洞(钮 25px + 5px 环绕缝隙) */
-  -webkit-mask: radial-gradient(circle 30px at 50% 17px, transparent 29px, #000 30px);
-  mask: radial-gradient(circle 30px at 50% 17px, transparent 29px, #000 30px);
+  /* 半嵌托座:搜索钮中心锚在卡顶边(y=0),挖半径 33px 半圆凹口(钮 28px + 5px 环绕缝隙) */
+  -webkit-mask: radial-gradient(circle 33px at 50% 0px, transparent 32px, #000 33px);
+  mask: radial-gradient(circle 33px at 50% 0px, transparent 32px, #000 33px);
 }
 
 /* 凹槽描边:沿挖口一圈细线,只显示卡片内的下半段(卡外上半裁掉) */
 .tabbar::before {
   content: "";
   position: absolute;
-  top: 17px;
+  top: 0;
   left: 50%;
   z-index: 1;
-  width: 60px;
-  height: 60px;
+  width: 66px;
+  height: 66px;
   border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  /* 挖口从卡顶 y=0 开始,环线只保留 y≥0 段 */
-  clip-path: inset(13px 0 0 0);
+  /* 挖口是卡顶边以下的下半圆,环线只保留 y≥0 段 */
+  clip-path: inset(33px 0 0 0);
   pointer-events: none;
 }
 
@@ -195,15 +195,15 @@ watch(() => route.fullPath, () => {
   opacity: 0.7;
 }
 
-/* 居中搜索：凸起异形圆钮，脱出栏面 */
+/* 居中搜索：凸起异形圆钮,中心锚在卡顶边上,一半脱出栏面(docked FAB 姿态) */
 .tabbar__search {
   position: relative;
-  top: -16px;
+  top: -36px;
   justify-self: center;
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   color: #fff;
   background: var(--c-primary);
   border: none;
