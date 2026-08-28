@@ -97,6 +97,13 @@ export default defineNuxtConfig({
   // 默认 css 模式用 mask 渲染，颜色随 currentColor、大小随 font-size，与现有线性 SVG 风格一致
   pwa: {
     registerType: 'autoUpdate',
+    // Web Push 需要在 SW 内手写 push / notificationclick 监听，generateSW 无法注入，
+    // 因此切到 injectManifest：自定义源码 app/sw.ts（Nuxt 4 下 vite root 为 app/，
+    // srcDir 需指回当前目录），构建产物仍为根路径 sw.js。
+    // 原 workbox 段的 globPatterns 迁至 injectManifest，runtimeCaching 移入 sw.ts 手写
+    strategies: 'injectManifest',
+    srcDir: '.',
+    filename: 'sw.ts',
     manifest: {
       name: '补陋阁',
       short_name: '补陋阁',
@@ -128,7 +135,7 @@ export default defineNuxtConfig({
         }
       ]
     },
-    workbox: {
+    injectManifest: {
       globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
       // 启动图不进预缓存：iOS 只在添加到主屏时由系统拉取并自带缓存，
       // 进 SW 预缓存只会白白撑大 5MB+ 的离线包
