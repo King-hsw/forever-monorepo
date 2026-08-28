@@ -23,11 +23,11 @@
       </NuxtLink>
     </nav>
 
-    <!-- 前往博客前台：外链新标签页打开，避免打断后台会话 -->
-    <a class="sidenav__link sidenav__blog-link" href="/" target="_blank" rel="noopener" title="前往博客">
+    <!-- 前往博客前台：站内直接跳转 -->
+    <NuxtLink to="/" class="sidenav__link sidenav__blog-link" title="前往博客">
       <span class="sidenav__icon" aria-hidden="true">🌐</span>
       <span class="sidenav__text">前往博客</span>
-    </a>
+    </NuxtLink>
 
     <div class="sidenav__footer">
       <p class="sidenav__user" title="当前登录用户">
