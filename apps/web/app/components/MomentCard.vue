@@ -88,8 +88,8 @@
       </button>
     </footer>
 
-    <!-- 内联评论区：两层楼，与文章 / 留言板同一组件族；评论内容常显，输入框点按钮才出现 -->
-    <section class="moment-card__comments" aria-label="动态评论">
+    <!-- 内联评论区：两层楼，与文章 / 留言板同一组件族；评论内容常显，输入框点按钮才出现；无评论且未展开输入时整区隐藏 -->
+    <section v-if="loadingComments || roots.length || showForm" class="moment-card__comments" aria-label="动态评论">
       <CommentForm
         v-if="showForm"
         target-type="MOMENT"
@@ -102,7 +102,6 @@
       />
 
       <div v-if="loadingComments" class="moment-card__cstate">加载中…</div>
-      <div v-else-if="!roots.length" class="moment-card__cstate">还没有评论，来抢沙发吧～</div>
       <template v-else>
         <ul class="moment-card__clist">
           <li v-for="root in roots" :key="root.id" class="moment-card__comment">
