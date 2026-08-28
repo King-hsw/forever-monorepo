@@ -81,6 +81,10 @@ function hide() {
   transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
+.tooltip[data-open='true'] .tooltip__bubble {
+  opacity: 1;
+}
+
 /* 箭头：与气泡同色的 45° 小方块 */
 .tooltip__bubble::before {
   content: '';
