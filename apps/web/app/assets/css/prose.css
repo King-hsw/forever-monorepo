@@ -263,3 +263,10 @@
 :is(.markdown-view, .tiptap) th {
   background: var(--c-bg-soft);
 }
+
+/* ---- 深色模式：参数化变量换暗色阶（结构规则共用） ---- */
+html[data-theme='dark'] :is(.markdown-view, .tiptap) {
+  --prose-heading-border: #33302c;
+  --prose-rule-border: #3a3733;
+  --prose-inline-code-bg: rgb(168 162 158 / 16%);
+}

@@ -127,7 +127,7 @@ watch(() => route.fullPath, () => {
   border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
   border-radius: 28px;
   /* 顶部内侧一条白高光是玻璃沿,后面是柔和投影 */
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 35%), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
+  box-shadow: inset 0 1px 0 var(--hl-line), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
   /* 半嵌托座:搜索钮中心锚在卡顶边(y=0),挖半径 36px 半圆凹口(钮 31px + 5px 环绕缝隙) */
   -webkit-mask: radial-gradient(circle 36px at 50% 0px, transparent 35px, #000 36px);
   mask: radial-gradient(circle 36px at 50% 0px, transparent 35px, #000 36px);
@@ -202,11 +202,19 @@ watch(() => route.fullPath, () => {
   justify-self: center;
   display: grid;
   place-items: center;
+<<<<<<< HEAD
   width: 62px;
   height: 62px;
   color: var(--c-primary-hover);
   background: color-mix(in srgb, var(--c-primary) 22%, #fff);
   border: 1px solid color-mix(in srgb, var(--c-primary) 28%, transparent);
+=======
+  width: 56px;
+  height: 56px;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
+  border: none;
+>>>>>>> 2b31293 (新增深浅色模式:玉墨夜令牌+View Transition 圆形揭示切换(transition.css custom 思路)+防闪烁内联脚本+代码高亮双主题)
   border-radius: 50%;
   box-shadow: 0 8px 20px rgb(13 148 136 / 28%);
   cursor: pointer;

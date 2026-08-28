@@ -1,3 +1,17 @@
+<script setup lang="ts">
+const { theme, initTheme } = useTheme()
+
+// 浏览器工具栏 / 状态栏颜色跟随主题（Android Chrome / iOS PWA）
+useHead({
+  meta: [{
+    name: 'theme-color',
+    content: computed(() => (theme.value === 'dark' ? '#131514' : '#ffffff')),
+  }],
+})
+
+onMounted(initTheme)
+</script>
+
 <template>
   <div>
     <!-- 全屏胶片噪点：固定层、不拦截事件，叠在内容上营造纸面颗粒感（仿参考站 bg-noise） -->

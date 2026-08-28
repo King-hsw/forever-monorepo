@@ -43,7 +43,8 @@ export default defineNuxtConfig({
     },
   },
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
-  css: ['~/assets/css/main.css', '~/assets/css/prose.css'],
+  // hljs-dark.css：代码高亮的深色 token 层（浅色基线是各组件引入的 highlight.js github.css）
+  css: ['~/assets/css/main.css', '~/assets/css/prose.css', '~/assets/css/hljs-dark.css'],
   modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
   pwa: {
     registerType: 'autoUpdate',
@@ -107,6 +108,12 @@ export default defineNuxtConfig({
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         // 刘海屏：页面延伸到安全区外，配合 CSS env(safe-area-inset-*) 使用
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
+      ],
+      // 主题防闪烁：渲染前定下 html[data-theme]（localStorage 优先，无记录跟随系统）
+      script: [
+        {
+          innerHTML: `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()`,
+        },
       ],
       link: [
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },

@@ -39,6 +39,24 @@
           </svg>
         </button>
       </Tooltip>
+      <Tooltip label="深浅色切换">
+        <button type="button" class="site-rail__btn theme-toggle" aria-label="切换深浅色模式" @click="toggle($event)">
+          <svg class="theme-toggle__ico theme-toggle__ico--moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
+          <svg class="theme-toggle__ico theme-toggle__ico--sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </button>
+      </Tooltip>
       <Tooltip v-if="auth.isAuthenticated" label="管理后台">
         <NuxtLink to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
           <img src="/icons/avatar.png" alt="" width="22" height="22" />
@@ -73,6 +91,7 @@
 const auth = useAuthStore()
 const guest = useGuestStore()
 const searchOpen = useState('global-search-open', () => false)
+const { toggle } = useTheme()
 
 auth.hydrate()
 guest.hydrate()
@@ -135,7 +154,7 @@ watch(() => route.fullPath, closeLogin)
   align-items: center;
   width: 88px;
   padding: 22px 0;
-  background: #fafcf9; /* 比玉纸底亮半档的侧栏面 */
+  background: var(--c-rail-bg); /* 比纸底亮半档的侧栏面（深色为玉墨面） */
   border-right: 1px solid var(--c-border);
 }
 

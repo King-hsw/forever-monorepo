@@ -18,7 +18,7 @@ kbd {
 /* 系统字体：自带光学尺寸与字距表，中文回落 PingFang / 雅黑 */
 body {
   margin: 0;
-  background: #fbfaf7; /* 暖纸白 */
+  background: var(--c-body-bg); /* 暖纸白 / 玉墨黑随主题 */
   font: 400 16px/1.65 system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   font-optical-sizing: auto;
@@ -26,7 +26,7 @@ body {
 }
 
 ::selection {
-  color: #fff;
+  color: var(--c-on-primary);
   background: rgb(13 148 136 / 85%);
 }
 
@@ -65,6 +65,8 @@ h1, h2 {
   --c-bg: #f4f7f1; /* 淡玉纸：往鼠尾草绿偏一档，参考站的绿感来自玉青光斑洗色 */
   --c-bg-card: #ffffff;
   --c-bg-soft: #eaefe7; /* 玉灰绿 stone */
+  --c-body-bg: #fbfaf7; /* 页面纸底（body）：比玉纸更暖 */
+  --c-rail-bg: #fafcf9; /* 桌面侧栏面：比纸底亮半档 */
   --c-on-primary: #fff;
   --c-danger: #dc2626;
   --c-success: #0d9488;
@@ -78,6 +80,9 @@ h1, h2 {
   --shadow-card: 0 1px 2px rgb(28 25 23 / 4%), 0 4px 12px rgb(28 25 23 / 4%);
   --shadow-card-hover: 0 4px 10px rgb(28 25 23 / 7%), 0 12px 28px rgb(28 25 23 / 7%);
 
+  /* 玻璃沿白高光（Tab Bar 磨砂层等）：夜里降弱避免刺眼 */
+  --hl-line: rgb(255 255 255 / 35%);
+
   /* 弹簧感缓动：平滑收敛无过冲（临界阻尼），变量名保留兼容旧引用 */
   --ease-bounce: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-soft: 260ms;
@@ -85,6 +90,43 @@ h1, h2 {
   /* 安全区：iOS PWA standalone 注入手势条/刘海高度，无安全区设备回退 0 */
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
+}
+
+/* ===== 深色模式：玉墨夜 =====
+ * data-theme 由 head 内联脚本先行写入（localStorage 优先，无记录跟随系统），防首屏闪烁；
+ * 只覆盖颜色令牌，结构/圆角/缓动与浅色共用 */
+:root[data-theme='dark'] {
+  --c-primary: #2dd4bf; /* 玉青提亮一档 jade-400 */
+  --c-primary-hover: #5eead4; /* jade-300 */
+  --c-primary-light: rgb(45 212 191 / 14%);
+
+  --k-mint: #a8a29e;
+  --k-grape: #14b8a6;
+  --k-lemon: #57534e;
+  --k-sky: #0d9488;
+
+  --c-text: #e7e5e4; /* 暖玉白 stone-200 */
+  --c-text-secondary: #a8a29e; /* stone-400 */
+  --c-text-muted: #78716c; /* stone-500 */
+  --c-border: #35322e;
+  --c-bg: #191c1a; /* 玉墨底：墨色里透一丝青 */
+  --c-bg-card: #232726;
+  --c-bg-soft: #141615; /* 凹面/代码块底：比主底更深一档 */
+  --c-body-bg: #131514;
+  --c-rail-bg: #1e2120;
+  --c-on-primary: #0c0a09; /* 亮玉青底上落墨字 */
+  --c-danger: #ef4444;
+  --c-success: #2dd4bf;
+  --c-warning-text: #fbbf24;
+  --c-warning-bg: rgb(251 191 36 / 12%);
+
+  /* 暗底上阴影加深才可见 */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 12px rgb(0 0 0 / 30%);
+  --shadow-card-hover: 0 4px 10px rgb(0 0 0 / 45%), 0 12px 28px rgb(0 0 0 / 45%);
+
+  --hl-line: rgb(255 255 255 / 10%);
+
+  color-scheme: dark;
 }
 
 
@@ -149,17 +191,57 @@ h1, h2 {
   animation-delay: calc(var(--stagger-index, 0) * 60ms);
 }
 
-/* ===== 主题切换动画（View Transition） ===== */
+/* ===== 主题切换动画（View Transition，transition.css 的 custom 思路） =====
+ * 切换时 useTheme 写入 --tx-x/--tx-y/--tx-r（点击点坐标 + 到最远屏角的半径），
+ * 新主题快照在上层用 clip-path 圆形揭示：圆从点击处展开直到盖满全屏。
+ * 动画门控在 html[data-theme-transition]：只作用于主题切换，
+ * 不影响页面导航的 View Transition（保持原生交叉淡化）。 */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
 }
 
-/* 新主题快照在上层，通过 clip-path 圆形揭示 */
-::view-transition-new(root) {
+html[data-theme-transition]::view-transition-new(root) {
   z-index: 1;
   will-change: clip-path;
+  animation: theme-circle-in 560ms var(--ease-bounce) both;
+}
+
+@keyframes theme-circle-in {
+  from {
+    clip-path: circle(0px at var(--tx-x, 50%) var(--tx-y, 50%));
+  }
+  to {
+    clip-path: circle(var(--tx-r, 141vmax) at var(--tx-x, 50%) var(--tx-y, 50%));
+  }
+}
+
+/* ===== 主题切换按钮：日/月图标随主题交叉旋转（纯 CSS 驱动，无水合闪烁） ===== */
+.theme-toggle {
+  position: relative; /* 太阳图标的绝对定位锚点 */
+}
+
+.theme-toggle__ico {
+  transition: opacity 0.25s ease, transform 0.45s var(--ease-bounce);
+}
+
+.theme-toggle__ico--sun {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-90deg) scale(0.5);
+}
+
+html[data-theme='dark'] .theme-toggle__ico--sun {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+html[data-theme='dark'] .theme-toggle__ico--moon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -216,14 +298,14 @@ h1, h2 {
 .btn--primary {
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-color: transparent;
-  color: #fff;
-  box-shadow: 0 4px 14px rgb(13 148 136 / 30%);
+  color: var(--c-on-primary);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--c-primary) 30%, transparent);
 }
 
 .btn--primary:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--c-primary-hover), var(--k-grape));
   border-color: transparent;
-  box-shadow: 0 8px 20px rgb(13 148 136 / 38%);
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--c-primary) 38%, transparent);
 }
 
 .btn--danger {
@@ -273,7 +355,7 @@ h1, h2 {
 
 .field-input:focus {
   border-color: var(--c-primary);
-  box-shadow: 0 0 0 4px rgb(13 148 136 / 15%); /* 粉色柔光圈 */
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-primary) 15%, transparent); /* 玉青柔光圈 */
 }
 
 .field-label {

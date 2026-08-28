@@ -312,7 +312,7 @@ function next() {
   border-radius: 50%;
 
   .is-active & {
-    color: #fff;
+    color: var(--c-on-primary);
     background: var(--c-primary);
   }
 

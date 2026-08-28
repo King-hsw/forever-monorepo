@@ -460,7 +460,7 @@ usePageSeo({
   font-family: var(--font-mono, ui-monospace, 'JetBrains Mono', monospace);
   font-size: 13.5px;
   line-height: 2;
-  color: #78716c; /* ink-500 */
+  color: var(--c-text-muted);
 }
 
 /* 右：衬线铭文 + 社交链接 */
@@ -493,7 +493,7 @@ usePageSeo({
   font-size: clamp(14px, 1.4vw, 16px);
   font-weight: 400;
   letter-spacing: 0.04em;
-  color: #78716c; /* ink-500 */
+  color: var(--c-text-muted);
 }
 
 /* 滚动提示：底部中央弹跳箭头 */
@@ -715,7 +715,7 @@ usePageSeo({
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: #fff;
+  color: var(--c-on-primary);
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border-radius: 999px;
   transform: rotate(-2deg); /* 像随手贴上的贴纸 */
@@ -810,7 +810,7 @@ usePageSeo({
 
 @media (hover: hover) and (pointer: fine) {
   .featured:hover .featured__cta-circle {
-    color: #fff;
+    color: var(--c-on-primary);
     background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
     transform: rotate(-45deg) scale(1.12);
     box-shadow: 0 4px 12px rgb(13 148 136 / 35%);
@@ -964,7 +964,7 @@ usePageSeo({
   width: 46px;
   height: 46px;
   font-size: 18px;
-  color: #fff;
+  color: var(--c-on-primary);
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
   border: none;
   border-radius: 50%;

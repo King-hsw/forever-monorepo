@@ -37,6 +37,28 @@
       <div class="site-header__actions">
         <button
           type="button"
+          class="site-header__icon-btn theme-toggle"
+          aria-label="切换深浅色模式"
+          title="切换深浅色模式"
+          @click="toggle($event)"
+        >
+          <svg class="theme-toggle__ico theme-toggle__ico--moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
+          <svg class="theme-toggle__ico theme-toggle__ico--sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        </button>
+        <button
+          type="button"
           class="site-header__icon-btn"
           aria-label="搜索"
           title="搜索"
@@ -104,6 +126,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const guest = useGuestStore()
 const searchOpen = useState('global-search-open', () => false)
+const { toggle } = useTheme()
 
 // 登录态存于 localStorage，仅客户端可知；SSR 默认未登录，onMounted 恢复
 auth.hydrate()
@@ -443,11 +466,15 @@ function onBrandClick() {
   background: var(--c-primary-light);
 }
 
-/* 移动端：主导航与登录入口收进底部 Tab Bar，顶栏只留品牌 */
+/* 移动端：主导航与登录入口收进底部 Tab Bar，顶栏只留品牌和主题切换 */
 @media (max-width: 640px) {
   .site-nav,
-  .site-header__divider,
-  .site-header__actions {
+  .site-header__divider {
+    display: none;
+  }
+
+  /* actions 组里只保留主题切换按钮（search / guest / 登录移入 Tab Bar） */
+  .site-header__actions > :not(.site-header__icon-btn.theme-toggle) {
     display: none;
   }
 }

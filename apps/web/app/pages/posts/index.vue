@@ -235,7 +235,7 @@ function goPage(p: number) {
   border-color: var(--c-primary);
 
   small {
-    color: rgb(255 255 255 / 75%);
+    color: color-mix(in srgb, var(--c-on-primary) 75%, transparent);
   }
 }
 

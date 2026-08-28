@@ -599,7 +599,7 @@ async function confirmRemove() {
   place-items: center;
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: var(--c-on-primary);
   background: linear-gradient(135deg, var(--c-primary), var(--k-grape));
 }
 

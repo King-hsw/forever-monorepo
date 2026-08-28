@@ -209,7 +209,7 @@ usePageSeo({
     padding: 10px 18px;
     font-size: 13px;
     font-weight: 500;
-    color: #fff;
+    color: var(--c-on-primary);
     background: var(--c-primary);
     border: none;
     border-radius: 999px;
