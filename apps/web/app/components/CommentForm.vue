@@ -6,8 +6,11 @@
       <button type="button" class="comment-form__reply-cancel" aria-label="取消回复" @click="$emit('cancel-reply')">×</button>
     </div>
 
-    <!-- 发言人身份：游客身份全站通用（/guest 页维护） -->
-    <div v-if="guest.isRegistered" class="comment-form__identity">
+    <!-- 发言人身份：登录资料（动态评论）> 游客身份全站通用（/guest 页维护） -->
+    <div v-if="loginIdentity" class="comment-form__identity">
+      <span>以 <strong>{{ loginIdentity.nickname }}</strong>（登录资料）的身份评论</span>
+    </div>
+    <div v-else-if="guest.isRegistered" class="comment-form__identity">
       <span>以 <strong>{{ guest.nickname }}</strong> 的身份评论</span>
       <NuxtLink to="/guest" class="comment-form__link">换身份</NuxtLink>
     </div>
@@ -40,7 +43,9 @@
 </template>
 
 <script setup lang="ts">
-import type { AdminComment } from '#shared/types'
+import type { AdminComment, ProfileInfo } from '#shared/types'
+import { useAuthStore } from '~/stores/auth'
+import { apiFetch } from '~/utils/api'
 import { useCommentsStore } from '~/stores/comments'
 
 const props = defineProps<{
@@ -52,15 +57,36 @@ const props = defineProps<{
   replyTo?: { id: number, nickname: string } | null
   /** 输入框 aria 标签后缀（区分文章评论 / 留言墙） */
   placeholderSuffix?: string
+  /** 以登录用户资料作为发言身份（动态评论用），免游客身份注册门槛 */
+  useLoginIdentity?: boolean
 }>()
 
 const emit = defineEmits<{ success: [comment: AdminComment], 'cancel-reply': [] }>()
 
 const commentsStore = useCommentsStore()
 const guest = useGuestStore()
+const auth = useAuthStore()
 const route = useRoute()
 
 guest.hydrate()
+
+/** 登录资料发言身份：仅 useLoginIdentity 开启且登录时拉取；资料缺昵称/邮箱则回落游客身份流程 */
+const profile = ref<ProfileInfo | null>(null)
+if (props.useLoginIdentity) {
+  auth.hydrate()
+  if (auth.isAuthenticated)
+    void apiFetch<ProfileInfo>('/api/admin/profile').then(p => {
+      profile.value = p
+    }).catch(() => {})
+}
+const loginIdentity = computed(() => {
+  const p = profile.value
+  if (!p)
+    return null
+  const nickname = p.nickname || p.username
+  const email = p.email || ''
+  return nickname && email ? { nickname, email, site: p.site || '' } : null
+})
 
 const content = ref('')
 const submitting = ref(false)
@@ -75,7 +101,8 @@ const canSubmit = computed(() => content.value.trim().length > 0)
 async function submit() {
   if (!canSubmit.value || submitting.value)
     return
-  if (!guest.isRegistered) {
+  const identity = loginIdentity.value
+  if (!identity && !guest.isRegistered) {
     await navigateTo(registerUrl.value)
     return
   }
@@ -92,9 +119,9 @@ async function submit() {
     const created = await commentsStore.create({
       ...(props.targetType === 'BOARD' ? { targetType: 'BOARD' as const } : { articleId: props.targetId }),
       parentId: props.replyTo?.id,
-      nickname: guest.nickname,
-      email: guest.email,
-      site: guest.site || undefined,
+      nickname: identity?.nickname ?? guest.nickname,
+      email: identity?.email ?? guest.email,
+      site: identity?.site || guest.site || undefined,
       content: content.value.trim(),
     })
 

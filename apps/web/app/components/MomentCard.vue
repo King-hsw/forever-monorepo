@@ -93,6 +93,7 @@
         target-type="MOMENT"
         :target-id="moment.id"
         :reply-to="replyTo"
+        :use-login-identity="true"
         placeholder-suffix="（动态）"
         @success="onCommentCreated"
         @cancel-reply="replyTo = null"
