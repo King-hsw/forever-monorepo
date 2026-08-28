@@ -85,7 +85,8 @@ watch(
 )
 
 async function handleLogout() {
-  auth.logout()
+  // 必须等 store 清完令牌再跳转，否则中间件仍视为已登录会把 /admin/login 弹回 /admin
+  await auth.logout()
   await navigateTo('/admin/login')
 }
 </script>
