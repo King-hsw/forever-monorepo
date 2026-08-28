@@ -109,12 +109,19 @@ export default defineNuxtConfig({
         // iOS standalone 模式：状态栏与页面背景同色
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
         // 刘海屏：页面延伸到安全区外，配合 CSS env(safe-area-inset-*) 使用
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }
+        // 禁双指捏合缩放页面：Android 靠 viewport 即可；iOS Safari 自 10 起无视这两项，由下方内联脚本拦截
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no' }
       ],
       // 主题防闪烁：渲染前定下 html[data-theme]（localStorage 优先，无记录跟随系统）
+      // 禁移动端双指捏合缩放页面：iOS Safari 无视 viewport 的 user-scalable=no，需拦原生 gesture 事件；
+      // touchmove 双指兜底覆盖其余浏览器。PhotoSwipe 图片预览用自家手势系统（touch-action: none），
+      // 不依赖浏览器默认缩放，故不受影响
       script: [
         {
           innerHTML: `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()`,
+        },
+        {
+          innerHTML: `(function(){var stop=function(e){e.preventDefault()};document.addEventListener('gesturestart',stop,{passive:false});document.addEventListener('gesturechange',stop,{passive:false});document.addEventListener('touchmove',function(e){if(e.touches.length>1)stop(e)},{passive:false})})()`,
         },
       ],
       link: [
