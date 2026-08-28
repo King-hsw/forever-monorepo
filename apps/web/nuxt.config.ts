@@ -5,6 +5,10 @@ export default defineNuxtConfig({
     viewTransition: true,
   },
   compatibilityDate: '2025-07-15',
+  // 开发服务绑定所有网卡（0.0.0.0），局域网设备可直接通过本机 IP 访问
+  devServer: {
+    host: true,
+  },
   // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
   routeRules: {
     '/admin/**': { ssr: false },
