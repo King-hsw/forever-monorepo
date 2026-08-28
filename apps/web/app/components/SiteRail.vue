@@ -2,53 +2,64 @@
   <!-- 桌面端左侧竖排导航：头像标在上、图标菜单居中、工具收在底部（≥901px 显示） -->
   <aside class="site-rail">
     <nav class="site-rail__nav" aria-label="主导航">
-      <NuxtLink
+      <Tooltip
         v-for="item in navItems"
         :key="item.to"
-        :to="item.to"
-        class="site-rail__btn"
-        :aria-label="item.label"
-        :title="item.label"
+        :label="item.label"
       >
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" v-html="item.icon" />
-      </NuxtLink>
+        <NuxtLink
+          :to="item.to"
+          class="site-rail__btn"
+          :aria-label="item.label"
+        >
+          <!-- eslint-disable-next-line vue/no-v-html -->
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" v-html="item.icon" />
+        </NuxtLink>
+      </Tooltip>
     </nav>
 
     <div class="site-rail__foot">
-      <NuxtLink
+      <Tooltip
         v-if="guest.isRegistered"
-        to="/guest"
-        class="site-rail__btn site-rail__guest"
-        :title="`游客身份：${guest.nickname}`"
-        aria-label="游客身份"
+        :label="`游客身份：${guest.nickname}`"
       >
-        {{ guest.nickname.slice(0, 1) }}
-      </NuxtLink>
-      <button type="button" class="site-rail__btn" aria-label="搜索" title="搜索" @click="searchOpen = true">
-        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.8-3.8" />
-        </svg>
-      </button>
-      <NuxtLink v-if="auth.isAuthenticated" to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台" title="管理后台">
-        <img src="/icons/avatar.png" alt="" width="22" height="22" />
-      </NuxtLink>
-      <div v-else class="site-rail__login">
-        <button
-          type="button"
-          class="site-rail__btn"
-          :class="{ 'site-rail__btn--active': loginOpen }"
-          :aria-expanded="loginOpen"
-          aria-label="登录"
-          title="登录"
-          @click="loginOpen = !loginOpen"
+        <NuxtLink
+          to="/guest"
+          class="site-rail__btn site-rail__guest"
+          aria-label="游客身份"
         >
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
+          {{ guest.nickname.slice(0, 1) }}
+        </NuxtLink>
+      </Tooltip>
+      <Tooltip label="搜索">
+        <button type="button" class="site-rail__btn" aria-label="搜索" @click="searchOpen = true">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.8-3.8" />
           </svg>
         </button>
+      </Tooltip>
+      <Tooltip v-if="auth.isAuthenticated" label="管理后台">
+        <NuxtLink to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
+          <img src="/icons/avatar.png" alt="" width="22" height="22" />
+        </NuxtLink>
+      </Tooltip>
+      <div v-else class="site-rail__login">
+        <Tooltip label="登录">
+          <button
+            type="button"
+            class="site-rail__btn"
+            :class="{ 'site-rail__btn--active': loginOpen }"
+            :aria-expanded="loginOpen"
+            aria-label="登录"
+            @click="loginOpen = !loginOpen"
+          >
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
+        </Tooltip>
         <div v-if="loginOpen" class="site-rail__login-panel">
           <NuxtLink to="/admin/login" @click="closeLogin">账号登录</NuxtLink>
           <NuxtLink to="/guest" @click="closeLogin">游客登录</NuxtLink>
