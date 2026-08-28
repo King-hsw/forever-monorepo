@@ -73,7 +73,7 @@
         :disabled="showComments && loadingComments"
         @click="toggleComments"
       >
-        💬 {{ commentTotal ?? moment.commentCount }} 条
+        💬 {{ moment.commentCount }} 条
       </button>
       <button
         v-if="moment.canDelete"
@@ -179,12 +179,12 @@ async function toggleLike() {
   }
 }
 
-/* ---------- 内联评论区：展开时按需拉取 ---------- */
-const showComments = ref(false)
+/* ---------- 内联评论区：默认展开（同文章页），挂载即拉取；按钮可收起 ---------- */
+const showComments = ref(true)
 const roots = ref<CommentNode[]>([])
 const commentTotal = ref<number | null>(null)
 const commentPage = ref(1)
-const loadingComments = ref(false)
+const loadingComments = ref(true)
 const replyTo = ref<CommentNode | null>(null)
 
 const totalPages = computed(() => Math.max(1, Math.ceil((commentTotal.value ?? 0) / COMMENT_SIZE)))
@@ -215,6 +215,10 @@ function toggleComments() {
   if (showComments.value && roots.value.length === 0 && commentTotal.value === null)
     void load(1)
 }
+
+onMounted(() => {
+  void load(1)
+})
 
 function onCommentCreated(created: AdminComment) {
   replyTo.value = null
