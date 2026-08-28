@@ -63,6 +63,20 @@ export function loadAuth(): AuthStorage | null {
   }
 }
 
+/** 从镜像 cookie 读取登录信息（SSR 端可用；值与 localStorage 相同） */
+export function loadAuthFromCookie(): AuthStorage | null {
+  // Nuxt 的 useCookie 默认用 destr 解析，JSON 字符串会直接得到对象
+  const value = useCookie<AuthStorage | string | null>(AUTH_COOKIE).value
+  if (!value) return null
+  if (typeof value === 'object') return value
+  try {
+    return parseAuth(value)
+  }
+  catch {
+    return null
+  }
+}
+
 export function saveAuth(auth: AuthStorage) {
   if (!import.meta.client) return
   const raw = JSON.stringify(auth)
@@ -132,7 +146,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   const headers: Record<string, string> = { ...options.headers }
 
   // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401
-  const auth = loadAuth()
+  // SSR 阶段 localStorage 不可用，改从镜像 cookie 取令牌（需 Nuxt 请求上下文）
+  const auth = import.meta.server ? loadAuthFromCookie() : loadAuth()
   if (auth?.accessToken && !headers.Authorization && path !== '/api/auth/login') {
     headers.Authorization = `Bearer ${auth.accessToken}`
   }

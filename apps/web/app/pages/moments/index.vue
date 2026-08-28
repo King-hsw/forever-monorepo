@@ -9,7 +9,7 @@
 
       <!-- 顶部操作条：发布入口 + 按人筛选 chip -->
       <div class="moments-bar">
-        <NuxtLink to="/moments/new" class="btn btn--primary">发布动态</NuxtLink>
+        <NuxtLink v-if="canPost" to="/moments/new" class="btn btn--primary">发布动态</NuxtLink>
         <span v-if="userUid" class="moments-chip">
           只看 <strong>{{ filterName }}</strong> 的动态
           <button type="button" class="moments-chip__close" aria-label="清除筛选" @click="clearUser">×</button>
@@ -35,7 +35,8 @@
         </div>
       </template>
       <p v-else class="moments-empty">
-        还没有动态，<NuxtLink to="/moments/new">去发第一条</NuxtLink>吧 ✍️
+        <template v-if="canPost">还没有动态，<NuxtLink to="/moments/new">去发第一条</NuxtLink>吧 ✍️</template>
+        <template v-else>还没有动态 ✍️</template>
       </p>
     </main>
 
@@ -60,6 +61,9 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 auth.hydrate()
+// 登录态在首屏渲染前拉取权限码（SSR 与客户端整页加载各一次），按钮可见性无闪烁
+if (auth.isAuthenticated)
+  await auth.ensureMe()
 
 /** ?user={uid} 过滤：URL 是唯一事实源，可直接分享 */
 function toId(value: unknown): number | undefined {
@@ -68,6 +72,9 @@ function toId(value: unknown): number | undefined {
   return Number.isInteger(n) && n > 0 ? n : undefined
 }
 const userUid = computed(() => toId(route.query.user))
+
+/** 「发布动态」入口：登录且持有 moment:post 权限码才显示 */
+const canPost = computed(() => auth.isAuthenticated && auth.hasPermission('moment:post'))
 
 // 首屏直出第一页；按人筛选切换时按 key 重新拉取
 const { data, pending, refresh } = await useAsyncData(
