@@ -88,6 +88,7 @@ h1, h2 {
   --dur-soft: 260ms;
 
   /* 安全区：iOS PWA standalone 注入手势条/刘海高度，无安全区设备回退 0 */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
 }

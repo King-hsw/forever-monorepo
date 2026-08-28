@@ -490,7 +490,9 @@ usePageSeo({
 
 <style scoped>
 .chat-page {
-  height: 100dvh;
+  /* 布局层已为刘海下移安全区高度（app-shell__body padding-top），
+     这里减去同值保持恰好满屏，避免整页溢出滚动 */
+  height: calc(100dvh - var(--safe-area-inset-top));
   display: flex;
   flex-direction: column;
   padding: 12px;

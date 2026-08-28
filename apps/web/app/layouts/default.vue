@@ -32,6 +32,9 @@ const headerWidth = computed(() =>
 <style scoped>
 .app-shell__body {
   min-height: 100vh;
+  /* iOS PWA standalone：顶栏为避开刘海整体变高（padding-top 含安全区），
+     内容区同步下移等量高度，浏览器模式下 env 为 0 无影响 */
+  padding-top: var(--safe-area-inset-top);
 }
 
 /* 桌面端：内容整体让出左栏宽度 */

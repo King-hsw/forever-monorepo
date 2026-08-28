@@ -38,7 +38,8 @@ watch(shakeFlag, () => {
 
 .auth-layout__theme {
   position: absolute;
-  top: 20px;
+  /* iOS PWA standalone：避开状态栏/刘海 */
+  top: calc(20px + var(--safe-area-inset-top));
   right: 20px;
 }
 
