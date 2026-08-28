@@ -1,5 +1,5 @@
 <template>
-  <div ref="rootEl" class="markdown-view" v-html="html" @click="onCopyClick" />
+  <div ref="rootEl" class="markdown-view" v-html="html" @click="onClick" />
 </template>
 
 <script setup lang="ts">
@@ -8,6 +8,7 @@ import { Marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js/lib/core'
 import { codeLanguages } from '../utils/codeLanguages'
+import { openPhotoPreview } from '../composables/usePhotoPreview'
 import 'highlight.js/styles/github.css'
 
 // 与 TiptapEditor 共用同一份语言清单（含别名），保证编辑器和渲染的高亮能力一致
@@ -130,14 +131,25 @@ const html = computed(() => {
     .replace(/<img(?![^>]*\sreferrerpolicy=)/g, '<img referrerpolicy="no-referrer"')
 })
 
-/* ---------- 复制按钮：事件委托 + 已复制反馈 ---------- */
+/* ---------- 点击委托：正文图片浮层预览 + 代码块复制（已复制反馈） ---------- */
 const rootEl = ref<HTMLElement | null>(null)
 
 /** 每个按钮各自的恢复定时器（WeakMap 随节点回收） */
 const resetTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>()
 
-function onCopyClick(event: MouseEvent) {
-  const btn = (event.target as HTMLElement).closest<HTMLButtonElement>('.md-code-block__copy')
+function onClick(event: MouseEvent) {
+  // 正文图片：整篇文章的图片作为同一画廊，从点中的这张开始
+  const target = event.target as HTMLElement
+  const img = target.closest('img')
+  if (img && rootEl.value) {
+    const list = Array.from(rootEl.value.querySelectorAll('img'))
+    const index = list.indexOf(img)
+    if (index >= 0)
+      openPhotoPreview(list.map(el => el.src), index, img)
+    return
+  }
+
+  const btn = target.closest<HTMLButtonElement>('.md-code-block__copy')
   if (!btn || btn.disabled) return
   const code = btn.closest('.md-code-block')?.querySelector('pre')?.textContent ?? ''
   navigator.clipboard.writeText(code)
@@ -155,3 +167,10 @@ function onCopyClick(event: MouseEvent) {
     .catch(() => {})
 }
 </script>
+
+<style scoped>
+/* 正文图片可点：统一浮层预览 */
+:deep(img) {
+  cursor: zoom-in;
+}
+</style>

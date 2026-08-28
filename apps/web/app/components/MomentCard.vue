@@ -37,19 +37,19 @@
     <!-- 正文：保留换行 -->
     <p v-if="moment.content" class="moment-card__content">{{ moment.content }}</p>
 
-    <!-- 媒体：图片宫格（点击新标签打开）/ 音频 / 视频 -->
+    <!-- 媒体：图片宫格（点击页面内浮层预览）/ 音频 / 视频 -->
     <div v-if="hasMedia" class="moment-card__media">
       <div v-if="images.length" class="media-grid" :class="gridClass">
-        <a
-          v-for="url in images"
+        <button
+          v-for="(url, i) in images"
           :key="url"
-          :href="url"
-          target="_blank"
-          rel="noopener"
+          type="button"
           class="media-grid__item"
+          :aria-label="`预览第 ${i + 1} 张图片`"
+          @click="openPreview(i, $event)"
         >
-          <img :src="url" alt="图片" loading="lazy" />
-        </a>
+          <img :src="url" alt="" loading="lazy" />
+        </button>
       </div>
       <audio v-if="moment.media.audio" controls :src="moment.media.audio" />
       <video v-if="moment.media.video" controls :src="moment.media.video" />
@@ -126,6 +126,7 @@
 <script setup lang="ts">
 import type { AdminComment, CommentNode, Moment } from '#shared/types'
 import { useMomentsStore } from '~/stores/moments'
+import { openPhotoPreview } from '~/composables/usePhotoPreview'
 import { formatDateTime, formatRelativeTime, initialOf } from '~/utils/format'
 
 const props = defineProps<{ moment: Moment }>()
@@ -151,6 +152,15 @@ const hasMedia = computed(() => images.value.length > 0 || !!props.moment.media?
 const gridClass = computed(() =>
   images.value.length === 1 ? 'media-grid--1' : 'media-grid--3',
 )
+
+/** 图片预览：页面内浮层，同条动态多张可左右滑（Photoswipe 自带移动端手势） */
+function openPreview(index: number, event: MouseEvent) {
+  openPhotoPreview(
+    images.value,
+    index,
+    (event.currentTarget as HTMLElement).querySelector('img'),
+  )
+}
 
 /** 头像 / 用户名点击：只看该用户的动态（?user= 过滤，可直接分享） */
 function goUser() {
@@ -382,8 +392,12 @@ async function onDelete() {
 
 .media-grid__item {
   display: block;
+  padding: 0;
+  border: none;
+  background: none;
   border-radius: 10px;
   overflow: hidden;
+  cursor: zoom-in;
 }
 
 .media-grid__item img {
@@ -397,10 +411,6 @@ async function onDelete() {
 /* 宫格保持正方形；单图保留原始比例 */
 .media-grid--3 .media-grid__item {
   aspect-ratio: 1 / 1;
-}
-
-.media-grid--3 .media-grid__item img {
-  cursor: zoom-in;
 }
 
 .moment-card__media audio {
