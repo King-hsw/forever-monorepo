@@ -116,7 +116,12 @@ async function submit() {
   tip.value = ''
   try {
     const created = await commentsStore.create({
-      ...(props.targetType === 'BOARD' ? { targetType: 'BOARD' as const } : { articleId: props.targetId }),
+      // MOMENT 必须显式带 targetType/targetId，store 才走动态评论接口（带 articleId 会被当成文章评论）
+      ...(props.targetType === 'BOARD'
+        ? { targetType: 'BOARD' as const }
+        : props.targetType === 'MOMENT'
+          ? { targetType: 'MOMENT' as const, targetId: props.targetId }
+          : { articleId: props.targetId }),
       parentId: props.replyTo?.id,
       nickname: identity?.nickname ?? guest.nickname,
       email: identity?.email ?? guest.email,
