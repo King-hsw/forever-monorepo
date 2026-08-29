@@ -9,8 +9,7 @@ import type { PostInput, PostStatus } from '#shared/types'
 
 definePageMeta({ layout: 'admin', permission: 'article:create' })
 
-useHead({ title: '新建文章 - 补陋阁 后台' })
-useState('admin-page-title', () => '新建文章')
+useAdminPage('新建文章')
 
 const postsStore = usePostsStore()
 
@@ -26,7 +25,7 @@ async function onSave(input: PostInput, status: PostStatus) {
     }
     await navigateTo('/admin/posts')
   } catch (err) {
-    alert(err instanceof Error ? err.message : '保存失败')
+    alert(errMsg(err, '保存失败'))
   } finally {
     saving.value = false
   }

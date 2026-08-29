@@ -110,11 +110,7 @@ const { data, pending } = await useAsyncData(
 const totalPages = computed(() => (data.value ? Math.max(1, Math.ceil(data.value.total / data.value.size)) : 1))
 
 useHead({
-  title: kw.value ? `「${kw.value}」的搜索结果 - 补陋阁` : '搜索 - 补陋阁',
-})
-
-watch(kw, (v) => {
-  useHead({ title: v ? `「${v}」的搜索结果 - 补陋阁` : '搜索 - 补陋阁' })
+  title: () => (kw.value ? `「${kw.value}」的搜索结果 - 补陋阁` : '搜索 - 补陋阁'),
 })
 </script>
 

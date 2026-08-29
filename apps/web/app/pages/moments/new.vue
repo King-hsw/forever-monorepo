@@ -294,7 +294,7 @@ async function upload(item: AttachItem) {
   }
   catch (err) {
     item.status = 'error'
-    item.error = err instanceof Error ? err.message : '上传失败，请重试'
+    item.error = errMsg(err, '上传失败，请重试')
   }
 }
 

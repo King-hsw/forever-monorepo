@@ -6,32 +6,10 @@
         <span class="brand__name">补陋阁</span>
       </NuxtLink>
 
-      <!-- 桌面端导航（数据驱动，children 渲染为下拉） -->
       <nav class="site-nav" aria-label="主导航">
-        <template v-for="item in navItems" :key="item.label">
-          <div v-if="item.children" class="site-nav__dropdown">
-            <button type="button" class="site-nav__link site-nav__toggle" :aria-expanded="undefined">
-              {{ item.label }}
-              <svg class="site-nav__caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-                <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-              </svg>
-            </button>
-            <div class="site-nav__panel">
-              <NuxtLink
-                v-for="child in item.children"
-                :key="child.to"
-                :to="child.to"
-                class="site-nav__sublink"
-                @keydown.esc="blurTarget"
-              >
-                {{ child.label }}
-              </NuxtLink>
-            </div>
-          </div>
-          <NuxtLink v-else :to="item.to" class="site-nav__link">
-            {{ item.label }}
-          </NuxtLink>
-        </template>
+        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="site-nav__link">
+          {{ item.label }}
+        </NuxtLink>
       </nav>
 
       <div class="site-header__actions">
@@ -42,21 +20,9 @@
           :title="nextLabel"
           @click="setNext($event)"
         >
-          <svg class="theme-toggle__ico theme-toggle__ico--sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2" />
-            <path d="M12 20v2" />
-            <path d="m4.93 4.93 1.41 1.41" />
-            <path d="m17.66 17.66 1.41 1.41" />
-            <path d="M2 12h2" />
-            <path d="M20 12h2" />
-            <path d="m6.34 17.66-1.41 1.41" />
-            <path d="m19.07 4.93-1.41 1.41" />
-          </svg>
-          <svg class="theme-toggle__ico theme-toggle__ico--moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-          </svg>
-          <!-- 跟随系统：半明半暗圆（右半填充） -->
+          <Icon name="lucide:sun" mode="svg" :size="16" class="theme-toggle__ico theme-toggle__ico--sun" />
+          <Icon name="lucide:moon" mode="svg" :size="16" class="theme-toggle__ico theme-toggle__ico--moon" />
+          <!-- 跟随系统：半明半暗圆（右半填充，lucide 无对应图形，保留自绘） -->
           <svg class="theme-toggle__ico theme-toggle__ico--auto" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
@@ -69,10 +35,7 @@
           title="搜索"
           @click="searchOpen = true"
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.8-3.8" />
-          </svg>
+          <Icon name="lucide:search" mode="svg" :size="16" />
         </button>
         <NuxtLink
           v-if="guest.isRegistered"
@@ -90,10 +53,7 @@
           aria-label="管理后台"
           title="管理后台"
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+          <Icon name="lucide:user" mode="svg" :size="16" />
         </NuxtLink>
         <div v-else class="site-header__login">
           <button
@@ -104,10 +64,7 @@
             title="登录"
             @click="loginOpen = !loginOpen"
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            <Icon name="lucide:user" mode="svg" :size="16" />
           </button>
           <div v-if="loginOpen" class="site-header__login-panel">
             <NuxtLink to="/admin/login" @click="closeLogin">账号登录</NuxtLink>
@@ -118,11 +75,9 @@
       </div>
     </div>
   </header>
-
-  </template>
+</template>
 
 <script setup lang="ts">
-
 /** 头部内容区最大宽度，各页面可按自身版心调整 */
 withDefaults(defineProps<{ width?: string }>(), { width: '1080px' })
 
@@ -149,30 +104,16 @@ function onDocMouseDown(e: MouseEvent) {
     closeLogin()
 }
 
-function onDocKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') closeLogin()
-}
-
-interface NavItem {
-  label: string
-  to: string
-  /** 有 children 时渲染为下拉分组 */
-  children?: { label: string, to: string }[]
-}
+useOnEscape(closeLogin)
 
 /** 后续加菜单只改这里 */
-const navItems: NavItem[] = [
+const navItems: { label: string, to: string }[] = [
   { label: '首页', to: '/' },
   { label: '文章', to: '/posts' },
   { label: '归档', to: '/archive' },
   { label: '动态', to: '/moments' },
   { label: '聊天', to: '/chat' },
 ]
-
-/** Esc 收起「更多」下拉：面板由 focus-within 控制，失焦即关 */
-function blurTarget(e: Event) {
-  ;(e.currentTarget as HTMLElement).blur()
-}
 
 /* 滚动后切换为玻璃拟态背景 */
 const scrolled = ref(false)
@@ -185,13 +126,11 @@ onMounted(() => {
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
   document.addEventListener('mousedown', onDocMouseDown)
-  document.addEventListener('keydown', onDocKeydown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
   document.removeEventListener('mousedown', onDocMouseDown)
-  document.removeEventListener('keydown', onDocKeydown)
 })
 
 // 路由变化时收起搜索下拉与登录菜单
@@ -313,73 +252,6 @@ function onBrandClick() {
   font-weight: 600;
 }
 
-/* ---- 「更多」下拉：hover / focus-within 展开，Esc 失焦即关 ---- */
-.site-nav__dropdown {
-  position: relative;
-}
-
-.site-nav__toggle {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  cursor: pointer;
-  background: none;
-  border: none;
-}
-
-.site-nav__caret {
-  transition: transform 0.2s ease;
-}
-
-.site-nav__dropdown:hover .site-nav__caret,
-.site-nav__dropdown:focus-within .site-nav__caret {
-  transform: rotate(180deg);
-}
-
-.site-nav__panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  min-width: 128px;
-  padding: 6px;
-  visibility: hidden;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card-hover);
-  opacity: 0;
-  transform: translate(-50%, -4px);
-  transition: opacity 0.18s ease, transform 0.18s var(--ease-bounce), visibility 0.18s;
-}
-
-.site-nav__dropdown:hover .site-nav__panel,
-.site-nav__dropdown:focus-within .site-nav__panel {
-  visibility: visible;
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-.site-nav__sublink {
-  display: block;
-  padding: 8px 14px;
-  font-size: 13.5px;
-  color: var(--c-text-secondary);
-  text-decoration: none;
-  white-space: nowrap;
-  border-radius: 8px;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.site-nav__sublink:hover,
-.site-nav__sublink.router-link-active {
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-}
-
-.site-nav__link--quiet {
-  color: var(--c-text-muted);
-}
-
 .site-header__actions {
   display: flex;
   align-items: center;
@@ -488,21 +360,6 @@ function onBrandClick() {
 @media (min-width: 901px) {
   .site-header {
     display: none;
-  }
-}
-
-/* 搜索弹层与移动菜单的减透明度回落 */
-@media (prefers-reduced-transparency: reduce) {
-  .global-search {
-    background: rgb(28 25 23 / 45%);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .global-search__panel {
-    background: var(--c-bg-card);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
 </style>

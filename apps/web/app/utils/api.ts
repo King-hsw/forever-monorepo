@@ -184,6 +184,11 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   return res.data
 }
 
+/** 统一错误提示：取 err 的 message，非 Error 抛出时用回退文案 */
+export function errMsg(err: unknown, fallback = '操作失败'): string {
+  return err instanceof Error ? err.message : fallback
+}
+
 /**
  * 过滤掉 null / undefined / 空字符串的查询参数。
  * 入参用 object 而非 Record<string, unknown>，接口定义的查询类型（如 AdminArticleQuery）可直接传入。

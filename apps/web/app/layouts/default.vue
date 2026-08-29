@@ -19,7 +19,6 @@ const HEADER_WIDTHS: [string, string][] = [
   ['/', '1080px'],
   ['/posts', '800px'],
   ['/moments', '960px'],
-  ['/message', '960px'],
   ['/chat', '100%'],
   ['/admin', '100%'],
 ]

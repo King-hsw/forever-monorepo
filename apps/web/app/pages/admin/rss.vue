@@ -2,7 +2,7 @@
   <div class="rss-page">
     <header class="rss-page__header fade-up">
       <p class="rss-page__hint">
-        订阅的博客会定期抓取最新文章，展示在前台「订阅」页；共 {{ rssStore.list.length }} 个源
+        订阅的博客会定期抓取最新文章，展示在前台「订阅」页；共 {{ list.length }} 个源
       </p>
       <button type="button" class="btn btn--primary" @click="openCreate">＋ 新增订阅源</button>
     </header>
@@ -73,9 +73,9 @@
     <!-- 订阅源列表 -->
     <div class="card rss-list fade-up" style="--stagger-index: 2">
       <div
-        v-for="(feed, i) in rssStore.list"
+        v-for="(feed, i) in list"
         :key="feed.id"
-        class="rss-list__row"
+        class="rss-list__row fade-up"
         :style="{ '--stagger-index': i + 2 }"
       >
         <div class="rss-list__main">
@@ -119,7 +119,7 @@
           </button>
         </div>
       </div>
-      <p v-if="!rssStore.list.length && !rssStore.loading" class="rss-list__empty">
+      <p v-if="!list.length && !loading" class="rss-list__empty">
         还没有订阅源，添加一个吧
       </p>
     </div>
@@ -142,71 +142,62 @@ import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin', permission: 'rss:list' })
 
-useHead({ title: 'RSS 订阅 - 补陋阁 后台' })
-useState('admin-page-title', () => 'RSS 订阅')
+useAdminPage('RSS 订阅')
 
-/** 订阅源状态与操作（原 useRssStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
-const rssStore = reactive((() => {
-  const list = ref<RssFeed[]>([])
-  const loading = ref(false)
+/** 订阅源列表与操作（仅本页使用） */
+const list = ref<RssFeed[]>([])
+const loading = ref(false)
 
-  /** 拉取订阅源列表（全量，含抓取状态），每次都取最新数据 */
-  async function fetch() {
-    loading.value = true
-    try {
-      list.value = await apiFetch<RssFeed[]>('/api/admin/rss/feeds')
-    }
-    finally {
-      loading.value = false
-    }
+/** 拉取订阅源列表（全量，含抓取状态），每次都取最新数据 */
+async function fetch() {
+  loading.value = true
+  try {
+    list.value = await apiFetch<RssFeed[]>('/api/admin/rss/feeds')
   }
-
-  /** 添加订阅源（后端创建成功后立即首抓一次） */
-  async function create(input: RssFeedInput): Promise<RssFeed> {
-    const feed = await apiFetch<RssFeed>('/api/admin/rss/feeds', {
-      method: 'POST',
-      body: input as unknown as Record<string, unknown>,
-    })
-    list.value.push(feed)
-    return feed
+  finally {
+    loading.value = false
   }
+}
 
-  /** 全量更新订阅源（未传的字段会被后端置空） */
-  async function update(id: number, input: RssFeedInput): Promise<void> {
-    const feed = await apiFetch<RssFeed>(`/api/admin/rss/feeds/${id}`, {
-      method: 'PUT',
-      body: input as unknown as Record<string, unknown>,
-    })
-    const idx = list.value.findIndex(f => f.id === id)
-    if (idx >= 0) list.value[idx] = feed
-  }
+/** 添加订阅源（后端创建成功后立即首抓一次） */
+async function create(input: RssFeedInput): Promise<RssFeed> {
+  const feed = await apiFetch<RssFeed>('/api/admin/rss/feeds', {
+    method: 'POST',
+    body: input as unknown as Record<string, unknown>,
+  })
+  list.value.push(feed)
+  return feed
+}
 
-  /** 删除订阅源（同时删除该源已抓取的全部条目） */
-  async function remove(id: number): Promise<void> {
-    await apiFetch<void>(`/api/admin/rss/feeds/${id}`, { method: 'DELETE' })
-    list.value = list.value.filter(f => f.id !== id)
-  }
+/** 全量更新订阅源（未传的字段会被后端置空） */
+async function update(id: number, input: RssFeedInput): Promise<void> {
+  const feed = await apiFetch<RssFeed>(`/api/admin/rss/feeds/${id}`, {
+    method: 'PUT',
+    body: input as unknown as Record<string, unknown>,
+  })
+  const idx = list.value.findIndex(f => f.id === id)
+  if (idx >= 0) list.value[idx] = feed
+}
 
-  /** 手动刷新一次；失败会记录到该源的 lastError 字段 */
-  async function refresh(id: number): Promise<void> {
-    await apiFetch<void>(`/api/admin/rss/feeds/${id}/refresh`, { method: 'POST' })
-    // 刷新可能改变条目数 / lastFetchedAt / lastError，重新拉取同步状态
-    await fetch()
-  }
+/** 删除订阅源（同时删除该源已抓取的全部条目） */
+async function remove(id: number): Promise<void> {
+  await apiFetch<void>(`/api/admin/rss/feeds/${id}`, { method: 'DELETE' })
+  list.value = list.value.filter(f => f.id !== id)
+}
 
-  return { list, loading, fetch, create, update, remove, refresh }
-})())
+/** 手动刷新一次；失败会记录到该源的 lastError 字段 */
+async function refresh(id: number): Promise<void> {
+  await apiFetch<void>(`/api/admin/rss/feeds/${id}/refresh`, { method: 'POST' })
+  // 刷新可能改变条目数 / lastFetchedAt / lastError，重新拉取同步状态
+  await fetch()
+}
 
 await useAsyncData('admin-rss-feeds', async () => {
-  await rssStore.fetch()
+  await fetch()
 }, { server: false })
 
 const saving = ref(false)
 const refreshingId = ref<number | null>(null)
-
-function reportError(err: unknown) {
-  alert(err instanceof Error ? err.message : '操作失败')
-}
 
 /* ---------- 表单 ---------- */
 const formOpen = ref(false)
@@ -253,13 +244,13 @@ async function saveForm() {
       enabled: form.enabled,
     }
     if (editingId.value !== null) {
-      await rssStore.update(editingId.value, input)
+      await update(editingId.value, input)
     } else {
-      await rssStore.create(input)
+      await create(input)
     }
     formOpen.value = false
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -269,9 +260,9 @@ async function saveForm() {
 async function refreshFeed(feed: RssFeed) {
   refreshingId.value = feed.id
   try {
-    await rssStore.refresh(feed.id)
+    await refresh(feed.id)
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     refreshingId.value = null
   }
@@ -280,7 +271,7 @@ async function refreshFeed(feed: RssFeed) {
 async function toggleEnabled(feed: RssFeed) {
   try {
     // 后端为全量更新：必须带上全部现有字段，否则未传字段会被置空
-    await rssStore.update(feed.id, {
+    await update(feed.id, {
       title: feed.title || undefined,
       siteUrl: feed.siteUrl,
       feedUrl: feed.feedUrl,
@@ -288,7 +279,7 @@ async function toggleEnabled(feed: RssFeed) {
       enabled: !feed.enabled,
     })
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   }
 }
 
@@ -304,9 +295,9 @@ const deleteMessage = computed(() => {
 async function confirmRemove() {
   if (!pendingDelete.value) return
   try {
-    await rssStore.remove(pendingDelete.value.id)
+    await remove(pendingDelete.value.id)
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     pendingDelete.value = null
   }
@@ -352,10 +343,6 @@ async function confirmRemove() {
   }
 }
 
-.field-input.is-invalid {
-  border-color: var(--c-danger);
-}
-
 .rss-form__switch {
   display: inline-flex;
   align-items: center;
@@ -391,8 +378,6 @@ async function confirmRemove() {
   align-items: center;
   gap: 18px;
   padding: 14px 0;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms);
 
   & + & {
     border-top: 1px solid var(--c-border);
@@ -496,10 +481,6 @@ async function confirmRemove() {
     padding: 5px 10px;
     font-size: 13px;
   }
-}
-
-.danger-text {
-  color: var(--c-danger);
 }
 
 .rss-list__empty {

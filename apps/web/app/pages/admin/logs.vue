@@ -38,7 +38,7 @@
         <div
           v-for="(item, i) in list"
           :key="item.id"
-          class="logs-table__row logs-table__body-row"
+          class="logs-table__row logs-table__body-row fade-up"
           :style="{ '--stagger-index': i }"
         >
           <span class="cell-time">{{ formatDateTime(item.createdAt) }}</span>
@@ -57,9 +57,9 @@
 
     <!-- 分页 -->
     <nav v-if="totalPages > 1" class="pager fade-up" style="--stagger-index: 3" aria-label="日志分页">
-      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="go(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
+      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="load(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
       <span class="pager__info">{{ page }} / {{ totalPages }} · 共 {{ total }} 条</span>
-      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
+      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="load(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
       <select class="field-input pager__size" :value="size" aria-label="每页条数"
               @change="changeSize(Number(($event.target as HTMLSelectElement).value))">
         <option :value="20">20 条/页</option>
@@ -77,41 +77,32 @@ import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin', permission: 'log:list' })
 
-useHead({ title: '日志审计 - 补陋阁 后台' })
-useState('admin-page-title', () => '日志审计')
+useAdminPage('日志审计')
 
-/** 日志状态与查询（原 useLogsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
-const logsStore = reactive((() => {
-  const list = ref<ActionLog[]>([])
-  const total = ref(0)
-  const loading = ref(false)
-
-  /** 分页查询审计日志（按时间倒序），每次都取最新数据 */
-  async function fetch(query: ActionLogQuery = {}): Promise<PageResult<ActionLog>> {
-    loading.value = true
-    try {
-      return await apiFetch<PageResult<ActionLog>>('/api/admin/logs', {
-        query: cleanQuery({
-          page: query.page ?? 1,
-          size: query.size ?? 20,
-          username: query.username,
-          path: query.path,
-        }),
-      })
-    }
-    finally {
-      loading.value = false
-    }
-  }
-
-  return { list, total, loading, fetch }
-})())
-
-const list = computed(() => logsStore.list)
-const total = computed(() => logsStore.total)
+/** 日志列表与分页查询（仅本页使用） */
+const list = ref<ActionLog[]>([])
+const total = ref(0)
 const page = ref(1)
 const size = ref(20)
-const loading = computed(() => logsStore.loading)
+const loading = ref(false)
+
+/** 分页查询审计日志（按时间倒序），每次都取最新数据 */
+async function fetchLogs(query: ActionLogQuery = {}): Promise<PageResult<ActionLog>> {
+  loading.value = true
+  try {
+    return await apiFetch<PageResult<ActionLog>>('/api/admin/logs', {
+      query: cleanQuery({
+        page: query.page ?? 1,
+        size: query.size ?? 20,
+        username: query.username,
+        path: query.path,
+      }),
+    })
+  }
+  finally {
+    loading.value = false
+  }
+}
 
 /** 筛选输入（与已提交的查询条件分离，避免边输边查） */
 const filterUsername = ref('')
@@ -129,11 +120,11 @@ async function load(targetPage = 1) {
     size: size.value,
   }
   try {
-    const data = await logsStore.fetch(query)
+    const data = await fetchLogs(query)
     page.value = data.page
   }
   catch (err) {
-    alert(err instanceof Error ? err.message : '加载失败')
+    alert(errMsg(err, '加载失败'))
   }
 }
 
@@ -151,10 +142,6 @@ function doReset() {
   filterPath.value = ''
   appliedQuery.value = {}
   load(1)
-}
-
-function go(p: number) {
-  load(p)
 }
 
 function changeSize(s: number) {
@@ -259,7 +246,7 @@ await useAsyncData('admin-logs', async () => {
 }
 
 .logs-table__body-row {
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* 行级渐入沿用全局 .fade-up；表格行更密，delay 收紧为 40ms */
   animation-delay: calc(var(--stagger-index, 0) * 40ms);
   transition: background-color 0.15s;
 

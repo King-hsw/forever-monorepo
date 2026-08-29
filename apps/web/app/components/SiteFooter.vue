@@ -89,11 +89,11 @@ import type { SiteInfo } from '#shared/types'
 const DEFAULT_BIRTH = '2025-01-01'
 const { data: siteInfo } = await useAsyncData('site-info', () => apiFetch<SiteInfo>('/api/v1/site'))
 const birthDate = computed(() => siteInfo.value?.birthDate || DEFAULT_BIRTH)
-const SITE_BIRTH = computed(() => new Date(`${birthDate.value}T00:00:00+08:00`).getTime())
-const birthLabel = computed(() => {
-  const d = new Date(`${birthDate.value}T00:00:00+08:00`)
-  return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`
-})
+const birth = computed(() => new Date(`${birthDate.value}T00:00:00+08:00`))
+const SITE_BIRTH = computed(() => birth.value.getTime())
+const birthLabel = computed(() =>
+  `${birth.value.getFullYear()} 年 ${birth.value.getMonth() + 1} 月 ${birth.value.getDate()} 日`,
+)
 
 const year = new Date().getFullYear()
 

@@ -139,15 +139,6 @@ function scrollToHeading(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-function formatDate(value: string | number | null | undefined): string {
-  if (!value) return ''
-  return new Date(value).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-
 usePageSeo({
   title: () => (post.value ? `${post.value.title} - 补陋阁` : '补陋阁'),
   description: () => post.value?.summary,

@@ -209,8 +209,7 @@ import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '个人资料 - 补陋阁 后台' })
-useState('admin-page-title', () => '个人资料')
+useAdminPage('个人资料')
 
 const auth = useAuthStore()
 // 资料由 admin 布局统一拉取并缓存，本页直接读写同一份 state
@@ -249,14 +248,12 @@ function resetDrafts() {
 }
 
 /** 与服务端规则保持一致，提前拦截 */
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
-
 function validateField(field: 'nickname' | 'email' | 'site'): string {
   const v = drafts[field].trim()
   if (v === '') return '' // 留空 = 清空字段
   if (field === 'nickname' && v.length > 50) return '昵称最长 50 字'
   if (field === 'email' && !EMAIL_RE.test(v)) return '邮箱格式不正确'
-  if (field === 'site' && !v.startsWith('http://') && !v.startsWith('https://')) {
+  if (field === 'site' && !isHttpUrl(v)) {
     return '必须以 http:// 或 https:// 开头'
   }
   return ''
@@ -287,7 +284,7 @@ async function saveProfile() {
     profileMsgTimer = setTimeout(() => (profileMsg.value = ''), 3000)
   }
   catch (err) {
-    alert(err instanceof Error ? err.message : '保存失败')
+    alert(errMsg(err, '保存失败'))
   }
   finally {
     saving.value = false
@@ -318,7 +315,7 @@ function onFilePicked(e: Event) {
   avatarBusy.value = true
   apiFetch<ProfileInfo>('/api/admin/profile/avatar', { method: 'POST', body: form })
     .then(p => { profile.value = p })
-    .catch((err: unknown) => alert(err instanceof Error ? err.message : '上传失败'))
+    .catch((err: unknown) => alert(errMsg(err, '上传失败')))
     .finally(() => { avatarBusy.value = false })
 }
 
@@ -326,7 +323,7 @@ function removeAvatar() {
   avatarBusy.value = true
   apiFetch<ProfileInfo>('/api/admin/profile/avatar', { method: 'DELETE' })
     .then(p => { profile.value = p })
-    .catch((err: unknown) => alert(err instanceof Error ? err.message : '删除失败'))
+    .catch((err: unknown) => alert(errMsg(err, '删除失败')))
     .finally(() => { avatarBusy.value = false })
 }
 
@@ -367,7 +364,7 @@ async function changePassword() {
     reportPwd('密码已更新', false)
   }
   catch (err) {
-    reportPwd(err instanceof Error ? err.message : '更新失败', true)
+    reportPwd(errMsg(err, '更新失败'), true)
   }
   finally {
     pwdSaving.value = false

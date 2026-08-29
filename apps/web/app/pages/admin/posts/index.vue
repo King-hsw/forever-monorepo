@@ -16,7 +16,7 @@
       <div
         v-for="(post, i) in sortedPosts"
         :key="post.id"
-        class="posts-table__row posts-table__body-row"
+        class="posts-table__row posts-table__body-row fade-up"
         :style="{ '--stagger-index': i }"
       >
         <span class="cell-title">
@@ -49,7 +49,7 @@
           <button type="button" class="btn btn--ghost" @click="toggle(post)">
             {{ post.status === 'PUBLISHED' ? '下线' : '发布' }}
           </button>
-          <button type="button" class="btn btn--ghost op-danger" @click="askRemove(post)">删除</button>
+          <button type="button" class="btn btn--ghost op-danger" @click="pendingDelete = post">删除</button>
         </span>
       </div>
     </div>
@@ -75,8 +75,7 @@ import type { Post } from '#shared/types'
 
 definePageMeta({ layout: 'admin', permission: 'article:list' })
 
-useHead({ title: '文章管理 - 补陋阁 后台' })
-useState('admin-page-title', () => '文章管理')
+useAdminPage('文章管理')
 
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
@@ -99,22 +98,18 @@ async function toggle(post: Post) {
   try {
     await postsStore.toggleStatus(post)
   } catch (err) {
-    alert(err instanceof Error ? err.message : '操作失败')
+    alert(errMsg(err))
   }
 }
 
 const pendingDelete = ref<Post | null>(null)
-
-function askRemove(post: Post) {
-  pendingDelete.value = post
-}
 
 async function confirmRemove() {
   if (pendingDelete.value) {
     try {
       await postsStore.remove(pendingDelete.value.id)
     } catch (err) {
-      alert(err instanceof Error ? err.message : '删除失败')
+      alert(errMsg(err, '删除失败'))
     }
   }
   pendingDelete.value = null
@@ -145,8 +140,6 @@ async function confirmRemove() {
 }
 
 .posts-table__body-row {
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms);
   transition: background-color 0.15s;
 
   & + & {

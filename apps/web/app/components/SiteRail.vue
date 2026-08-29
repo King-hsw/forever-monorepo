@@ -12,8 +12,7 @@
           class="site-rail__btn"
           :aria-label="item.label"
         >
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" v-html="item.icon" />
+          <Icon :name="item.icon" mode="svg" :size="19" />
         </NuxtLink>
       </Tooltip>
     </nav>
@@ -33,29 +32,14 @@
       </Tooltip>
       <Tooltip label="搜索">
         <button type="button" class="site-rail__btn" aria-label="搜索" @click="searchOpen = true">
-          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.8-3.8" />
-          </svg>
+          <Icon name="lucide:search" mode="svg" :size="19" />
         </button>
       </Tooltip>
       <Tooltip :label="nextLabel">
         <button type="button" class="site-rail__btn theme-toggle" :aria-label="nextLabel" @click="setNext($event)">
-          <svg class="theme-toggle__ico theme-toggle__ico--sun" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2" />
-            <path d="M12 20v2" />
-            <path d="m4.93 4.93 1.41 1.41" />
-            <path d="m17.66 17.66 1.41 1.41" />
-            <path d="M2 12h2" />
-            <path d="M20 12h2" />
-            <path d="m6.34 17.66-1.41 1.41" />
-            <path d="m19.07 4.93-1.41 1.41" />
-          </svg>
-          <svg class="theme-toggle__ico theme-toggle__ico--moon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-          </svg>
-          <!-- 跟随系统：半明半暗圆（右半填充） -->
+          <Icon name="lucide:sun" mode="svg" :size="19" class="theme-toggle__ico theme-toggle__ico--sun" />
+          <Icon name="lucide:moon" mode="svg" :size="19" class="theme-toggle__ico theme-toggle__ico--moon" />
+          <!-- 跟随系统：半明半暗圆（右半填充，lucide 无对应图形，保留自绘） -->
           <svg class="theme-toggle__ico theme-toggle__ico--auto" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
@@ -77,10 +61,7 @@
             aria-label="登录"
             @click="loginOpen = !loginOpen"
           >
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            <Icon name="lucide:user" mode="svg" :size="19" />
           </button>
         </Tooltip>
         <div v-if="loginOpen" class="site-rail__login-panel">
@@ -101,22 +82,13 @@ const { setNext, nextLabel } = useTheme()
 auth.hydrate()
 guest.hydrate()
 
-const ICONS = {
-  home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1Z"/>',
-  posts: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
-  chat: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
-  friends: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
-  list: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
-  about: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-  moments: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-} as const
-
+/** 后续加菜单只改这里 */
 const navItems = [
-  { label: '首页', to: '/', icon: ICONS.home },
-  { label: '文章', to: '/posts', icon: ICONS.list },
-  { label: '归档', to: '/archive', icon: ICONS.posts },
-  { label: '动态', to: '/moments', icon: ICONS.moments },
-  { label: '聊天', to: '/chat', icon: ICONS.chat },
+  { label: '首页', to: '/', icon: 'lucide:home' },
+  { label: '文章', to: '/posts', icon: 'lucide:list' },
+  { label: '归档', to: '/archive', icon: 'lucide:book-open' },
+  { label: '动态', to: '/moments', icon: 'lucide:heart' },
+  { label: '聊天', to: '/chat', icon: 'lucide:message-circle' },
 ]
 
 /* 登录菜单：账号登录 / 游客登录 */
@@ -132,18 +104,14 @@ function onDocMouseDown(e: MouseEvent) {
     closeLogin()
 }
 
-function onDocKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') closeLogin()
-}
+useOnEscape(closeLogin)
 
 onMounted(() => {
   document.addEventListener('mousedown', onDocMouseDown)
-  document.addEventListener('keydown', onDocKeydown)
 })
 
 onUnmounted(() => {
   document.removeEventListener('mousedown', onDocMouseDown)
-  document.removeEventListener('keydown', onDocKeydown)
 })
 
 watch(() => route.fullPath, closeLogin)

@@ -41,7 +41,7 @@
       >
         <div class="settings-row__info">
           <div class="settings-row__label">
-            <strong>{{ meta(item.key).label }}</strong>
+            <strong>{{ metaOf(item.key).label }}</strong>
             <code :title="item.key">{{ item.key }}</code>
             <span v-if="!item.value" class="badge badge--draft">默认</span>
             <span v-else-if="isDirty(item.key)" class="badge badge--modified">已修改</span>
@@ -51,23 +51,16 @@
 
         <div class="settings-row__control">
           <!-- 布尔型：开关 -->
-          <template v-if="meta(item.key).type === 'boolean'">
-            <button
-              type="button"
-              class="switch"
-              :class="{ 'is-on': boolValue(item) }"
-              role="switch"
-              :aria-checked="boolValue(item)"
-              :aria-label="meta(item.key).label"
-              @click="toggleBool(item)"
-            >
-              <span class="switch__knob" />
-            </button>
-            <span class="switch__text">{{ boolValue(item) ? '开启' : '关闭' }}</span>
+          <template v-if="metaOf(item.key).type === 'boolean'">
+            <SettingSwitch
+              :on="settingBoolValue(drafts[item.key], item)"
+              :label="metaOf(item.key).label"
+              @toggle="toggleBool(item)"
+            />
           </template>
 
           <!-- 数值型：数字输入 + 单位 -->
-          <template v-else-if="meta(item.key).type === 'number'">
+          <template v-else-if="metaOf(item.key).type === 'number'">
             <div class="input-wrap input-wrap--number">
               <input
                 v-model="drafts[item.key]"
@@ -76,11 +69,11 @@
                 type="number"
                 min="0"
                 step="1"
-                :placeholder="String(meta(item.key).defaultValue ?? '')"
-                :aria-label="`${meta(item.key).label}（${meta(item.key).unit ?? ''}）`"
+                :placeholder="String(metaOf(item.key).defaultValue ?? '')"
+                :aria-label="`${metaOf(item.key).label}（${metaOf(item.key).unit ?? ''}）`"
                 @input="errors[item.key] = ''"
               >
-              <span v-if="meta(item.key).unit" class="input-wrap__unit">{{ meta(item.key).unit }}</span>
+              <span v-if="metaOf(item.key).unit" class="input-wrap__unit">{{ metaOf(item.key).unit }}</span>
             </div>
           </template>
 
@@ -91,10 +84,10 @@
                 v-model="drafts[item.key]"
                 class="field-input"
                 :class="{ 'is-invalid': !!errors[item.key] }"
-                :type="meta(item.key).type === 'email' ? 'email'
-                  : meta(item.key).type === 'date' ? 'date' : 'text'"
-                :placeholder="placeholderOf(item)"
-                :aria-label="meta(item.key).label"
+                :type="metaOf(item.key).type === 'email' ? 'email'
+                  : metaOf(item.key).type === 'date' ? 'date' : 'text'"
+                :placeholder="settingPlaceholder(item)"
+                :aria-label="metaOf(item.key).label"
                 spellcheck="false"
                 @input="errors[item.key] = ''"
               >
@@ -114,7 +107,7 @@
     </section>
 
     <!-- 底部统一保存 -->
-    <footer v-if="settingsStore.list.length" class="settings-page__footer fade-up" style="--stagger-index: 4">
+    <footer v-if="list.length" class="settings-page__footer fade-up" style="--stagger-index: 4">
       <button
         type="button"
         class="btn btn--primary"
@@ -133,72 +126,30 @@ import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin', permission: 'setting:list' })
 
-useHead({ title: '站点设置 - 补陋阁 后台' })
-useState('admin-page-title', () => '站点设置')
+useAdminPage('站点设置')
 
-/** 配置状态与操作（原 useSettingsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
-const settingsStore = reactive((() => {
-  const list = ref<SettingItem[]>([])
-  const loading = ref(false)
+/** 配置列表与更新（仅本页使用） */
+const list = ref<SettingItem[]>([])
 
-  /** 拉取全部配置项（value 为空字符串表示未在数据库设置、走 yml 默认值），每次都取最新数据 */
-  async function fetch() {
-    loading.value = true
-    try {
-      list.value = await apiFetch<SettingItem[]>('/api/admin/settings')
-    }
-    finally {
-      loading.value = false
-    }
-  }
+/** 拉取全部配置项（value 为空字符串表示未在数据库设置、走 yml 默认值），每次都取最新数据 */
+async function fetchSettings() {
+  list.value = await apiFetch<SettingItem[]>('/api/admin/settings')
+}
 
-  /** 更新单项配置（仅支持已登记的配置键），成功后用返回值替换列表中的旧项 */
-  async function update(key: string, value: string): Promise<void> {
-    const item = await apiFetch<SettingItem>('/api/admin/settings', {
-      method: 'PUT',
-      body: { key, value },
-    })
-    const idx = list.value.findIndex(s => s.key === key)
-    if (idx >= 0) list.value[idx] = item
-    else list.value.push(item)
-  }
-
-  return { list, loading, fetch, update }
-})())
+/** 更新单项配置（仅支持已登记的配置键），成功后用返回值替换列表中的旧项 */
+async function updateSetting(key: string, value: string): Promise<void> {
+  const item = await apiFetch<SettingItem>('/api/admin/settings', {
+    method: 'PUT',
+    body: { key, value },
+  })
+  const idx = list.value.findIndex(s => s.key === key)
+  if (idx >= 0) list.value[idx] = item
+  else list.value.push(item)
+}
 
 await useAsyncData('admin-settings', async () => {
-  await settingsStore.fetch()
+  await fetchSettings()
 }, { server: false })
-
-/* ---------- 配置项元数据（与服务端 SiteConfigService 的登记表对应） ---------- */
-type SettingType = 'boolean' | 'number' | 'email' | 'url' | 'date' | 'text'
-
-interface ItemMeta {
-  label: string
-  type: SettingType
-  /** 服务端内置默认值，仅用于占位提示 / 开关初始态 */
-  defaultValue?: string
-  unit?: string
-}
-
-const ITEM_META: Record<string, ItemMeta> = {
-  'site.url': { label: '站点地址', type: 'url' },
-  'site.birth-date': { label: '建站时间', type: 'date' },
-  'board.title': { label: '留言板标题', type: 'text' },
-  'board.summary': { label: '留言板简介', type: 'text' },
-  'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
-  'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },
-  'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },
-  'comment.owner-email': { label: '站长邮箱', type: 'email' },
-  'comment.from-email': { label: '发件人地址', type: 'email', defaultValue: 'noreply@example.com' },
-  'moments.amapKey': { label: '高德 Web 服务 Key', type: 'text' },
-}
-
-const FALLBACK_META: ItemMeta = { label: '', type: 'text' }
-
-function meta(key: string): ItemMeta {
-  return ITEM_META[key] ?? FALLBACK_META
-}
 
 /* ---------- 分组：相关配置聚合展示 ---------- */
 interface Group {
@@ -237,15 +188,15 @@ const KNOWN_GROUPS: Group[] = [
 /** 已登记配置按分组排列；未登记的归入「其他」，保证后端新增键也能显示 */
 const groups = computed<Group[]>(() => {
   const known = new Set(KNOWN_GROUPS.flatMap(g => g.keys))
-  const rest = settingsStore.list.filter(s => !known.has(s.key))
-  const list = [...KNOWN_GROUPS]
-  if (rest.length) list.push({ title: '其他', icon: 'lucide:puzzle', keys: rest.map(s => s.key) })
-  return list
+  const rest = list.value.filter(s => !known.has(s.key))
+  const all = [...KNOWN_GROUPS]
+  if (rest.length) all.push({ title: '其他', icon: 'lucide:puzzle', keys: rest.map(s => s.key) })
+  return all
 })
 
 function itemsOf(group: Group): SettingItem[] {
   return group.keys
-    .map(key => settingsStore.list.find(s => s.key === key))
+    .map(key => list.value.find(s => s.key === key))
     .filter((s): s is SettingItem => !!s)
 }
 
@@ -259,21 +210,21 @@ function syncDrafts(items: SettingItem[]) {
     errors[item.key] = ''
   }
 }
-syncDrafts(settingsStore.list)
+syncDrafts(list.value)
 
 // 拉取完成后补齐新出现的 key（不覆盖用户正在编辑的草稿）
-watch(() => settingsStore.list, (list) => {
-  for (const item of list) {
+watch(list, (items) => {
+  for (const item of items) {
     if (!(item.key in drafts)) drafts[item.key] = item.value
   }
 })
 
 function isDirty(key: string) {
-  return key in drafts && drafts[key] !== settingsStore.list.find(s => s.key === key)?.value
+  return key in drafts && drafts[key] !== list.value.find(s => s.key === key)?.value
 }
 
 const dirtyKeys = computed(() =>
-  settingsStore.list.filter(item => isDirty(item.key)).map(item => item.key),
+  list.value.filter(item => isDirty(item.key)).map(item => item.key),
 )
 
 function resetItem(item: SettingItem) {
@@ -282,40 +233,24 @@ function resetItem(item: SettingItem) {
 }
 
 function resetDrafts() {
-  syncDrafts(settingsStore.list)
+  syncDrafts(list.value)
 }
 
 /* ---------- 各类型控件的读写 ---------- */
 
-/** 开关状态：未设置时展示服务端默认值；value 为空字符串表示「默认」 */
-function boolValue(item: SettingItem): boolean {
-  const raw = (drafts[item.key] ?? '').trim() || item.value
-  if (raw === '') return (meta(item.key).defaultValue ?? 'false') === 'true'
-  return raw === 'true'
-}
-
 function toggleBool(item: SettingItem) {
   // 关闭→开启写 'true'；开启→关闭写 'false'；从默认态切换时与默认值相反即为目标态
-  drafts[item.key] = boolValue(item) ? 'false' : 'true'
+  drafts[item.key] = settingBoolValue(drafts[item.key], item) ? 'false' : 'true'
   errors[item.key] = ''
 }
 
-function placeholderOf(item: SettingItem): string {
-  if (item.value) return ''
-  if (item.key === 'comment.owner-email') return '未设置，不通知站长'
-  if (item.key === 'site.birth-date') return '未设置，页脚用默认值'
-  const d = meta(item.key).defaultValue
-  return d ? `默认 ${d}` : '未设置'
-}
-
 /* ---------- 校验（与服务端规则一致，提前拦截） ---------- */
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 function validate(key: string): string {
   // 数字输入框的 v-model 会把草稿转成 number，统一转回字符串再处理
   const draft = String(drafts[key] ?? '').trim()
   if (draft === '') return '' // 留空 = 恢复默认值
-  switch (meta(key).type) {
+  switch (metaOf(key).type) {
     case 'number':
       if (!/^\d+$/.test(draft)) return '须为不小于 0 的整数'
       break
@@ -329,7 +264,7 @@ function validate(key: string): string {
       if (!EMAIL_RE.test(draft)) return '邮箱格式不正确'
       break
     case 'url':
-      if (!draft.startsWith('http://') && !draft.startsWith('https://')) return '必须以 http:// 或 https:// 开头'
+      if (!isHttpUrl(draft)) return '必须以 http:// 或 https:// 开头'
       break
   }
   return ''
@@ -340,14 +275,10 @@ const saving = ref(false)
 const successMsg = ref('')
 let successTimer: ReturnType<typeof setTimeout> | null = null
 
-function reportError(err: unknown) {
-  alert(err instanceof Error ? err.message : '操作失败')
-}
-
 /** 把已保存项的草稿回写为列表里的字符串值 */
 function syncSaved(keys: string[]) {
   for (const key of keys) {
-    const item = settingsStore.list.find(s => s.key === key)
+    const item = list.value.find(s => s.key === key)
     if (item) drafts[key] = item.value
   }
 }
@@ -364,7 +295,7 @@ async function saveAll() {
   try {
     // 逐项提交；某项失败时中断，但保留前面已成功项的同步
     for (const key of targets) {
-      await settingsStore.update(key, String(drafts[key] ?? '').trim())
+      await updateSetting(key, String(drafts[key] ?? '').trim())
       savedKeys.push(key)
     }
     // 回写字符串草稿，避免数字输入的 number 草稿与列表值不等而一直显示「已修改」
@@ -374,7 +305,7 @@ async function saveAll() {
     successTimer = setTimeout(() => (successMsg.value = ''), 3000)
   } catch (err) {
     syncSaved(savedKeys)
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -472,7 +403,8 @@ onBeforeUnmount(() => {
     border-color: var(--c-primary);
   }
 
-  &.is-dirty .switch:not(.is-on) {
+  /* 开关在子组件内，需 :deep 穿透 */
+  &.is-dirty :deep(.switch:not(.is-on)) {
     background: var(--c-primary);
   }
 }
@@ -557,46 +489,6 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-/* ===== 开关 ===== */
-.switch {
-  position: relative;
-  width: 42px;
-  height: 24px;
-  flex-shrink: 0;
-  padding: 0;
-  background: var(--c-border);
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &.is-on {
-    background: var(--c-primary);
-  }
-}
-
-.switch__knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 18px;
-  height: 18px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.switch.is-on .switch__knob {
-  transform: translateX(18px);
-}
-
-.switch__text {
-  width: 30px;
-  font-size: 13px;
-  color: var(--c-text-secondary);
-}
-
 .settings-row__reset {
   padding: 2px 8px;
   font-size: 11.5px;
@@ -611,10 +503,6 @@ onBeforeUnmount(() => {
     color: var(--c-danger);
     border-color: var(--c-danger);
   }
-}
-
-.field-input.is-invalid {
-  border-color: var(--c-danger);
 }
 
 /* ===== 底部保存 ===== */

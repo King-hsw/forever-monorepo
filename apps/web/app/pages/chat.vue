@@ -34,7 +34,7 @@
                 </span>
                 <span class="member__preview">{{ m.lastContent }}</span>
               </span>
-              <time class="member__time">{{ fmtRel(m.lastAt) }}</time>
+              <time class="member__time">{{ formatRelativeTime(m.lastAt) }}</time>
             </button>
           </li>
         </ul>
@@ -172,7 +172,6 @@
 <script setup lang="ts">
 import type { CommentNode, PageResult } from '#shared/types'
 import { apiFetch } from '~/utils/api'
-import { formatRelativeTime, formatShortDateTime } from '~/utils/format'
 
 interface BoardInfo {
   title: string
@@ -349,7 +348,7 @@ const rows = computed<Row[]>(() => {
   for (const m of visibleMsgs.value) {
     const t = new Date(m.createdAt).getTime()
     if (t - lastT > GAP_MS)
-      out.push({ kind: 'sep', key: `sep-${m.id}`, text: fmtSep(m.createdAt) })
+      out.push({ kind: 'sep', key: `sep-${m.id}`, text: formatShortDateTime(m.createdAt) })
     const self = isSelfName(m.nickname)
     const parent = m.parentId ? byId.get(m.parentId) : undefined
     out.push({
@@ -477,8 +476,6 @@ async function send() {
 /* ---------- 时间格式 ---------- */
 
 // 时间展示统一走 utils/format（动态页同款）
-const fmtRel = formatRelativeTime
-const fmtSep = formatShortDateTime
 
 usePageSeo({
   title: computed(() => `${board.value?.title || '留言板'} · 聊天 - 补陋阁`),

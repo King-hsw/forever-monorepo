@@ -120,7 +120,7 @@
     <!-- ===== 用户 Tab ===== -->
     <template v-if="tab === 'users'">
       <div class="card perm-list fade-up" style="--stagger-index: 2">
-        <div v-for="(user, i) in users" :key="user.id" class="perm-list__row" :style="{ '--stagger-index': i + 2 }">
+        <div v-for="(user, i) in users" :key="user.id" class="perm-list__row fade-up" :style="{ '--stagger-index': i + 2 }">
           <div class="perm-list__info">
             <strong>{{ user.nickname || user.username }}</strong>
             <code>@{{ user.username }}</code>
@@ -162,7 +162,7 @@
     <!-- ===== 角色 Tab ===== -->
     <template v-else>
       <div class="card perm-list fade-up" style="--stagger-index: 2">
-        <div v-for="(role, i) in roles" :key="role.id" class="perm-list__row" :style="{ '--stagger-index': i + 2 }">
+        <div v-for="(role, i) in roles" :key="role.id" class="perm-list__row fade-up" :style="{ '--stagger-index': i + 2 }">
           <div class="perm-list__info">
             <strong>{{ role.name }}</strong>
             <code>{{ role.code }}</code>
@@ -218,12 +218,17 @@
       title="重置密码"
       :message="`为用户「${pendingPwdUser?.username ?? ''}」设置新密码（至少 6 位）：`"
       confirm-text="重置"
-      show-input
-      input-type="password"
-      input-placeholder="新密码"
       @confirm="confirmResetPwd"
       @cancel="pendingPwdUser = null"
-    />
+    >
+      <input
+        v-model="pwdInput"
+        class="field-input"
+        type="password"
+        placeholder="新密码"
+        @keydown.enter="confirmResetPwd"
+      >
+    </AdminConfirmDialog>
   </div>
 </template>
 
@@ -233,16 +238,11 @@ import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin', permission: 'rbac:role:list' })
 
-useHead({ title: '用户权限 - 补陋阁 后台' })
-useState('admin-page-title', () => '用户权限')
+useAdminPage('用户权限')
 
 const tab = ref<'users' | 'roles'>('users')
 const saving = ref(false)
 const formError = ref('')
-
-function reportError(err: unknown) {
-  alert(err instanceof Error ? err.message : '操作失败')
-}
 
 /* ---------- 数据加载 ---------- */
 // 角色列表接口返回 Map 结构，可能附带该角色已有的权限点 id（用于回显勾选）
@@ -262,16 +262,8 @@ await useAsyncData('admin-permissions', async () => {
   permissions.value = p
 }, { server: false })
 
-/** 权限点按 module 分组，保持接口返回顺序 */
-const permissionModules = computed(() => {
-  const map = new Map<string, SysPermission[]>()
-  for (const perm of permissions.value) {
-    const list = map.get(perm.module) ?? []
-    list.push(perm)
-    map.set(perm.module, list)
-  }
-  return Object.fromEntries(map)
-})
+/** 权限点按 module 分组（Object.groupBy 保持接口返回的首现顺序） */
+const permissionModules = computed(() => Object.groupBy(permissions.value, p => p.module))
 
 /* ---------- 新增表单 ---------- */
 const formOpen = ref(false)
@@ -326,7 +318,7 @@ async function saveForm() {
     }
     closeForm()
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -359,7 +351,7 @@ async function saveUserRoles(user: UserView) {
     users.value = users.value.map(u => (u.id === user.id ? { ...u, roles: rolesOf(rolesDraft.value) } : u))
     rolesUserId.value = null
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -374,7 +366,7 @@ async function toggleStatus(user: UserView) {
     })
     users.value = users.value.map(u => (u.id === user.id ? { ...u, status: next } : u))
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   }
 }
 
@@ -386,8 +378,9 @@ function askResetPwd(user: UserView) {
   pendingPwdUser.value = user
 }
 
-async function confirmResetPwd(password?: string) {
+async function confirmResetPwd() {
   const user = pendingPwdUser.value
+  const password = pwdInput.value
   if (!user || !password || password.length < 6) return
   try {
     await apiFetch(`/api/admin/users/${user.id}/password`, {
@@ -396,7 +389,7 @@ async function confirmResetPwd(password?: string) {
     })
     pendingPwdUser.value = null
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   }
 }
 
@@ -409,7 +402,7 @@ function togglePerms(role: RoleItem) {
   permsDraft.value = [...(role.permissionIds ?? [])]
 }
 
-function toggleModule(perms: SysPermission[]) {
+function toggleModule(perms: SysPermission[] = []) {
   const ids = perms.map(p => p.id)
   const allOn = ids.every(id => permsDraft.value.includes(id))
   permsDraft.value = allOn
@@ -428,7 +421,7 @@ async function saveRolePerms(role: RoleItem) {
     roles.value = roles.value.map(r => (r.id === role.id ? { ...r, permissionIds: [...permsDraft.value] } : r))
     permsRoleId.value = null
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -443,7 +436,7 @@ async function removeRole() {
     await apiFetch(`/api/admin/roles/${role.id}`, { method: 'DELETE' })
     roles.value = roles.value.filter(r => r.id !== role.id)
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     pendingDeleteRole.value = null
   }
@@ -583,8 +576,6 @@ async function removeRole() {
   gap: 16px;
   flex-wrap: wrap;
   padding: 14px 0;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms);
 
   & + & {
     border-top: 1px solid var(--c-border);
@@ -635,10 +626,6 @@ async function removeRole() {
   padding: 12px;
   background: var(--c-bg-soft);
   border-radius: var(--radius-control);
-}
-
-.danger-text {
-  color: var(--c-danger);
 }
 
 .list-empty {

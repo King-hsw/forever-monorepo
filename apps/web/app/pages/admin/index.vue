@@ -95,8 +95,7 @@ import { apiFetch } from '~/utils/api'
 
 definePageMeta({ layout: 'admin' })
 
-useHead({ title: '仪表盘 - 补陋阁 后台' })
-useState('admin-page-title', () => '仪表盘')
+useAdminPage('仪表盘')
 
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()

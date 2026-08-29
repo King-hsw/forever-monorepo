@@ -34,12 +34,12 @@
 
     <!-- 列表 -->
     <div class="card comments-list fade-up" style="--stagger-index: 1">
-      <div v-for="(item, i) in list" :key="item.id" class="comments-list__row"
+      <div v-for="(item, i) in list" :key="item.id" class="comments-list__row fade-up"
            :style="{ '--stagger-index': i + 2 }">
         <div class="comments-list__main">
           <div class="comments-list__title">
             <strong>{{ item.nickname }}</strong>
-            <span class="badge" :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
+            <span class="badge" :class="moderationClass(item.status)">{{ moderationLabel(item.status) }}</span>
             <a v-if="item.site" :href="item.site" target="_blank" rel="noopener noreferrer"
                class="comments-list__site">{{ hostOf(item.site) }}</a>
             <span class="comments-list__article">{{ targetLabel(item) }}</span>
@@ -53,9 +53,9 @@
 
         <div class="comments-list__ops">
           <button v-if="item.status !== 'APPROVED'" type="button" class="btn btn--ghost"
-                  :disabled="actingId === item.id" @click="doApprove(item)">通过</button>
+                  :disabled="actingId === item.id" @click="setStatus(item, 'APPROVED')">通过</button>
           <button v-if="item.status !== 'REJECTED'" type="button" class="btn btn--ghost"
-                  :disabled="actingId === item.id" @click="doReject(item)">驳回</button>
+                  :disabled="actingId === item.id" @click="setStatus(item, 'REJECTED')">驳回</button>
           <button type="button" class="btn btn--ghost danger-text" @click="pendingDelete = item">删除</button>
         </div>
       </div>
@@ -65,9 +65,9 @@
 
     <!-- 分页 -->
     <nav v-if="totalPages > 1" class="pager fade-up" style="--stagger-index: 2" aria-label="评论分页">
-      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="go(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
+      <button type="button" class="btn" :disabled="page <= 1 || loading" @click="load(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
       <span class="pager__info">{{ page }} / {{ totalPages }} · 共 {{ total }} 条</span>
-      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
+      <button type="button" class="btn" :disabled="page >= totalPages || loading" @click="load(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
     </nav>
 
     <AdminConfirmDialog
@@ -88,8 +88,7 @@ import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin', permission: 'comment:list' })
 
-useHead({ title: '评论管理 - 补陋阁 后台' })
-useState('admin-page-title', () => '评论管理')
+useAdminPage('评论管理')
 
 const commentsStore = useCommentsStore()
 
@@ -132,7 +131,7 @@ async function load(targetPage = page.value) {
     page.value = data.page
   }
   catch (err) {
-    alert(err instanceof Error ? err.message : '加载失败')
+    alert(errMsg(err, '加载失败'))
   }
   finally {
     loading.value = false
@@ -158,39 +157,18 @@ function targetLabel(item: AdminComment): string {
   return `回复了「${item.targetTitle ?? ''}」`
 }
 
-function go(p: number) {
-  load(p)
-}
-
 /* ---------- 审核操作 ---------- */
 const actingId = ref<number | null>(null)
 
-function reportError(err: unknown) {
-  alert(err instanceof Error ? err.message : '操作失败')
-}
-
-async function doApprove(item: AdminComment) {
+/** 审核通过与驳回同一套流程，仅状态不同 */
+async function setStatus(item: AdminComment, status: CommentStatus) {
   actingId.value = item.id
   try {
-    await commentsStore.approve(item.id)
-    item.status = 'APPROVED'
+    await (status === 'APPROVED' ? commentsStore.approve(item.id) : commentsStore.reject(item.id))
+    item.status = status
   }
   catch (err) {
-    reportError(err)
-  }
-  finally {
-    actingId.value = null
-  }
-}
-
-async function doReject(item: AdminComment) {
-  actingId.value = item.id
-  try {
-    await commentsStore.reject(item.id)
-    item.status = 'REJECTED'
-  }
-  catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   }
   finally {
     actingId.value = null
@@ -213,19 +191,11 @@ async function confirmRemove() {
     await load(page.value)
   }
   catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   }
   finally {
     pendingDelete.value = null
   }
-}
-
-function statusLabel(status: CommentStatus): string {
-  return status === 'APPROVED' ? '已通过' : status === 'PENDING' ? '待审核' : '已驳回'
-}
-
-function statusBadgeClass(status: CommentStatus): string {
-  return status === 'APPROVED' ? 'badge--published' : status === 'PENDING' ? 'badge--draft' : 'badge--rejected'
 }
 
 function hostOf(url: string): string {
@@ -299,7 +269,7 @@ await useAsyncData('admin-comments', async () => {
   gap: 16px;
   align-items: flex-start;
   padding: 15px 0;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* 行级渐入沿用全局 .fade-up；本页行高更大，delay 收紧为 50ms */
   animation-delay: calc(var(--stagger-index, 0) * 50ms);
 
   & + & {
@@ -321,11 +291,6 @@ await useAsyncData('admin-comments', async () => {
   strong {
     font-size: 14px;
   }
-}
-
-.badge--rejected {
-  color: var(--c-danger);
-  background: rgb(239 68 68 / 10%);
 }
 
 .comments-list__site {
@@ -370,10 +335,6 @@ await useAsyncData('admin-comments', async () => {
     padding: 5px 10px;
     font-size: 13px;
   }
-}
-
-.danger-text {
-  color: var(--c-danger);
 }
 
 .comments-list__empty {

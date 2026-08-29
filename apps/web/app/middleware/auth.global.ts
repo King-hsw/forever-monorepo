@@ -15,8 +15,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/admin')
   }
 
-  // 权限门禁（仅客户端）：等权限码就绪后，按页面 meta.permission 判断能否展示
-  if (auth.isAuthenticated && isAdminPath && !isLoginPage) {
+  // 权限门禁（仅客户端）：走到这里必然已登录（首段未登录访问后台已跳转）。
+  // 等权限码就绪后，按页面 meta.permission 判断能否展示
+  if (isAdminPath && !isLoginPage) {
     await auth.ensureMe()
     const need = to.meta.permission as string | string[] | undefined
     if (need) {

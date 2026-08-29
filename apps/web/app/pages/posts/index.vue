@@ -105,12 +105,6 @@ const SIZE = 10
 const route = useRoute()
 const router = useRouter()
 
-/** URL 查询参数是唯一事实源：直接打开筛选链接也能命中 */
-function toId(value: unknown): number | undefined {
-  const raw = Array.isArray(value) ? value[0] : value
-  const n = Number(raw)
-  return Number.isInteger(n) && n > 0 ? n : undefined
-}
 
 const categoryId = computed(() => toId(route.query.categoryId))
 const page = computed(() => Math.max(1, Number(route.query.page) || 1))

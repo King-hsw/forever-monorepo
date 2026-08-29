@@ -207,14 +207,6 @@ const mini = computed(() => ({
   --hm-4: #c96a26;
 }
 
-.heatmap-unused-dummy {
-  --hm-0: rgb(255 255 255 / 5%);
-  --hm-1: rgb(13 148 136 / 28%);
-  --hm-2: rgb(13 148 136 / 48%);
-  --hm-3: rgb(13 148 136 / 75%);
-  --hm-4: #eb8258;
-}
-
 .heatmap__summary {
   margin: 0 0 14px;
   font-size: 13px;

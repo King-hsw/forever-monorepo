@@ -56,7 +56,6 @@ const props = defineProps<{
   /** 被回复的评论；为空则发根评论 */
   replyTo?: { id: number, nickname: string } | null
   /** 输入框 aria 标签后缀（区分文章评论 / 留言墙） */
-  placeholderSuffix?: string
   /** 以登录用户资料作为发言身份（动态评论用），免游客身份注册门槛 */
   useLoginIdentity?: boolean
 }>()
@@ -140,7 +139,7 @@ async function submit() {
     emit('success', created)
   }
   catch (err) {
-    tip.value = err instanceof Error ? err.message : '提交失败，请稍后再试'
+    tip.value = errMsg(err, '提交失败，请稍后再试')
     tipIsError.value = true
   }
   finally {

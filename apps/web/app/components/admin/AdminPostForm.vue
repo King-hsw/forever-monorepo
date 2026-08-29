@@ -170,12 +170,6 @@ function submit(status: PostStatus) {
   }, status)
 }
 
-function toggleTag(id: number) {
-  const idx = form.tagIds.indexOf(id)
-  if (idx >= 0) form.tagIds.splice(idx, 1)
-  else form.tagIds.push(id)
-}
-
 /* ---- 标签输入：即输即建 ---- */
 const tagDraft = ref('')
 const tagInputEl = ref<HTMLInputElement | null>(null)
@@ -205,7 +199,7 @@ async function addTag() {
     if (!form.tagIds.includes(tag.id)) form.tagIds.push(tag.id)
     tagDraft.value = ''
   } catch (err) {
-    alert(err instanceof Error ? err.message : '创建标签失败')
+    alert(errMsg(err, '创建标签失败'))
   }
 }
 
@@ -314,19 +308,9 @@ function onBackspace() {
   color: var(--c-danger);
 }
 
-.field-hint {
-  width: 100%;
-  margin: 0;
-  font-size: 12px;
-  color: var(--c-text-muted);
-}
-
-.field-input.is-invalid {
-  border-color: var(--c-danger);
-
-  &:focus {
-    box-shadow: 0 0 0 3px rgb(239 68 68 / 15%);
-  }
+/* 标题输入的失效光晕：描边色由全局 .field-input.is-invalid 提供 */
+.field-input.is-invalid:focus {
+  box-shadow: 0 0 0 3px rgb(239 68 68 / 15%);
 }
 
 select.field-input {
@@ -334,12 +318,6 @@ select.field-input {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23646a73' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-}
-
-.composer__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
 }
 
 /* ---- 标签输入框（chip 式，紧凑不占空间） ---- */

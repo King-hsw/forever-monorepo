@@ -51,7 +51,7 @@
         </button>
       </nav>
 
-      <!-- 01 近期笔墨：左主栏（头条 + 时间线），右边栏（分类清单 + 标签） -->
+      <!-- 01 近期笔墨：头条 + 时间线 -->
       <section id="latest" class="writing">
         <div class="writing__grid">
           <div class="writing__main">
@@ -521,7 +521,7 @@ usePageSeo({
   }
 }
 
-/* ---- 近期笔墨：左主栏 + 右边栏（参考余白首页的 1.6fr : 1fr 编排）---- */
+/* ---- 近期笔墨 ---- */
 .writing {
   scroll-margin-top: 56px;
   padding: 100px 0 110px;
@@ -561,7 +561,6 @@ usePageSeo({
 }
 
 /* ---- 边栏区块：小标题 + 清单 ---- */
-/* ===== 终幕样式见下方「书末版权页」区块 ===== */
 
 /* ===== 章节导航：固定右侧，始终告知用户身处故事何处，可点击跳转 ===== */
 .chapter-nav {
@@ -654,7 +653,6 @@ usePageSeo({
 
 }
 
-/* ---- 创作足迹热力图面板 ---- */
 .chip {
   padding: 2px 10px;
   font-size: 12px;

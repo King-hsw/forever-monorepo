@@ -77,7 +77,7 @@
         <div
           v-for="(cat, i) in categoriesStore.list"
           :key="cat.id"
-          class="cats-list__row"
+          class="cats-list__row fade-up"
           :style="{ '--stagger-index': i + 2 }"
         >
           <div class="cats-list__info">
@@ -123,7 +123,7 @@
         <span
           v-for="(tag, i) in tagsStore.list"
           :key="tag.id"
-          class="tags-cloud__item"
+          class="tags-cloud__item fade-up"
           :style="{ '--stagger-index': i + 2 }"
         >
           {{ tag.name }}
@@ -151,8 +151,7 @@ import type { Category, Tag } from '#shared/types'
 
 definePageMeta({ layout: 'admin', permission: 'category:list' })
 
-useHead({ title: '分类 & 标签 - 补陋阁 后台' })
-useState('admin-page-title', () => '分类 & 标签')
+useAdminPage('分类 & 标签')
 
 const tab = ref<'cats' | 'tags'>('cats')
 
@@ -164,10 +163,6 @@ await useAsyncData('admin-cats-tags', async () => {
 }, { server: false })
 
 const saving = ref(false)
-
-function reportError(err: unknown) {
-  alert(err instanceof Error ? err.message : '操作失败')
-}
 
 /* ---------- 分类表单 ---------- */
 const catFormOpen = ref(false)
@@ -208,7 +203,7 @@ async function saveCatForm() {
     }
     catFormOpen.value = false
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -253,7 +248,7 @@ async function saveTagForm() {
     }
     tagFormOpen.value = false
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
@@ -285,7 +280,7 @@ async function confirmRemove() {
       await tagsStore.remove(pendingDelete.value.id)
     }
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     pendingDelete.value = null
   }
@@ -364,10 +359,6 @@ async function confirmRemove() {
   }
 }
 
-.field-input.is-invalid {
-  border-color: var(--c-danger);
-}
-
 .cats-form__actions {
   display: flex;
   justify-content: flex-end;
@@ -390,8 +381,6 @@ async function confirmRemove() {
   align-items: center;
   gap: 16px;
   padding: 14px 0;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms);
 
   & + & {
     border-top: 1px solid var(--c-border);
@@ -443,10 +432,6 @@ async function confirmRemove() {
   }
 }
 
-.danger-text {
-  color: var(--c-danger);
-}
-
 .tags-cloud {
   display: flex;
   flex-wrap: wrap;
@@ -466,8 +451,6 @@ async function confirmRemove() {
   border: 1px solid var(--c-border);
   border-radius: 999px;
   box-shadow: var(--shadow-card);
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms);
 
   small {
     color: var(--c-text-muted);

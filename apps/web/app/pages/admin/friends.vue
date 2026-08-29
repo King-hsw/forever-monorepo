@@ -2,62 +2,17 @@
   <div class="friends-admin">
     <header class="friends-admin__header fade-up">
       <p class="friends-admin__hint">
-        访客提交的友链申请会出现在这里，审核通过后在前台「友链」页展示；共 {{ friendsStore.list.length }} 条
+        访客提交的友链申请会出现在这里，审核通过后在前台「友链」页展示；共 {{ list.length }} 条
       </p>
       <button type="button" class="btn btn--primary" @click="openCreate">+ 添加友链</button>
     </header>
 
-    <!-- 编辑表单 -->
-    <div v-if="formOpen" class="card friends-form fade-up" style="--stagger-index: 1">
-      <h3>编辑友链</h3>
-      <div class="friends-form__row">
-        <div>
-          <label class="field-label" for="friend-name">站点名称 <em>*</em></label>
-          <input
-            id="friend-name"
-            v-model="form.name"
-            class="field-input"
-            :class="{ 'is-invalid': !!errors.name }"
-            type="text"
-            @input="errors.name = ''"
-          >
-          <p v-if="errors.name" class="field-error">{{ errors.name }}</p>
-        </div>
-        <div>
-          <label class="field-label" for="friend-url">站点地址 <em>*</em></label>
-          <input
-            id="friend-url"
-            v-model="form.siteUrl"
-            class="field-input"
-            :class="{ 'is-invalid': !!errors.siteUrl }"
-            type="url"
-            @input="errors.siteUrl = ''"
-          >
-          <p v-if="errors.siteUrl" class="field-error">{{ errors.siteUrl }}</p>
-        </div>
-      </div>
-      <div>
-        <label class="field-label" for="friend-icon">图标地址</label>
-        <input id="friend-icon" v-model="form.iconUrl" class="field-input" type="url" placeholder="选填">
-      </div>
-      <div>
-        <label class="field-label" for="friend-desc">简介</label>
-        <input id="friend-desc" v-model="form.description" class="field-input" type="text" placeholder="选填">
-      </div>
-      <footer class="friends-form__actions">
-        <button type="button" class="btn" @click="formOpen = false">取消</button>
-        <button type="button" class="btn btn--primary" :disabled="saving" @click="saveForm">
-          {{ saving ? '保存中…' : '保存' }}
-        </button>
-      </footer>
-    </div>
-
     <!-- 列表 -->
-    <div class="card friends-list fade-up" style="--stagger-index: 2">
+    <div class="card friends-list fade-up" style="--stagger-index: 1">
       <div
-        v-for="(link, i) in friendsStore.list"
+        v-for="(link, i) in list"
         :key="link.id"
-        class="friends-list__row"
+        class="friends-list__row fade-up"
         :style="{ '--stagger-index': i + 2 }"
       >
         <!-- 图标加载失败时由 SafeImage 渲染首字占位（带 --fallback 类，与未填图标时一致） -->
@@ -66,17 +21,17 @@
           :src="link.iconUrl"
           alt=""
           class="friends-list__icon friends-list__icon--fallback"
-          :fallback-text="link.name.slice(0, 1).toUpperCase()"
+          :fallback-text="initialOf(link.name)"
           variant="avatar"
         />
         <span v-else class="friends-list__icon friends-list__icon--fallback" aria-hidden="true">
-          {{ link.name.slice(0, 1).toUpperCase() }}
+          {{ initialOf(link.name) }}
         </span>
 
         <div class="friends-list__main">
           <div class="friends-list__title">
             <strong>{{ link.name }}</strong>
-            <span class="badge" :class="statusBadgeClass(link.status)">{{ statusLabel(link.status) }}</span>
+            <span class="badge" :class="moderationClass(link.status)">{{ moderationLabel(link.status) }}</span>
             <span
               v-if="link.status === 'REJECTED' && link.rejectReason"
               class="friends-list__reason"
@@ -117,7 +72,7 @@
           <button type="button" class="btn btn--ghost danger-text" @click="pendingDelete = link">删除</button>
         </div>
       </div>
-      <p v-if="!friendsStore.list.length && !friendsStore.loading" class="friends-list__empty">
+      <p v-if="!list.length && !loading" class="friends-list__empty">
         暂无友链申请
       </p>
     </div>
@@ -133,66 +88,66 @@
         placeholder="驳回原因（选填，仅管理端可见）"
         @keyup.enter="confirmReject"
       >
-      <footer class="friends-form__actions">
+      <footer class="reject-form__actions">
         <button type="button" class="btn" @click="rejecting = null">取消</button>
         <button type="button" class="btn btn--danger" :disabled="acting" @click="confirmReject">确认驳回</button>
       </footer>
     </div>
 
-    <!-- 添加友链弹窗 -->
+    <!-- 新增 / 编辑友链弹窗（预填 = 编辑，置空 = 新增） -->
     <Teleport to="body">
       <Transition name="create-dialog">
         <div
-          v-if="createOpen"
+          v-if="dialogOpen"
           class="create-dialog__overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="添加友链"
-          @click.self="createOpen = false"
+          :aria-label="editingId !== null ? '编辑友链' : '添加友链'"
+          @click.self="dialogOpen = false"
         >
           <div class="create-dialog card">
-            <h3 class="create-dialog__title">添加友链</h3>
+            <h3 class="create-dialog__title">{{ editingId !== null ? '编辑友链' : '添加友链' }}</h3>
             <div>
-              <label class="field-label" for="create-friend-name">站点名称 <em>*</em></label>
+              <label class="field-label" for="friend-name">站点名称 <em>*</em></label>
               <input
-                id="create-friend-name"
-                v-model="createForm.name"
+                id="friend-name"
+                v-model="form.name"
                 class="field-input"
-                :class="{ 'is-invalid': !!createErrors.name }"
+                :class="{ 'is-invalid': !!errors.name }"
                 type="text"
-                @input="createErrors.name = ''"
+                @input="errors.name = ''"
               >
-              <p v-if="createErrors.name" class="field-error">{{ createErrors.name }}</p>
+              <p v-if="errors.name" class="field-error">{{ errors.name }}</p>
             </div>
             <div>
-              <label class="field-label" for="create-friend-url">站点地址 <em>*</em></label>
+              <label class="field-label" for="friend-url">站点地址 <em>*</em></label>
               <input
-                id="create-friend-url"
-                v-model="createForm.siteUrl"
+                id="friend-url"
+                v-model="form.siteUrl"
                 class="field-input"
-                :class="{ 'is-invalid': !!createErrors.siteUrl }"
+                :class="{ 'is-invalid': !!errors.siteUrl }"
                 type="url"
                 placeholder="https://example.com"
-                @input="createErrors.siteUrl = ''"
+                @input="errors.siteUrl = ''"
               >
-              <p v-if="createErrors.siteUrl" class="field-error">{{ createErrors.siteUrl }}</p>
+              <p v-if="errors.siteUrl" class="field-error">{{ errors.siteUrl }}</p>
             </div>
             <div>
-              <label class="field-label" for="create-friend-icon">图标地址</label>
-              <input id="create-friend-icon" v-model="createForm.iconUrl" class="field-input" type="url" placeholder="选填">
+              <label class="field-label" for="friend-icon">图标地址</label>
+              <input id="friend-icon" v-model="form.iconUrl" class="field-input" type="url" placeholder="选填">
             </div>
             <div>
-              <label class="field-label" for="create-friend-desc">简介</label>
-              <input id="create-friend-desc" v-model="createForm.description" class="field-input" type="text" placeholder="选填">
+              <label class="field-label" for="friend-desc">简介</label>
+              <input id="friend-desc" v-model="form.description" class="field-input" type="text" placeholder="选填">
             </div>
             <div>
-              <label class="field-label" for="create-friend-contact">联系方式</label>
-              <input id="create-friend-contact" v-model="createForm.contact" class="field-input" type="text" placeholder="选填，仅管理端可见">
+              <label class="field-label" for="friend-contact">联系方式</label>
+              <input id="friend-contact" v-model="form.contact" class="field-input" type="text" placeholder="选填，仅管理端可见">
             </div>
             <footer class="create-dialog__actions">
-              <button type="button" class="btn" :disabled="creating" @click="createOpen = false">取消</button>
-              <button type="button" class="btn btn--primary" :disabled="creating" @click="submitCreate">
-                {{ creating ? '保存中…' : '保存' }}
+              <button type="button" class="btn" :disabled="saving" @click="dialogOpen = false">取消</button>
+              <button type="button" class="btn btn--primary" :disabled="saving" @click="saveForm">
+                {{ saving ? '保存中…' : '保存' }}
               </button>
             </footer>
           </div>
@@ -212,106 +167,87 @@
 </template>
 
 <script setup lang="ts">
-import type { FriendLink, FriendLinkApplyInput, FriendLinkStatus, FriendLinkUpdateInput } from '#shared/types'
+import type { FriendLink, FriendLinkApplyInput, FriendLinkUpdateInput } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 import { formatDateTime } from '~/utils/format'
 
 definePageMeta({ layout: 'admin', permission: 'friend-link:list' })
 
-useHead({ title: '友链管理 - 补陋阁 后台' })
-useState('admin-page-title', () => '友链管理')
+useAdminPage('友链管理')
 
-/** 友链状态与操作（原 useFriendsStore，仅本页使用，已内联；reactive 使模板中 ref 自动解包） */
-const friendsStore = reactive((() => {
-  const list = ref<FriendLink[]>([])
-  const loading = ref(false)
+/** 友链列表与操作（仅本页使用） */
+const list = ref<FriendLink[]>([])
+const loading = ref(false)
 
-  /** 拉取友链全量列表（含待审核与已驳回），每次都取最新数据 */
-  async function fetch() {
-    loading.value = true
-    try {
-      list.value = await apiFetch<FriendLink[]>('/api/admin/friend-links')
-    }
-    finally {
-      loading.value = false
-    }
+/** 拉取友链全量列表（含待审核与已驳回），每次都取最新数据 */
+async function fetch() {
+  loading.value = true
+  try {
+    list.value = await apiFetch<FriendLink[]>('/api/admin/friend-links')
   }
-
-  /** 新增友链（管理端直接创建，状态为 APPROVED），成功后插入列表开头 */
-  async function create(input: FriendLinkApplyInput): Promise<void> {
-    const link = await apiFetch<FriendLink>('/api/admin/friend-links', {
-      method: 'POST',
-      body: input as unknown as Record<string, unknown>,
-    })
-    list.value = [link, ...list.value]
+  finally {
+    loading.value = false
   }
+}
 
-  /** 全量更新友链（未传的字段会被后端置空） */
-  async function update(id: number, input: FriendLinkUpdateInput): Promise<void> {
-    replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}`, {
-      method: 'PUT',
-      body: input as unknown as Record<string, unknown>,
-    }))
-  }
+function replace(link: FriendLink) {
+  const idx = list.value.findIndex(f => f.id === link.id)
+  if (idx >= 0) list.value[idx] = link
+}
 
-  /** 通过审核 */
-  async function approve(id: number): Promise<void> {
-    replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}/approve`, { method: 'POST' }))
-  }
+/** 新增友链（管理端直接创建，状态为 APPROVED），成功后插入列表开头 */
+async function create(input: FriendLinkApplyInput): Promise<void> {
+  const link = await apiFetch<FriendLink>('/api/admin/friend-links', {
+    method: 'POST',
+    body: input as unknown as Record<string, unknown>,
+  })
+  list.value = [link, ...list.value]
+}
 
-  /** 驳回申请，可附带原因 */
-  async function reject(id: number, reason?: string): Promise<void> {
-    replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}/reject`, {
-      method: 'POST',
-      query: reason ? { reason } : undefined,
-    }))
-  }
+/** 全量更新友链（未传的字段会被后端置空） */
+async function update(id: number, input: FriendLinkUpdateInput): Promise<void> {
+  replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}`, {
+    method: 'PUT',
+    body: input as unknown as Record<string, unknown>,
+  }))
+}
 
-  /** 删除友链 */
-  async function remove(id: number): Promise<void> {
-    await apiFetch<void>(`/api/admin/friend-links/${id}`, { method: 'DELETE' })
-    list.value = list.value.filter(f => f.id !== id)
-  }
+/** 通过审核 */
+async function approve(id: number): Promise<void> {
+  replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}/approve`, { method: 'POST' }))
+}
 
-  function replace(link: FriendLink) {
-    const idx = list.value.findIndex(f => f.id === link.id)
-    if (idx >= 0) list.value[idx] = link
-  }
+/** 驳回申请，可附带原因 */
+async function reject(id: number, reason?: string): Promise<void> {
+  replace(await apiFetch<FriendLink>(`/api/admin/friend-links/${id}/reject`, {
+    method: 'POST',
+    query: reason ? { reason } : undefined,
+  }))
+}
 
-  return { list, loading, fetch, create, update, approve, reject, remove }
-})())
+/** 删除友链 */
+async function remove(id: number): Promise<void> {
+  await apiFetch<void>(`/api/admin/friend-links/${id}`, { method: 'DELETE' })
+  list.value = list.value.filter(f => f.id !== id)
+}
 
 // 仅客户端拉取：登录令牌存在 localStorage，SSR 阶段拿不到（避免直接访问 URL 时 SSR 401 失败）
 await useAsyncData('admin-friend-links', async () => {
-  await friendsStore.fetch()
+  await fetch()
 }, { server: false })
 
 const saving = ref(false)
 const acting = ref(false)
 const actingId = ref<number | null>(null)
 
-function reportError(err: unknown) {
-  alert(err instanceof Error ? err.message : '操作失败')
-}
-
-function statusLabel(status: FriendLinkStatus): string {
-  return status === 'PENDING' ? '待审核' : status === 'APPROVED' ? '已通过' : '已驳回'
-}
-
-function statusBadgeClass(status: FriendLinkStatus): string {
-  return status === 'PENDING'
-    ? 'badge--draft'
-    : status === 'APPROVED' ? 'badge--published' : 'badge--rejected'
-}
-
 /* ---------- 审核通过 / 驳回 ---------- */
 async function doApprove(link: FriendLink) {
   acting.value = true
   actingId.value = link.id
   try {
-    await friendsStore.approve(link.id)
+    await approve(link.id)
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     acting.value = false
     actingId.value = null
@@ -330,20 +266,28 @@ async function confirmReject() {
   if (!rejecting.value) return
   acting.value = true
   try {
-    await friendsStore.reject(rejecting.value.id, rejectReason.value.trim() || undefined)
+    await reject(rejecting.value.id, rejectReason.value.trim() || undefined)
     rejecting.value = null
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     acting.value = false
   }
 }
 
-/* ---------- 编辑 ---------- */
-const formOpen = ref(false)
+/* ---------- 新增 / 编辑（同一弹窗，预填 = 编辑） ---------- */
+const dialogOpen = ref(false)
 const editingId = ref<number | null>(null)
-const form = reactive({ name: '', siteUrl: '', iconUrl: '', description: '' })
+const form = reactive({ name: '', siteUrl: '', iconUrl: '', description: '', contact: '' })
 const errors = reactive({ name: '', siteUrl: '' })
+
+function openCreate() {
+  editingId.value = null
+  Object.assign(form, { name: '', siteUrl: '', iconUrl: '', description: '', contact: '' })
+  errors.name = ''
+  errors.siteUrl = ''
+  dialogOpen.value = true
+}
 
 function openEdit(link: FriendLink) {
   editingId.value = link.id
@@ -352,89 +296,56 @@ function openEdit(link: FriendLink) {
     siteUrl: link.siteUrl,
     iconUrl: link.iconUrl ?? '',
     description: link.description ?? '',
+    contact: link.contact ?? '',
   })
   errors.name = ''
   errors.siteUrl = ''
-  formOpen.value = true
+  dialogOpen.value = true
 }
 
 async function saveForm() {
-  if (!editingId.value) return
   const name = form.name.trim()
   const siteUrl = form.siteUrl.trim()
   if (!name) errors.name = '站点名称不能为空'
-  if (!siteUrl) errors.siteUrl = '站点地址不能为空'
+  if (!siteUrl) {
+    errors.siteUrl = '站点地址不能为空'
+  } else if (editingId.value === null && !/^https?:\/\//i.test(siteUrl)) {
+    // 前缀校验仅用于新增；编辑保留原值（历史数据可能不带前缀）
+    errors.siteUrl = '站点地址需以 http(s):// 开头'
+  }
   if (errors.name || errors.siteUrl) return
 
-  // 后端为全量更新：带上当前状态，避免编辑时把审核状态冲掉
-  const current = friendsStore.list.find(f => f.id === editingId.value)
   saving.value = true
   try {
-    await friendsStore.update(editingId.value, {
+    const common = {
       name,
       siteUrl,
       iconUrl: form.iconUrl.trim() || undefined,
       description: form.description.trim() || undefined,
-      status: current?.status ?? 'PENDING',
-      rejectReason: current?.rejectReason || undefined,
-    })
-    formOpen.value = false
+      contact: form.contact.trim() || undefined,
+    }
+    if (editingId.value !== null) {
+      // 后端为全量更新：带上当前审核状态与驳回原因，避免编辑时冲掉
+      const current = list.value.find(f => f.id === editingId.value)
+      await update(editingId.value, {
+        ...common,
+        status: current?.status ?? 'PENDING',
+        rejectReason: current?.rejectReason || undefined,
+      })
+    } else {
+      await create(common)
+    }
+    dialogOpen.value = false
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     saving.value = false
   }
 }
 
-/* ---------- 新增友链 ---------- */
-const createOpen = ref(false)
-const creating = ref(false)
-const createForm = reactive({ name: '', siteUrl: '', iconUrl: '', description: '', contact: '' })
-const createErrors = reactive({ name: '', siteUrl: '' })
-
-function openCreate() {
-  Object.assign(createForm, { name: '', siteUrl: '', iconUrl: '', description: '', contact: '' })
-  createErrors.name = ''
-  createErrors.siteUrl = ''
-  createOpen.value = true
-}
-
-async function submitCreate() {
-  const name = createForm.name.trim()
-  const siteUrl = createForm.siteUrl.trim()
-  if (!name) createErrors.name = '站点名称不能为空'
-  if (!siteUrl) {
-    createErrors.siteUrl = '站点地址不能为空'
-  } else if (!/^https?:\/\//i.test(siteUrl)) {
-    createErrors.siteUrl = '站点地址需以 http(s):// 开头'
-  }
-  if (createErrors.name || createErrors.siteUrl) return
-
-  creating.value = true
-  try {
-    await friendsStore.create({
-      name,
-      siteUrl,
-      iconUrl: createForm.iconUrl.trim() || undefined,
-      description: createForm.description.trim() || undefined,
-      contact: createForm.contact.trim() || undefined,
-    })
-    createOpen.value = false
-  } catch (err) {
-    reportError(err)
-  } finally {
-    creating.value = false
-  }
-}
-
-function onCreateKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && createOpen.value && !creating.value) {
-    createOpen.value = false
-  }
-}
-
-onMounted(() => document.addEventListener('keydown', onCreateKeydown))
-onBeforeUnmount(() => document.removeEventListener('keydown', onCreateKeydown))
+useOnEscape(() => {
+  if (dialogOpen.value && !saving.value) dialogOpen.value = false
+})
 
 /* ---------- 删除确认 ---------- */
 const pendingDelete = ref<FriendLink | null>(null)
@@ -446,9 +357,9 @@ const deleteMessage = computed(() =>
 async function confirmRemove() {
   if (!pendingDelete.value) return
   try {
-    await friendsStore.remove(pendingDelete.value.id)
+    await remove(pendingDelete.value.id)
   } catch (err) {
-    reportError(err)
+    alert(errMsg(err))
   } finally {
     pendingDelete.value = null
   }
@@ -470,7 +381,6 @@ async function confirmRemove() {
   color: var(--c-text-muted);
 }
 
-.friends-form,
 .reject-form {
   margin-bottom: 16px;
   padding: 20px;
@@ -483,20 +393,6 @@ async function confirmRemove() {
   > div {
     margin-bottom: 14px;
   }
-}
-
-.friends-form__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-
-  > div {
-    margin-bottom: 14px;
-  }
-}
-
-.field-input.is-invalid {
-  border-color: var(--c-danger);
 }
 
 .create-dialog__overlay {
@@ -541,6 +437,18 @@ async function confirmRemove() {
   }
 }
 
+.reject-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+
+  .btn {
+    min-width: 76px;
+    padding-block: 7px;
+  }
+}
+
 .create-dialog-enter-active,
 .create-dialog-leave-active {
   transition: opacity 0.22s ease;
@@ -559,18 +467,6 @@ async function confirmRemove() {
   }
 }
 
-.friends-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 16px;
-
-  .btn {
-    min-width: 76px;
-    padding-block: 7px;
-  }
-}
-
 .friends-list {
   padding: 6px 20px;
 }
@@ -580,8 +476,6 @@ async function confirmRemove() {
   align-items: center;
   gap: 14px;
   padding: 14px 0;
-  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms);
 
   & + & {
     border-top: 1px solid var(--c-border);
@@ -621,11 +515,6 @@ async function confirmRemove() {
   strong {
     font-size: 14px;
   }
-}
-
-.badge--rejected {
-  color: var(--c-danger);
-  background: rgb(239 68 68 / 10%);
 }
 
 .friends-list__reason {
@@ -677,10 +566,6 @@ async function confirmRemove() {
   }
 }
 
-.danger-text {
-  color: var(--c-danger);
-}
-
 .friends-list__empty {
   width: 100%;
   padding: 24px 0;
@@ -699,12 +584,6 @@ async function confirmRemove() {
     width: 100%;
     gap: 12px;
     text-align: left;
-  }
-}
-
-@media (max-width: 640px) {
-  .friends-form__row {
-    grid-template-columns: 1fr;
   }
 }
 </style>

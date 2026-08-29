@@ -5,10 +5,7 @@
       <div v-if="isOpen" class="global-search" @click.self="close">
         <div class="global-search__panel" role="dialog" aria-modal="true" aria-label="全局搜索">
           <div class="global-search__bar">
-            <svg class="global-search__glass" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.8-3.8" />
-            </svg>
+            <Icon name="lucide:search" mode="svg" :size="18" class="global-search__glass" />
             <input
               ref="inputRef"
               v-model="kw"
@@ -59,19 +56,11 @@ const router = useRouter()
 /** 开关放全局状态：桌面左栏与移动顶栏共用一个入口 */
 const isOpen = useState('global-search-open', () => false)
 
-function open() {
-  isOpen.value = true
-  document.body.style.overflow = 'hidden'
-  nextTick(() => inputRef.value?.focus())
-}
-
 function close() {
   if (!isOpen.value) return
   isOpen.value = false
   document.body.style.overflow = ''
 }
-
-defineExpose({ open, close })
 
 /* ---- 防抖 300ms 实时结果，回车进 /search 页 ---- */
 const kw = ref('')
@@ -116,28 +105,20 @@ function goSearch() {
   close()
 }
 
-// 打开时聚焦输入框；路由变化 / Esc 收起
+// 打开（含挂载时已打开）即聚焦输入框
 watch(isOpen, (v) => {
   if (v) nextTick(() => inputRef.value?.focus())
-})
+}, { immediate: true })
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') close()
-}
-onMounted(() => document.addEventListener('keydown', onKeydown))
+useOnEscape(close)
+
 onUnmounted(() => {
-  document.removeEventListener('keydown', onKeydown)
   document.body.style.overflow = ''
 })
 
 // 路由变化时收起
 const route = useRoute()
 watch(() => route.fullPath, close)
-
-/** 供外部（左右导航）直接打开 */
-onMounted(() => {
-  if (isOpen.value) nextTick(() => inputRef.value?.focus())
-})
 </script>
 
 <style scoped>
@@ -283,6 +264,21 @@ onMounted(() => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
+}
+
+/* 减少透明度：磨砂变实底（弹层 Teleport 到 body，降级样式须随组件自带） */
+@media (prefers-reduced-transparency: reduce) {
+  .global-search {
+    background: rgb(28 25 23 / 45%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .global-search__panel {
+    background: var(--c-bg-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* 后端高亮标记 */

@@ -25,11 +25,11 @@
             <p class="arch-month__label">{{ mg.month }} 月<small>· {{ mg.items.length }} 篇</small></p>
 
             <ul class="arch-list">
-              <li v-for="item in mg.items" :key="item.id">
+              <li v-for="(item, itemIdx) in mg.items" :key="item.id">
                 <NuxtLink :to="`/posts/${item.slug}`" class="arch-item">
                   <span
                     class="arch-item__dot"
-                    :class="`arch-item__dot--${CANDY[itemIndex(yg, mg, item) % CANDY.length]}`"
+                    :class="`arch-item__dot--${CANDY[(mg.start + itemIdx) % CANDY.length]}`"
                     aria-hidden="true"
                   />
                   <time
@@ -114,10 +114,6 @@ const yearGroups = computed<ArchYear[]>(() => {
 
 function countOf(yg: ArchYear): number {
   return yg.months.reduce((sum, m) => sum + m.items.length, 0)
-}
-
-function itemIndex(yg: ArchYear, mg: ArchMonth, item: ArchiveItem): number {
-  return mg.start + mg.items.indexOf(item)
 }
 
 /** 糖果色轮换：草莓粉 / 薄荷 / 香芋紫 / 柠檬黄 / 天空蓝 */

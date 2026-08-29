@@ -1,6 +1,5 @@
 <template>
   <div class="auth-layout">
-    <div class="auth-layout__theme"></div>
     <main class="auth-layout__card card fade-up" :class="{ 'is-shaking': shaking }">
       <slot />
     </main>
@@ -34,13 +33,6 @@ watch(shakeFlag, () => {
     radial-gradient(1200px 600px at 80% -10%, rgb(13 148 136 / 18%), transparent 60%),
     radial-gradient(900px 500px at -10% 110%, rgb(13 148 136 / 14%), transparent 55%),
     var(--c-bg);
-}
-
-.auth-layout__theme {
-  position: absolute;
-  /* iOS PWA standalone：避开状态栏/刘海 */
-  top: calc(20px + var(--safe-area-inset-top));
-  right: 20px;
 }
 
 .auth-layout__card {

@@ -148,12 +148,6 @@ async function handleLogout() {
   font-size: 16px;
 }
 
-.topbar__right {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
 /* 头像区：按钮触发器，悬停展开下拉 */
 .topbar__menu {
   position: relative;

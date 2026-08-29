@@ -137,6 +137,7 @@ export interface FriendLinkUpdateInput {
   siteUrl: string
   iconUrl?: string
   description?: string
+  contact?: string
   status: FriendLinkStatus
   rejectReason?: string
 }

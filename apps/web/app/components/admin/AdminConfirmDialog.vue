@@ -12,15 +12,9 @@
         <div class="confirm-dialog card">
           <h3 class="confirm-dialog__title">{{ title }}</h3>
           <p class="confirm-dialog__message">{{ message }}</p>
-          <input
-            v-if="showInput"
-            ref="inputEl"
-            v-model="inputValue"
-            class="field-input confirm-dialog__input"
-            :type="inputType"
-            :placeholder="inputPlaceholder"
-            @keydown.enter="emit('confirm', inputValue)"
-          >
+          <div v-if="$slots.default" class="confirm-dialog__extra">
+            <slot />
+          </div>
           <footer class="confirm-dialog__actions">
             <button ref="cancelBtn" type="button" class="btn" @click="emit('cancel')">
               取消
@@ -28,7 +22,7 @@
             <button
               type="button"
               class="btn confirm-dialog__confirm"
-              @click="emit('confirm', inputValue)"
+              @click="emit('confirm')"
             >
               {{ confirmText }}
             </button>
@@ -46,30 +40,19 @@ const props = withDefaults(
     title: string
     message: string
     confirmText?: string
-    /** 显示一个输入框（如重置密码），确认时把输入值作为 confirm 事件参数传出 */
-    showInput?: boolean
-    inputType?: string
-    inputPlaceholder?: string
   }>(),
-  {
-    confirmText: '删除',
-    inputType: 'text',
-    inputPlaceholder: '',
-  },
+  { confirmText: '删除' },
 )
 
-const emit = defineEmits<{ confirm: [value?: string], cancel: [] }>()
+const emit = defineEmits<{ confirm: [], cancel: [] }>()
 
 const cancelBtn = ref<HTMLButtonElement | null>(null)
-const inputEl = ref<HTMLInputElement | null>(null)
-const inputValue = ref('')
 
 watch(
   () => props.open,
   (open) => {
     if (open && import.meta.client) {
-      inputValue.value = ''
-      nextTick(() => (props.showInput ? inputEl.value?.focus() : cancelBtn.value?.focus()))
+      nextTick(() => cancelBtn.value?.focus())
     }
   },
 )
@@ -104,8 +87,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   box-shadow: var(--shadow-card-hover);
 }
 
-.confirm-dialog__input {
+.confirm-dialog__extra {
   margin-top: 12px;
+
+  &:empty {
+    display: none;
+  }
 }
 
 .confirm-dialog__title {

@@ -365,6 +365,11 @@ html[data-theme-mode='system'] .theme-toggle__ico--sun {
   background: rgb(245 158 11 / 14%);
 }
 
+.badge--rejected {
+  color: var(--c-danger);
+  background: rgb(239 68 68 / 10%);
+}
+
 .field-input {
   width: 100%;
   padding: 8px 12px;
@@ -388,6 +393,16 @@ html[data-theme-mode='system'] .theme-toggle__ico--sun {
   font-size: 13px;
   font-weight: 500;
   color: var(--c-text-secondary);
+}
+
+/* 校验失败描边（后台各表单共用） */
+.field-input.is-invalid {
+  border-color: var(--c-danger);
+}
+
+/* 危险操作文字（后台表格操作列共用） */
+.danger-text {
+  color: var(--c-danger);
 }
 
 .field-error {

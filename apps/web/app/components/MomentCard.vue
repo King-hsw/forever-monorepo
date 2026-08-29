@@ -101,7 +101,6 @@
         :target-id="moment.id"
         :reply-to="replyTo"
         :use-login-identity="true"
-        placeholder-suffix="（动态）"
         @success="onCommentCreated"
         @cancel-reply="replyTo = null"
       />
@@ -119,9 +118,9 @@
           </li>
         </ul>
         <nav v-if="totalPages > 1" class="moment-card__pager" aria-label="评论分页">
-          <button type="button" :disabled="commentPage <= 1" @click="goPage(commentPage - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
+          <button type="button" :disabled="commentPage <= 1" @click="load(commentPage - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
           <span>{{ commentPage }} / {{ totalPages }}</span>
-          <button type="button" :disabled="commentPage >= totalPages" @click="goPage(commentPage + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
+          <button type="button" :disabled="commentPage >= totalPages" @click="load(commentPage + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
         </nav>
       </template>
     </section>
@@ -220,10 +219,6 @@ async function load(page = commentPage.value) {
   finally {
     loadingComments.value = false
   }
-}
-
-function goPage(p: number) {
-  load(p)
 }
 
 function toggleForm() {

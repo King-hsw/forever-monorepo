@@ -15,6 +15,23 @@ export function statusClass(status: PostStatus): string {
   return status === 'PUBLISHED' ? 'published' : 'draft'
 }
 
+/** 审核状态展示文案（友链申请 / 评论共用） */
+export function moderationLabel(status: 'PENDING' | 'APPROVED' | 'REJECTED'): string {
+  return status === 'PENDING' ? '待审核' : status === 'APPROVED' ? '已通过' : '已驳回'
+}
+
+/** 审核状态对应的 CSS 类名后缀（badge--draft / badge--published / badge--rejected） */
+export function moderationClass(status: 'PENDING' | 'APPROVED' | 'REJECTED'): string {
+  return status === 'PENDING' ? 'badge--draft' : status === 'APPROVED' ? 'badge--published' : 'badge--rejected'
+}
+
+/** 从路由 query 等取正整数 id，非法值返回 undefined */
+export function toId(value: unknown): number | undefined {
+  const raw = Array.isArray(value) ? value[0] : value
+  const n = Number(raw)
+  return Number.isInteger(n) && n > 0 ? n : undefined
+}
+
 /** 格式化日期，兼容 ISO 字符串与时间戳 */
 export function formatDate(value: string | number | null | undefined): string {
   if (!value) return ''

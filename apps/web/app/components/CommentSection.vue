@@ -9,7 +9,6 @@
         target-type="ARTICLE"
         :target-id="articleId"
         :reply-to="replyTo"
-        placeholder-suffix="（评论）"
         @success="onCreated"
         @cancel-reply="replyTo = null"
       />
@@ -34,9 +33,9 @@
 
       <!-- 分页：根评论分页，楼内回复随根返回 -->
       <nav v-if="totalPages > 1" class="comments__pager" aria-label="评论分页">
-        <button type="button" class="btn comments__pager-btn" :disabled="page <= 1 || loading" @click="go(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
+        <button type="button" class="btn comments__pager-btn" :disabled="page <= 1 || loading" @click="load(page - 1)"><Icon name="lucide:chevron-left" /> 上一页</button>
         <span class="comments__pager-info">{{ page }} / {{ totalPages }}</span>
-        <button type="button" class="btn comments__pager-btn" :disabled="page >= totalPages || loading" @click="go(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
+        <button type="button" class="btn comments__pager-btn" :disabled="page >= totalPages || loading" @click="load(page + 1)">下一页 <Icon name="lucide:chevron-right" /></button>
       </nav>
       <template #fallback><span /></template>
     </ClientOnly>
@@ -78,10 +77,6 @@ async function load(targetPage = page.value) {
   finally {
     loading.value = false
   }
-}
-
-function go(p: number) {
-  load(p)
 }
 
 /** 评论提交成功后回到第一页刷新 */

@@ -67,12 +67,6 @@ auth.hydrate()
 if (auth.isAuthenticated)
   await auth.ensureMe()
 
-/** ?user={uid} 过滤：URL 是唯一事实源，可直接分享 */
-function toId(value: unknown): number | undefined {
-  const raw = Array.isArray(value) ? value[0] : value
-  const n = Number(raw)
-  return Number.isInteger(n) && n > 0 ? n : undefined
-}
 const userUid = computed(() => toId(route.query.user))
 
 /** 「发布动态」入口：登录且持有 moment:post 权限码才显示 */
