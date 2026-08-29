@@ -40,16 +40,20 @@
           <span class="composer__count" :class="{ 'is-limit': content.length >= 1000 }">{{ content.length }}/1000</span>
         </div>
 
-        <!-- 图片九宫格：选择即上传，完成前显示进度 -->
+        <!-- 图片九宫格：选择即上传，本地 objectURL 预览，完成前显示进度条 -->
         <div v-if="imageItems.length" class="composer__images">
           <div
             v-for="item in imageItems"
             :key="item.id"
             class="composer__image"
             :class="{ 'is-error': item.status === 'error' }"
+            :title="item.status === 'error' ? item.error : undefined"
           >
-            <img v-if="item.url" :src="item.url" alt="">
+            <img v-if="item.previewUrl" :src="item.previewUrl" :alt="item.file.name">
             <span v-else class="composer__image__ph">{{ item.status === 'error' ? '上传失败' : '上传中…' }}</span>
+            <span v-if="item.status === 'uploading'" class="composer__image__bar" aria-hidden="true">
+              <i :style="{ width: `${item.progress}%` }"></i>
+            </span>
             <span v-if="item.status === 'error'" class="composer__image__retry">
               <button type="button" @click="retry(item)">重试</button>
             </span>
@@ -75,13 +79,16 @@
           </span>
           <div class="composer__media__info">
             <span class="composer__media__name">{{ item.file.name }}</span>
-            <span v-if="item.status === 'uploading'" class="composer__media__status">上传中…</span>
+            <span v-if="item.status === 'uploading'" class="composer__media__status">上传中 {{ item.progress }}%</span>
             <span v-else-if="item.status === 'error'" class="composer__media__status is-error">
-              上传失败
+              <span class="composer__media__errmsg" :title="item.error">{{ item.error ?? '上传失败' }}</span>
               <button type="button" class="composer__media__retry" @click="retry(item)">重试</button>
             </span>
             <span v-else class="composer__media__status">{{ fmtSize(item.file.size) }}</span>
           </div>
+          <span v-if="item.status === 'uploading'" class="composer__media__bar" aria-hidden="true">
+            <i :style="{ width: `${item.progress}%` }"></i>
+          </span>
           <button
             type="button"
             class="composer__media__rm"
@@ -167,7 +174,8 @@ import type { ProfileInfo } from '#shared/types'
 import { useAuthStore } from '~/stores/auth'
 import { useMomentsStore } from '~/stores/moments'
 import { initialOf } from '~/utils/format'
-import { uploadFile } from '~/utils/upload'
+import { presignAndUpload, UPLOAD_RULES } from '~/utils/uploadService'
+import type { UploadKind } from '~/utils/uploadService'
 
 usePageSeo({
   title: '发布动态 · 补陋阁',
@@ -189,24 +197,24 @@ onMounted(async () => {
 /* ---------- 文本 ---------- */
 const content = ref('')
 
-/* ---------- 附件：选择后立即上传到 /api/admin/upload ---------- */
-type AttachKind = 'image' | 'audio' | 'video'
-
+/* ---------- 附件：选择后直传 RustFS（presigned PUT），本地预览用 objectURL ---------- */
 interface AttachItem {
   id: number
-  kind: AttachKind
+  kind: UploadKind
   file: File
   status: 'uploading' | 'done' | 'error'
-  url?: string
+  /** 上传进度 0-100 */
+  progress: number
+  /** 本地预览地址（URL.createObjectURL）；tmp key 不是可访问地址，不能拿来预览 */
+  previewUrl?: string
+  /** 上传成功后的 tmp key（回退模式为正式地址），提交时填进 images / audio / video */
+  key?: string
+  /** 失败原因（令牌过期 / 非 0 code / 网络错误） */
+  error?: string
 }
 
 const MB = 1024 * 1024
-const RULES: Record<AttachKind, { types: string[], max: number, maxCount: number }> = {
-  image: { types: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], max: 5 * MB, maxCount: 9 },
-  audio: { types: ['audio/mpeg', 'audio/mp4', 'audio/wav'], max: 20 * MB, maxCount: 1 },
-  video: { types: ['video/mp4', 'video/webm'], max: 100 * MB, maxCount: 1 },
-}
-const KIND_LABEL: Record<AttachKind, string> = { image: '图片', audio: '音频', video: '视频' }
+const KIND_LABEL: Record<UploadKind, string> = { image: '图片', audio: '音频', video: '视频' }
 
 const items = ref<AttachItem[]>([])
 let seq = 0
@@ -227,7 +235,7 @@ function notice(msg: string) {
   noticeText.value = msg
 }
 
-function pick(kind: AttachKind, event: Event) {
+function pick(kind: UploadKind, event: Event) {
   if (!auth.isAuthenticated) {
     notice('登录后才能添加附件')
     return
@@ -237,7 +245,7 @@ function pick(kind: AttachKind, event: Event) {
   input.value = ''
   if (!files.length) return
 
-  const rule = RULES[kind]
+  const rule = UPLOAD_RULES[kind]
   const room = rule.maxCount - items.value.filter(i => i.kind === kind).length
   if (room <= 0) {
     notice(kind === 'image' ? '最多添加 9 张图片' : `${KIND_LABEL[kind]}只能上传 1 个`)
@@ -253,7 +261,14 @@ function pick(kind: AttachKind, event: Event) {
       notice(`${KIND_LABEL[kind]} ${file.name} 超过 ${rule.max / MB}MB 上限`)
       continue
     }
-    const item = reactive<AttachItem>({ id: ++seq, kind, file, status: 'uploading' })
+    const item = reactive<AttachItem>({
+      id: ++seq,
+      kind,
+      file,
+      status: 'uploading',
+      progress: 0,
+      previewUrl: kind === 'image' ? URL.createObjectURL(file) : undefined,
+    })
     items.value.push(item)
     void upload(item)
   }
@@ -263,12 +278,20 @@ function pick(kind: AttachKind, event: Event) {
 
 async function upload(item: AttachItem) {
   item.status = 'uploading'
+  item.progress = 0
+  item.error = undefined
   try {
-    item.url = await uploadFile(item.file)
+    const media = await presignAndUpload(item.file, {
+      onProgress: (percent) => {
+        item.progress = percent
+      },
+    })
+    item.key = media.key
     item.status = 'done'
   }
-  catch {
+  catch (err) {
     item.status = 'error'
+    item.error = err instanceof Error ? err.message : '上传失败，请重试'
   }
 }
 
@@ -277,8 +300,17 @@ function retry(item: AttachItem) {
 }
 
 function removeItem(item: AttachItem) {
+  if (item.previewUrl)
+    URL.revokeObjectURL(item.previewUrl)
   items.value = items.value.filter(i => i.id !== item.id)
 }
+
+onBeforeUnmount(() => {
+  for (const item of items.value) {
+    if (item.previewUrl)
+      URL.revokeObjectURL(item.previewUrl)
+  }
+})
 
 /* ---------- 地点：高德逆地理（留空降级），经纬度随表单提交 ---------- */
 const locationText = ref('')
@@ -336,7 +368,8 @@ async function submit() {
     return
   }
   const text = content.value.trim()
-  const images = items.value.filter(i => i.kind === 'image' && i.status === 'done').map(i => i.url!)
+  // 提交 tmp key（回退模式为正式地址），后端收口为 /uploads/moment/... 正式地址
+  const images = items.value.filter(i => i.kind === 'image' && i.status === 'done').map(i => i.key!)
   const audio = items.value.find(i => i.kind === 'audio' && i.status === 'done')
   const video = items.value.find(i => i.kind === 'video' && i.status === 'done')
   if (!text && !images.length && !audio && !video) {
@@ -349,8 +382,8 @@ async function submit() {
     await momentsStore.createMoment({
       content: text,
       images,
-      audio: audio?.url ?? null,
-      video: video?.url ?? null,
+      audio: audio?.key ?? null,
+      video: video?.key ?? null,
       location: locationText.value.trim() || null,
       lat: geo.value?.lat ?? null,
       lng: geo.value?.lng ?? null,
@@ -540,6 +573,23 @@ async function submit() {
   color: var(--c-danger);
 }
 
+/* 直传进度条：贴格子底部 */
+.composer__image__bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgb(0 0 0 / 22%);
+
+  i {
+    display: block;
+    height: 100%;
+    background: var(--c-primary);
+    transition: width 0.2s ease;
+  }
+}
+
 .composer__image__retry {
   position: absolute;
   bottom: 6px;
@@ -582,6 +632,7 @@ async function submit() {
 
 /* 音频 / 视频小卡片 */
 .composer__media {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -589,6 +640,7 @@ async function submit() {
   background: var(--c-bg-soft);
   border: 1px solid var(--c-border);
   border-radius: 12px;
+  overflow: hidden;
 }
 
 .composer__media__icon {
@@ -623,7 +675,33 @@ async function submit() {
   color: var(--c-text-muted);
 
   &.is-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
     color: var(--c-danger);
+  }
+}
+
+.composer__media__errmsg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.composer__media__bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgb(0 0 0 / 12%);
+
+  i {
+    display: block;
+    height: 100%;
+    background: var(--c-primary);
+    transition: width 0.2s ease;
   }
 }
 
