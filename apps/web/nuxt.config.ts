@@ -27,12 +27,13 @@ const SPLASH_DEVICES: [number, number, number, number, number][] = [
 ]
 const splashLinks = SPLASH_DEVICES.flatMap(([w, h, ptW, ptH, dpr]) => [
   {
-    rel: 'apple-touch-startup-image',
+    // rel 需字面量类型（Nuxt 的 link 类型是按 rel 判别的联合）
+    rel: 'apple-touch-startup-image' as const,
     href: `/splash/${w}x${h}.png`,
     media: `(device-width: ${ptW}px) and (device-height: ${ptH}px) and (-webkit-device-pixel-ratio: ${dpr})`,
   },
   {
-    rel: 'apple-touch-startup-image',
+    rel: 'apple-touch-startup-image' as const,
     href: `/splash/${h}x${w}.png`,
     media: `(device-width: ${ptH}px) and (device-height: ${ptW}px) and (-webkit-device-pixel-ratio: ${dpr})`,
   },
