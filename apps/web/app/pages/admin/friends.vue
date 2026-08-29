@@ -60,13 +60,15 @@
         class="friends-list__row"
         :style="{ '--stagger-index': i + 2 }"
       >
-        <img
+        <!-- 图标加载失败时由 SafeImage 渲染首字占位（带 --fallback 类，与未填图标时一致） -->
+        <SafeImage
           v-if="link.iconUrl"
           :src="link.iconUrl"
           alt=""
-          class="friends-list__icon"
-          @error="(e: Event) => ((e.target as HTMLImageElement).style.visibility = 'hidden')"
-        >
+          class="friends-list__icon friends-list__icon--fallback"
+          :fallback-text="link.name.slice(0, 1).toUpperCase()"
+          variant="avatar"
+        />
         <span v-else class="friends-list__icon friends-list__icon--fallback" aria-hidden="true">
           {{ link.name.slice(0, 1).toUpperCase() }}
         </span>

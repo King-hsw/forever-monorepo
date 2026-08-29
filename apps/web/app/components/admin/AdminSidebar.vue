@@ -33,7 +33,8 @@
       <p class="sidenav__user" title="当前登录用户">
         <!-- 资料由 admin 布局统一拉取，此处仅展示头像 -->
         <ClientOnly>
-          <img v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="" class="sidenav__avatar">
+          <!-- 头像加载失败时由 SafeImage 渲染首字占位（sidenav__avatar 自带首字样式） -->
+          <SafeImage v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="" class="sidenav__avatar" :fallback-text="initialOf(auth.username)" variant="avatar" />
           <span v-else class="sidenav__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
         </ClientOnly>
         <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->

@@ -154,6 +154,29 @@ const html = computed(() => {
 /* ---------- 点击委托：正文图片浮层预览 + 代码块复制（已复制反馈） ---------- */
 const rootEl = ref<HTMLElement | null>(null)
 
+/* ---------- 加载失败委托：正文图为 v-html 直插，挂不了模板事件；error 不冒泡，用捕获阶段在容器上接管 ---------- */
+
+/** 占位里的小裂图（与 SafeImage 的 lucide:image-off 同源） */
+const IMG_FALLBACK_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g><path d="m2 2l20 20M10.41 10.41a2 2 0 1 1-2.83-2.83m5.92 5.92L6 21m12-9l3 3"/><path d="M3.59 3.59A2 2 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59M21 15V5a2 2 0 0 0-2-2H9"/></g></svg>'
+
+function onMediaError(event: Event) {
+  const target = event.target as HTMLElement
+  if (target.tagName !== 'IMG' || !rootEl.value?.contains(target)) return
+  // 替换为占位块，避免渲染成破图；占位无 img，点击不会再触发预览
+  const ph = document.createElement('span')
+  ph.className = 'md-img-fallback'
+  ph.innerHTML = `${IMG_FALLBACK_SVG}<span>图片加载失败</span>`
+  ;(target as HTMLImageElement).replaceWith(ph)
+}
+
+onMounted(() => {
+  rootEl.value?.addEventListener('error', onMediaError, true)
+})
+
+onBeforeUnmount(() => {
+  rootEl.value?.removeEventListener('error', onMediaError, true)
+})
+
 /** 每个按钮各自的恢复定时器（WeakMap 随节点回收） */
 const resetTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>()
 
@@ -192,5 +215,25 @@ function onClick(event: MouseEvent) {
 /* 正文图片可点：统一浮层预览 */
 :deep(img) {
   cursor: zoom-in;
+}
+
+/* 加载失败图的占位块（事件委托动态插入，非模板节点） */
+:deep(.md-img-fallback) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0;
+  padding: 20px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  background: var(--c-bg-soft);
+  border: 1px dashed var(--c-border);
+  border-radius: 6px;
+}
+
+:deep(.md-img-fallback svg) {
+  flex-shrink: 0;
+  opacity: 0.55;
 }
 </style>

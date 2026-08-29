@@ -9,12 +9,15 @@
       <form class="composer" @submit.prevent="submit">
         <!-- 作者：头像 + 昵称 -->
         <div class="composer__author">
-          <img
+          <!-- 头像加载失败时由 SafeImage 渲染首字占位（带 --initial 类，与无头像时一致） -->
+          <SafeImage
             v-if="profile?.avatarUrl"
-            class="composer__avatar"
+            class="composer__avatar composer__avatar--initial"
             :src="profile.avatarUrl"
             :alt="auth.username ?? ''"
-          >
+            :fallback-text="initialOf(auth.username ?? '?')"
+            variant="avatar"
+          />
           <span
             v-else
             class="composer__avatar"

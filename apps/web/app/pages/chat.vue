@@ -19,14 +19,14 @@
               :class="{ 'member--active': filterMember === m.nickname }"
               @click="selectMember(m)"
             >
-              <img
+              <SafeImage
                 class="member__avatar"
                 :src="m.avatarUrl"
                 :alt="m.nickname"
+                variant="avatar"
                 width="38"
                 height="38"
-                loading="lazy"
-              >
+              />
               <span class="member__body">
                 <span class="member__name">
                   {{ m.nickname }}
@@ -95,15 +95,16 @@
                 :class="{ 'msg--self': row.self, 'msg--flash': flashKey === row.key }"
                 :data-mid="row.msg.id"
               >
-                <img
+                <!-- 头像加载失败时渲染首字占位（SafeImage），样式由 member__avatar 同款类提供 -->
+                <SafeImage
                   v-if="!row.self"
                   class="msg__avatar"
                   :src="row.msg.avatarUrl"
                   :alt="row.msg.nickname"
+                  variant="avatar"
                   width="40"
                   height="40"
-                  loading="lazy"
-                >
+                />
                 <div class="msg__col">
                   <span v-if="!row.self && row.showName" class="msg__name">{{ row.msg.nickname }}</span>
                   <div class="msg__bubble" title="回复 {{ row.msg.nickname }}" @click="setReplyTo(row.msg)">
@@ -119,15 +120,15 @@
                     {{ row.msg.content }}
                   </div>
                 </div>
-                <img
+                <SafeImage
                   v-if="row.self"
                   class="msg__avatar"
                   :src="row.msg.avatarUrl"
-                  alt=""
+                  :alt="row.msg.nickname"
+                  variant="avatar"
                   width="40"
                   height="40"
-                  loading="lazy"
-                >
+                />
               </div>
             </template>
           </template>
@@ -592,6 +593,13 @@ usePageSeo({
   height: 38px;
   border-radius: 50%;
   object-fit: cover;
+  /* 头像加载失败时的首字占位（SafeImage 复用此 class）；background 也作图片加载中的底色 */
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
 }
 
 .member__body {
@@ -797,6 +805,13 @@ usePageSeo({
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  /* 头像加载失败时的首字占位（SafeImage 复用此 class）；background 也作图片加载中的底色 */
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-on-primary);
+  background: var(--c-primary);
 }
 
 .msg__col {

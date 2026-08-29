@@ -25,7 +25,8 @@
         <div class="topbar__menu">
           <button type="button" class="topbar__user" aria-haspopup="true" title="个人资料 / 退出登录">
             <ClientOnly>
-              <img v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="" class="topbar__avatar">
+              <!-- 头像加载失败时由 SafeImage 渲染首字占位（topbar__avatar 自带首字样式） -->
+              <SafeImage v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="" class="topbar__avatar" :fallback-text="initialOf(auth.username)" variant="avatar" />
               <span v-else class="topbar__avatar" aria-hidden="true">{{ initialOf(auth.username) }}</span>
             </ClientOnly>
             <!-- 登录态存于 localStorage，仅客户端可知，用 ClientOnly 避免 SSR 水合不匹配 -->

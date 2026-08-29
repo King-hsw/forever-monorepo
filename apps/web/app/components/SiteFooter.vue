@@ -51,17 +51,18 @@
             <ul>
               <li>
                 <a href="https://travel.moe/go.html?travel=on" target="_blank" rel="noopener" title="异次元之旅-跃迁-我们一起去萌站成员的星球旅行吧！">
-                  <img src="https://travel.moe/images/icon/icon64green.png" alt="异次元之旅" style="width:24px;height:24px;vertical-align:-6px;margin-right:6px;">异次元之旅
+                  <!-- 徽标加载失败时由 SafeImage 渲染裂图占位（内联尺寸同时约束占位元素） -->
+                  <SafeImage src="https://travel.moe/images/icon/icon64green.png" alt="异次元之旅" style="width:24px;height:24px;vertical-align:-6px;margin-right:6px;" />异次元之旅
                 </a>
               </li>
               <li>
                 <a href="https://www.travellings.cn/go.html" target="_blank" rel="noopener" title="开往-友链接力">
-                  <img src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" style="height:20px;vertical-align:-5px;">
+                  <SafeImage src="https://www.travellings.cn/assets/logo.svg" alt="开往-友链接力" style="width:20px;height:20px;vertical-align:-5px;" />
                 </a>
               </li>
               <li>
                 <a href="https://www.foreverblog.cn/go.html" target="_blank" rel="noopener" title="穿梭虫洞-随机访问十年之约友链博客">
-                  <img src="https://foreverblog.cn/assets/logo/wormhole_3_tp.gif" alt="虫洞" style="height:32px;vertical-align:-10px;" loading="lazy">
+                  <SafeImage src="https://foreverblog.cn/assets/logo/wormhole_3_tp.gif" alt="虫洞" style="width:32px;height:32px;vertical-align:-10px;" />
                 </a>
               </li>
             </ul>

@@ -24,7 +24,8 @@
 
       <div class="profile-card__body">
         <div class="profile-card__avatar">
-          <img v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="当前头像">
+          <!-- 加载失败时由 SafeImage 渲染首字占位，样式继承容器的 88px 圆形首字样式 -->
+          <SafeImage v-if="profile?.avatarUrl" :src="profile.avatarUrl" alt="当前头像" variant="avatar" :fallback-text="initialOf(profile?.nickname || auth.username)" />
           <span v-else aria-hidden="true">{{ initialOf(profile?.nickname || auth.username) }}</span>
         </div>
         <div class="profile-card__actions">

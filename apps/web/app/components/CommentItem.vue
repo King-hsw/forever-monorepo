@@ -1,7 +1,14 @@
 <template>
   <div class="comment-item" :class="{ 'is-reply': isReply }">
-    <img v-if="comment.avatarUrl" :src="comment.avatarUrl" alt="" class="comment-item__avatar" loading="lazy"
-         @error="(e: Event) => ((e.target as HTMLImageElement).style.visibility = 'hidden')">
+    <!-- 头像加载失败时由 SafeImage 渲染首字占位（带 --initial 类，与无头像时同款） -->
+    <SafeImage
+      v-if="comment.avatarUrl"
+      :src="comment.avatarUrl"
+      alt=""
+      class="comment-item__avatar comment-item__avatar--initial"
+      :fallback-text="initialOf(comment.nickname)"
+      variant="avatar"
+    />
     <span v-else class="comment-item__avatar comment-item__avatar--initial" aria-hidden="true">{{ initialOf(comment.nickname) }}</span>
     <div class="comment-item__body">
       <header class="comment-item__meta">

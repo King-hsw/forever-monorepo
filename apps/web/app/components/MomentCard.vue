@@ -2,15 +2,17 @@
   <article class="moment-card">
     <!-- 头像压在线条上（点击按人筛选） -->
     <button type="button" class="moment-card__avatar-btn" :title="`只看 ${moment.username} 的动态`" @click="goUser">
-      <img
+      <!-- 加载失败时由 SafeImage 渲染占位：带 --initial 类复用首字样式，与无头像时一致 -->
+      <SafeImage
         v-if="moment.avatarUrl"
-        class="moment-card__avatar"
+        class="moment-card__avatar moment-card__avatar--initial"
         :src="moment.avatarUrl"
         :alt="moment.username"
-        loading="lazy"
+        :fallback-text="initialOf(moment.username)"
+        variant="avatar"
         width="40"
         height="40"
-      >
+      />
       <span v-else class="moment-card__avatar moment-card__avatar--initial" aria-hidden="true">
         {{ initialOf(moment.username) }}
       </span>
@@ -48,7 +50,8 @@
           :aria-label="`预览第 ${i + 1} 张图片`"
           @click="openPreview(i, $event)"
         >
-          <img :src="url" alt="" loading="lazy" />
+          <!-- 图片加载失败时 SafeImage 渲染裂图占位，点击不再进预览（openPreview 里判断） -->
+          <SafeImage :src="url" variant="image" />
         </button>
       </div>
       <audio v-if="moment.media.audio" controls :src="moment.media.audio" />
@@ -157,13 +160,11 @@ const gridClass = computed(() =>
 
 /** 图片预览：页面内浮层，同条动态多张可左右滑（Photoswipe 自带移动端手势） */
 function openPreview(index: number, event: MouseEvent) {
+  // 图片加载失败后宫格里是占位元素（无 img），不进预览
+  const thumb = (event.currentTarget as HTMLElement).querySelector('img')
+  if (!thumb) return
   // 宫格缩略均为 cover 裁切，开场动画按裁切还原
-  void openPhotoPreview(
-    images.value,
-    index,
-    (event.currentTarget as HTMLElement).querySelector('img'),
-    true,
-  )
+  void openPhotoPreview(images.value, index, thumb, true)
 }
 
 /** 头像 / 用户名点击：只看该用户的动态（?user= 过滤，可直接分享） */
