@@ -159,18 +159,27 @@ const rootEl = ref<HTMLElement | null>(null)
 /** 占位里的小裂图（与 SafeImage 的 lucide:image-off 同源） */
 const IMG_FALLBACK_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g><path d="m2 2l20 20M10.41 10.41a2 2 0 1 1-2.83-2.83m5.92 5.92L6 21m12-9l3 3"/><path d="M3.59 3.59A2 2 0 0 0 3 5v14a2 2 0 0 0 2 2h14c.55 0 1.052-.22 1.41-.59M21 15V5a2 2 0 0 0-2-2H9"/></g></svg>'
 
-function onMediaError(event: Event) {
-  const target = event.target as HTMLElement
-  if (target.tagName !== 'IMG' || !rootEl.value?.contains(target)) return
+function replaceFailedImg(img: HTMLImageElement) {
   // 替换为占位块，避免渲染成破图；占位无 img，点击不会再触发预览
   const ph = document.createElement('span')
   ph.className = 'md-img-fallback'
   ph.innerHTML = `${IMG_FALLBACK_SVG}<span>图片加载失败</span>`
-  ;(target as HTMLImageElement).replaceWith(ph)
+  img.replaceWith(ph)
+}
+
+function onMediaError(event: Event) {
+  const target = event.target as HTMLElement
+  if (target.tagName !== 'IMG' || !rootEl.value?.contains(target)) return
+  replaceFailedImg(target as HTMLImageElement)
 }
 
 onMounted(() => {
   rootEl.value?.addEventListener('error', onMediaError, true)
+  // SSR：img 在浏览器解析 HTML 时就开始加载，失败可能早于本委托挂载（error 不冒泡，
+  // 那时事件已无人接收）。挂载后按加载状态补扫一遍；仍在加载中的由委托接管。
+  rootEl.value?.querySelectorAll('img').forEach((img) => {
+    if (img.complete && img.naturalWidth === 0) replaceFailedImg(img)
+  })
 })
 
 onBeforeUnmount(() => {

@@ -3,6 +3,7 @@
   <!-- 占位元素继承外部传入的 class / style，尺寸、圆角与首字配色沿用各处既有样式，切换不跳版 -->
   <img
     v-if="!failed && src"
+    ref="imgEl"
     :src="src"
     :alt="alt"
     :loading="loading"
@@ -33,10 +34,20 @@ const props = withDefaults(defineProps<{
 })
 
 const failed = ref(false)
+const imgEl = ref<HTMLImageElement | null>(null)
 
 /** 地址更新（更换头像、重试上传）后重新尝试加载 */
 watch(() => props.src, () => {
   failed.value = false
+})
+
+// SSR：img 在浏览器解析 HTML 时就开始加载，失败可能早于客户端水合，
+// 那时的 error 事件无人接收。挂载后按加载状态补查一次（complete 且
+// naturalWidth 为 0 即已失败）；仍在加载中的后续失败由 @error 接管。
+onMounted(() => {
+  if (imgEl.value?.complete && imgEl.value.naturalWidth === 0) {
+    failed.value = true
+  }
 })
 
 const text = computed(() => props.fallbackText || props.alt.trim().slice(0, 1) || '？')
