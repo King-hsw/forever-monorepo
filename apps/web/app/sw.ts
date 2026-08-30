@@ -41,8 +41,15 @@ self.addEventListener('push', (event) => {
     payload = { body: event.data.text() }
   }
   event.waitUntil((async () => {
-    // 送达回执：SW 收到 push 即上报，供服务端/页面确认端到端链路（正式接入可换成上报已读）
-    await fetch('/demo-push/delivered', { method: 'POST' }).catch(() => {})
+    // 送达回执：SW 收到 push 即上报自身 endpoint，供服务端记录最近送达时间、确认端到端链路
+    const sub = await self.registration.pushManager.getSubscription()
+    if (sub) {
+      await fetch('/api/v1/push/delivered', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ endpoint: sub.endpoint }),
+      }).catch(() => {})
+    }
     await self.registration.showNotification(payload.title ?? '补陋阁', {
       body: payload.body ?? '你有新消息',
       icon: '/icons/icon-192x192.png',

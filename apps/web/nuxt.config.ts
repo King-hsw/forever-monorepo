@@ -139,22 +139,7 @@ export default defineNuxtConfig({
       globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
       // 启动图不进预缓存：iOS 只在添加到主屏时由系统拉取并自带缓存，
       // 进 SW 预缓存只会白白撑大 5MB+ 的离线包
-      globIgnores: ['splash/**'],
-      runtimeCaching: [
-        {
-          urlPattern: ({ request, sameOrigin }) =>
-            request.mode === 'navigate' && sameOrigin,
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'pages',
-            networkTimeoutSeconds: 5,
-            expiration: {
-              maxEntries: 32,
-              maxAgeSeconds: 60 * 60 * 24
-            }
-          }
-        }
-      ]
+      globIgnores: ['splash/**']
     },
     devOptions: {
       enabled: true,

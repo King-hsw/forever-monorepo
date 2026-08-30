@@ -2,8 +2,8 @@
   <div class="push-demo">
     <h1 class="push-demo__title">Web Push 推送演示</h1>
     <p class="push-demo__subtitle">
-      浏览器原生推送链路演示：订阅与发送走本站 demo 路由，
-      正式接入后由 forever-server 存储/下发，前端仅需替换接口前缀
+      浏览器原生推送链路演示：订阅与回执走 forever-server 公开接口（/api/v1/push/**），
+      发送走管理端接口，需管理员登录
     </p>
 
     <ul class="push-demo__status">
@@ -25,7 +25,7 @@
       <li>
         <span class="push-demo__label">送达回执</span>
         <span v-if="delivered.count > 0">
-          SW 已收到 {{ delivered.count }} 条推送（最近 {{ delivered.lastAt?.slice(11, 19) }}）
+          已确认送达 {{ delivered.count }} 个订阅（最近 {{ delivered.lastAt?.slice(11, 19) }}）
         </span>
         <span v-else>暂无（发送成功后 3 秒内刷新）</span>
       </li>
@@ -65,7 +65,9 @@
         <li>桌面 Chrome / Edge 在 localhost 即可全流程验证，通知由操作系统弹出。</li>
         <li>iOS 16.4+ 必须先「添加到主屏幕」，从主屏幕图标打开本页才能订阅推送。</li>
         <li>手机浏览器经局域网 http 访问时非安全上下文，无法订阅，需 HTTPS 环境。</li>
-        <li>订阅与 VAPID 密钥存在 .data/kv，dev 重启不丢失；删除 .data 即重置。</li>
+        <li>订阅数据存在 forever-server 的 push_subscription 表；VAPID 密钥在后端
+          blog.push.vapid.* 配置，未配置时推送接口报「功能未配置」。</li>
+        <li>发送测试推送需先在后台登录（走 /api/admin/push/send，未登录会跳转登录页）。</li>
       </ul>
       <p v-if="showIosHint" class="push-demo__warn">
         检测到 iOS Safari 普通标签页：Web Push 仅对添加到主屏幕的 PWA 生效。
@@ -81,16 +83,16 @@ const { supported, permission, subscribed, busy, endpointTail, probe, enable, di
 
 const message = ref('')
 
-/** 送达回执：SW 收到 push 后会 POST /demo-push/delivered，这里轮询展示 */
+/** 送达回执：SW 收到 push 后会 POST /api/v1/push/delivered，这里轮询展示 */
 const delivered = ref<{ count: number, lastAt: string | null }>({ count: 0, lastAt: null })
 let pollTimer: ReturnType<typeof setInterval> | undefined
 
 async function pollDelivered() {
   try {
-    delivered.value = await $fetch<{ count: number, lastAt: string | null }>('/demo-push/delivered')
+    delivered.value = await apiFetch<{ count: number, lastAt: string | null }>('/api/v1/push/delivered')
   }
   catch {
-    // dev 重启瞬间可能取不到，下一轮再试
+    // 后端未启动瞬间可能取不到，下一轮再试
   }
 }
 
@@ -146,11 +148,11 @@ async function onDisable() {
 async function onSendTest() {
   message.value = ''
   try {
-    const res = await $fetch<{ total: number, sent: number, failed: number }>('/demo-push/send', {
+    const res = await apiFetch<{ total: number, sent: number, failed: number }>('/api/admin/push/send', {
       method: 'POST',
       body: {
         title: '补陋阁 · 测试推送',
-        body: '这是一条 Web Push demo 测试消息，点击可跳转回本页',
+        body: '这是一条 Web Push 测试消息，点击可跳转回本页',
         url: '/push-demo',
       },
     })
@@ -160,7 +162,7 @@ async function onSendTest() {
       message.value = `发送失败：共 ${res.total} 条订阅，成功 ${res.sent} 条，失败 ${res.failed} 条（详见服务端日志）`
   }
   catch (e) {
-    message.value = e instanceof Error ? e.message : '发送请求失败'
+    message.value = e instanceof Error ? e.message : '发送请求失败（需管理员登录）'
   }
 }
 </script>
