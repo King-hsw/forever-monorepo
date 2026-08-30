@@ -119,5 +119,27 @@ export function usePush() {
     }
   }
 
-  return { supported, permission, subscribed, busy, endpointTail, probe, enable, disable }
+  /**
+   * 评论成功后调用：把浏览器已有的推送订阅静默绑到本条评论邮箱，
+   * 服务端据此在评论被回复时定向推送。未订阅/失败都不影响评论流程。
+   */
+  async function syncSubscriptionEmail(email?: string): Promise<void> {
+    if (!email || !pushSupported())
+      return
+    try {
+      const reg = await ensureRegistration()
+      const sub = await reg.pushManager.getSubscription()
+      if (!sub)
+        return
+      await apiFetch(`${PUSH_API}/subscribe`, {
+        method: 'POST',
+        body: { endpoint: sub.endpoint, keys: sub.toJSON().keys, email },
+      })
+    }
+    catch {
+      // 归属绑定失败仅影响后续推送定向，不打扰用户
+    }
+  }
+
+  return { supported, permission, subscribed, busy, endpointTail, probe, enable, disable, syncSubscriptionEmail }
 }

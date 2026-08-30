@@ -66,6 +66,7 @@ const commentsStore = useCommentsStore()
 const guest = useGuestStore()
 const auth = useAuthStore()
 const route = useRoute()
+const { syncSubscriptionEmail } = usePush()
 
 guest.hydrate()
 
@@ -113,6 +114,7 @@ async function submit() {
 
   submitting.value = true
   tip.value = ''
+  const commentEmail = identity?.email ?? guest.email
   try {
     const created = await commentsStore.create({
       // MOMENT 必须显式带 targetType/targetId，store 才走动态评论接口（带 articleId 会被当成文章评论）
@@ -123,12 +125,14 @@ async function submit() {
           : { articleId: props.targetId }),
       parentId: props.replyTo?.id,
       nickname: identity?.nickname ?? guest.nickname,
-      email: identity?.email ?? guest.email,
+      email: commentEmail,
       site: identity?.site || guest.site || undefined,
       content: content.value.trim(),
     })
 
     content.value = ''
+    // 已订阅推送时把订阅绑到本条评论邮箱，被回复时可收到定向推送（内部静默，失败不影响评论）
+    syncSubscriptionEmail(commentEmail)
     if (created.status === 'PENDING') {
       tip.value = '已提交，审核通过后将展示出来'
       tipIsError.value = false
