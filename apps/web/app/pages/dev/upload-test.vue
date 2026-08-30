@@ -48,6 +48,7 @@
         class="utest-file"
         :kinds="MOMENT_KINDS"
         mode="single"
+        :token="testToken"
         @picked="onSinglePicked"
         @progress="onSingleProgress"
         @uploaded="onSingleUploaded"
@@ -97,6 +98,7 @@
         class="utest-file"
         :kinds="[VIDEO_RULE]"
         mode="multipart"
+        :token="testToken"
         @picked="onMpPicked"
         @progress="onMpProgress"
         @uploaded="onMpUploaded"
@@ -219,22 +221,16 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { Moment, PageResult } from '#shared/types'
+import { apiFetch } from '~/utils/api'
 import {
-  apiJson,
-  clearUploadAuth,
   computeMd5,
   fmtBytes,
-  loadUploadAuth,
-  MOMENT_KINDS,
   onUploadLog,
-  saveUploadAuth,
-  VIDEO_RULE,
-  type MediaKind,
-  type MediaKindRule,
-  type UploadAuth,
+  type UploadKindRule,
   type UploadLogEntry,
   type UploadResult,
 } from '~/utils/directUpload'
+import { MOMENT_KINDS, VIDEO_RULE } from '~/utils/mediaKinds'
 
 // 纯客户端测试页，无需博客布局；robots 禁止收录
 definePageMeta({ layout: false })
@@ -243,14 +239,43 @@ useHead({
   meta: [{ name: 'robots', content: 'noindex, nofollow' }],
 })
 
+/* ---------- 测试页独立会话（与主站登录互不相干；上传模块不再内置本逻辑） ---------- */
+
+const TEST_AUTH_KEY = 'forever-upload-test-auth'
+
+interface TestAuth {
+  token: string
+  username: string
+  savedAt: number
+}
+
+function loadTestAuth(): TestAuth | null {
+  try {
+    const raw = localStorage.getItem(TEST_AUTH_KEY)
+    if (!raw) return null
+    const value = JSON.parse(raw) as Partial<TestAuth>
+    return value.token ? (value as TestAuth) : null
+  } catch {
+    return null
+  }
+}
+
+function saveTestAuth(auth: TestAuth) {
+  localStorage.setItem(TEST_AUTH_KEY, JSON.stringify(auth))
+}
+
+function clearTestAuth() {
+  localStorage.removeItem(TEST_AUTH_KEY)
+}
+
 const MB = 1024 * 1024
 const config = useRuntimeConfig()
 const apiBase = computed(() => config.public.apiBase as string)
 
-const kindLabel: Record<MediaKind, string> = { image: '图', audio: '音', video: '视' }
+const kindLabel: Record<string, string> = { image: '图', audio: '音', video: '视' }
 
 /** 白名单摘要：给用户看的「本区支持什么」 */
-function capSummary(kinds: MediaKindRule[]): string {
+function capSummary(kinds: UploadKindRule[]): string {
   return kinds.map(k => `${k.label} ${k.exts.join('/')} ≤${fmtBytes(k.maxBytes)}`).join('；')
 }
 
@@ -290,28 +315,30 @@ onUnmounted(() => offLog?.())
 
 /* ---------- 1 · 登录 ---------- */
 
-const auth = ref<UploadAuth | null>(null)
+const auth = ref<TestAuth | null>(null)
 const username = ref('')
 const password = ref('')
 const loggingIn = ref(false)
 const loginError = ref('')
 const authError = ref('')
 
-onMounted(() => { auth.value = loadUploadAuth() })
+/** 上传链路显式覆盖令牌：走测试页独立会话，不用主站登录态 */
+const testToken = () => auth.value?.token ?? ''
+
+onMounted(() => { auth.value = loadTestAuth() })
 
 async function handleLogin() {
   loginError.value = ''
   authError.value = ''
   loggingIn.value = true
   try {
-    // 登录不带旧令牌（token 传空字符串）
-    const data = await apiJson<{ accessToken: string }>('/api/auth/login', {
+    // apiFetch 对 /api/auth/login 不附加任何旧令牌
+    const data = await apiFetch<{ accessToken: string }>('/api/auth/login', {
       method: 'POST',
-      token: '',
       body: { username: username.value.trim(), password: password.value },
     })
-    saveUploadAuth({ token: data.accessToken, username: username.value.trim(), savedAt: Date.now() })
-    auth.value = loadUploadAuth()
+    saveTestAuth({ token: data.accessToken, username: username.value.trim(), savedAt: Date.now() })
+    auth.value = loadTestAuth()
     password.value = ''
   } catch (err) {
     loginError.value = err instanceof Error ? err.message : '登录失败'
@@ -321,7 +348,7 @@ async function handleLogin() {
 }
 
 function handleLogout() {
-  clearUploadAuth()
+  clearTestAuth()
   auth.value = null
   authError.value = ''
 }
@@ -345,13 +372,13 @@ function warmupMd5(
 
 /* ---------- 2 · 单文件直传 ---------- */
 
-interface PickedItem { id: number, file: File, kind: MediaKind }
-interface PickerResult { file: File, kind: MediaKind, result: UploadResult }
+interface PickedItem { id: number, file: File, kind: string }
+interface PickerResult { file: File, kind: string, result: UploadResult }
 interface PickerFailure { message: string, aborted: boolean }
 
 const singlePicker = ref<{ cancel: () => void } | null>(null)
 const singleFile = ref<File | null>(null)
-const singleKind = ref<MediaKind | null>(null)
+const singleKind = ref<string | null>(null)
 const singlePrecheck = ref('')
 const singleHint = ref('')
 const singleMd5 = ref('')
@@ -452,7 +479,7 @@ function cancelMultipart() {
 interface UploadedItem {
   id: number
   name: string
-  kind: MediaKind
+  kind: string
   accessUrl: string
   checked: boolean
 }
@@ -460,7 +487,7 @@ interface UploadedItem {
 const uploadedItems = ref<UploadedItem[]>([])
 let uploadedItemId = 0
 
-function addUploadedItem(name: string, kind: MediaKind, accessUrl: string) {
+function addUploadedItem(name: string, kind: string, accessUrl: string) {
   uploadedItems.value.push({ id: ++uploadedItemId, name, kind, accessUrl, checked: false })
 }
 
@@ -502,7 +529,7 @@ async function publish() {
   }
   pubBusy.value = true
   try {
-    const created = await apiJson<Moment>('/api/admin/moments', {
+    const created = await apiFetch<Moment>('/api/admin/moments', {
       method: 'POST',
       body: {
         content: pubContent.value,
@@ -513,6 +540,7 @@ async function publish() {
         lat: null,
         lng: null,
       },
+      token: testToken(),
     })
     pubResult.value = created
     // 发布成功后立即用公开时间线确认可见性
@@ -530,7 +558,7 @@ async function checkTimeline(quiet = false) {
     pubVisible.value = null
   }
   try {
-    pubTimeline.value = await apiJson<PageResult<Moment>>('/api/v1/moments?page=1&size=5')
+    pubTimeline.value = await apiFetch<PageResult<Moment>>('/api/v1/moments?page=1&size=5')
     pubVisible.value = pubResult.value
       ? pubTimeline.value.list.some(m => m.id === pubResult.value?.id)
       : null

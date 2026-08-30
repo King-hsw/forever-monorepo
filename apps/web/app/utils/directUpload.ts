@@ -2,12 +2,17 @@
  * 内容寻址直传模块：先查秒传、再发凭证（MD5 寻址 + RustFS 公开桶直链）
  *
  * 对象 key 按「内容 MD5」寻址（{md5}.{ext}），同内容 = 同 key = 同直链。
- * 测试页（与后续业务组件）只调本模块的四个入口，md5 计算与 check 编排都在内部：
+ * 调用方只调本模块的四个入口，md5 计算与 check 编排都在内部：
  * - computeMd5(file)：spark-md5 分块增量计算（逐块读，大文件不一次性进内存），
  *   结果按 File 实例缓存（含进行中的 Promise），同文件多处调用只算一次；
  * - checkExists(file)：先算 md5 再 POST /api/admin/upload/check，命中即拿 accessUrl；
  * - uploadOne(file, onProgress)：单文件直传编排（≤8MB），403 自动重签重试；
  * - uploadMultipart(file, onProgress)：大文件分片编排（>8MB），并发 3 逐片 PUT + complete。
+ *
+ * 后端请求统一走 ~/utils/api 的 apiFetch（同一套信封解包 / 错误语义 / apiBase）：
+ * 缺省携带主站登录令牌（401 自动静默续期），hooks.token 可显式覆盖为任意会话
+ * （如独立测试页会话）。本模块不感知具体业务白名单——类别规则（UploadKindRule）
+ * 由调用方声明，预置媒体规则见 ~/utils/mediaKinds。
  *
  * 上传编排（checkOrUpload 内统一收口）：
  * ① computeMd5 → ② POST check：exists=true 直接返回 accessUrl（秒传，零上传，流程结束）；
@@ -25,8 +30,7 @@
  * - 不读不回传 ETag，complete 由后端 listParts 向 RustFS 核对。
  */
 import SparkMD5 from 'spark-md5'
-import { ApiError } from '~/utils/api'
-import type { ApiResponse } from '#shared/types'
+import { ApiError, apiFetch } from '~/utils/api'
 
 const MB = 1024 * 1024
 
@@ -51,7 +55,7 @@ export interface UploadLogEntry {
 
 const logListeners = new Set<(entry: UploadLogEntry) => void>()
 
-/** 订阅模块内所有请求日志（含页面自己的 apiJson 调用），返回退订函数 */
+/** 订阅模块内所有请求日志（上传链路的后端请求 + PUT 直传），返回退订函数 */
 export function onUploadLog(cb: (entry: UploadLogEntry) => void): () => void {
   logListeners.add(cb)
   return () => logListeners.delete(cb)
@@ -61,113 +65,62 @@ function emitLog(entry: UploadLogEntry) {
   logListeners.forEach(cb => cb(entry))
 }
 
-/* ========== 测试页登录令牌（独立存储，不与后台共用） ========== */
+/* ========== 上传链路的后端请求：apiFetch 统一收口，日志面向调试面板 ========== */
 
-const AUTH_KEY = 'forever-upload-test-auth'
-
-export interface UploadAuth {
-  token: string
-  username: string
-  savedAt: number
-}
-
-export function loadUploadAuth(): UploadAuth | null {
-  if (!import.meta.client) return null
-  try {
-    const raw = localStorage.getItem(AUTH_KEY)
-    if (!raw) return null
-    const value = JSON.parse(raw) as Partial<UploadAuth>
-    return value.token ? (value as UploadAuth) : null
-  } catch {
-    return null
-  }
-}
-
-export function saveUploadAuth(auth: UploadAuth) {
-  localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
-}
-
-export function clearUploadAuth() {
-  localStorage.removeItem(AUTH_KEY)
-}
-
-function getUploadToken(): string {
-  return loadUploadAuth()?.token ?? ''
-}
-
-/* ========== 后端信封请求 ========== */
-
-interface ApiJsonOptions {
+interface UploadApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  body?: unknown
-  /** 显式覆盖令牌；登录接口传空字符串避免携带旧令牌 */
+  body?: Record<string, unknown>
+  /** 显式覆盖令牌；缺省走 apiFetch 的主站登录会话 */
   token?: string
 }
 
 /**
- * 发起后端请求并解包统一信封：code !== 0 或 HTTP 层错误一律抛 ApiError
- * （code 存 HTTP 状态码，网络层失败为 0），message 已适合直接展示。
- * 每次调用自动写入调试日志（Authorization 头不记录）。
+ * 上传链路专用的 apiFetch 薄壳：请求与信封解包完全复用共享客户端，
+ * 这里只负责计时并把每次请求 / 失败写入调试日志（状态码：HTTP 状态或信封业务码，
+ * 网络层失败为 0）。
  */
-export async function apiJson<T>(path: string, options: ApiJsonOptions = {}): Promise<T> {
+async function uploadApi<T>(path: string, options: UploadApiOptions = {}): Promise<T> {
   const base = useRuntimeConfig().public.apiBase as string
-  const token = options.token ?? getUploadToken()
-  const headers: Record<string, string> = {}
-  if (token) headers.Authorization = `Bearer ${token}`
-
-  const started = Date.now()
   const url = `${base}${path}`
   const method = options.method ?? 'GET'
-  let status = 0
-  let responseBody: unknown
+  const started = Date.now()
   try {
-    // $fetch.raw + ignoreResponseError：错误状态不抛出，状态码与信封错误体统一在下方处理；
-    // 走到下方 catch 的就只剩真正的网络层失败（断网 / 代理未启动 / 跨域拦截）
-    const res = await $fetch.raw<ApiResponse<T>>(url, {
-      method,
-      body: options.body as never,
-      headers,
-      ignoreResponseError: true,
-    })
-    status = res.status
-    responseBody = res._data
-    const envelope = res._data
-    if (!envelope || typeof envelope !== 'object' || envelope.code !== 0) {
-      throw new ApiError(envelope?.message || `请求失败（HTTP ${status}）`, status)
-    }
-    emitLog({ time: started, method, url, status, durationMs: Date.now() - started, detail: { request: options.body, response: responseBody } })
-    return envelope.data
+    const data = await apiFetch<T>(path, { method, body: options.body, token: options.token })
+    emitLog({ time: started, method, url, status: 200, durationMs: Date.now() - started, detail: { request: options.body } })
+    return data
   } catch (err) {
-    if (err instanceof ApiError) {
-      emitLog({ time: started, method, url, status, durationMs: Date.now() - started, detail: { request: options.body, response: responseBody }, note: err.message })
-      throw err
-    }
-    // 网络层失败：断网 / 代理未启动；PUT 打到 RustFS 时多为跨域被拦
-    const note = err instanceof Error ? err.message : '网络请求失败'
-    emitLog({ time: started, method, url, status: 0, durationMs: Date.now() - started, detail: { request: options.body }, note })
-    throw new ApiError(`网络请求失败（${note}）`, 0)
+    // ApiError.code>0 为 HTTP 状态 / 信封业务码；网络层失败（-1 等）按 0 记录
+    const code = err instanceof ApiError ? err.code : -1
+    emitLog({
+      time: started,
+      method,
+      url,
+      status: code > 0 ? code : 0,
+      durationMs: Date.now() - started,
+      detail: { request: options.body },
+      note: err instanceof Error ? err.message : '请求失败',
+    })
+    throw err
   }
 }
 
-/* ========== 客户端预检白名单：超限直接提示，不发任何请求 ========== */
+/* ========== 类别规则：由调用方声明，内核不限定媒体类型 ========== */
 
-export type MediaKind = 'image' | 'audio' | 'video'
-
-/** 一类媒体的白名单规则：允许的 MIME / 扩展名与大小上限 */
-export interface MediaKindRule {
-  kind: MediaKind
-  /** 展示用名称：图片 / 音频 / 视频 */
+/**
+ * 一类上传内容的能力规则：类别标识 kind 由调用方自定义（image / audio / pdf /
+ * attachment…，事件按它原样带回），附 MIME / 扩展名白名单与大小上限。
+ * 预置媒体规则（图片 / 音频 / 视频）见 ~/utils/mediaKinds。
+ */
+export interface UploadKindRule {
+  /** 调用方自定义类别标识，picked / uploaded 事件原样带回 */
+  kind: string
+  /** 展示用名称（预检提示里拼接）：图片 / 音频 / PDF… */
   label: string
   mimes: string[]
   /** 扩展名兜底（浏览器对 m4a 等的 MIME 不稳定），生成 accept 时转 .ext */
   exts: string[]
   maxBytes: number
 }
-
-export const IMAGE_RULE: MediaKindRule = { kind: 'image', label: '图片', mimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], exts: ['jpg', 'jpeg', 'png', 'webp', 'gif'], maxBytes: 5 * MB }
-export const AUDIO_RULE: MediaKindRule = { kind: 'audio', label: '音频', mimes: ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav'], exts: ['mp3', 'm4a', 'wav'], maxBytes: 20 * MB }
-export const VIDEO_RULE: MediaKindRule = { kind: 'video', label: '视频', mimes: ['video/mp4', 'video/webm', 'video/mkv'], exts: ['mp4', 'webm', 'mkv'], maxBytes: 100 * MB }
-export const MOMENT_KINDS: MediaKindRule[] = [IMAGE_RULE, AUDIO_RULE, VIDEO_RULE]
 
 /** 字节数格式化（预检提示与页面展示共用） */
 export function fmtBytes(n: number): string {
@@ -177,24 +130,24 @@ export function fmtBytes(n: number): string {
 }
 
 /** 由白名单生成文件选择器的 accept 属性（MIME + .扩展名） */
-export function acceptOf(kinds: MediaKindRule[]): string {
+export function acceptOf(kinds: UploadKindRule[]): string {
   const parts: string[] = []
   for (const rule of kinds) parts.push(...rule.mimes, ...rule.exts.map(ext => `.${ext}`))
   return parts.join(',')
 }
 
-function ruleOf(file: File, kinds: MediaKindRule[]): MediaKindRule | null {
+function ruleOf(file: File, kinds: UploadKindRule[]): UploadKindRule | null {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
   return kinds.find(r => r.mimes.includes(file.type) || r.exts.includes(ext)) ?? null
 }
 
-/** 文件属于哪一类；不在白名单内返回 null */
-export function fileKindOf(file: File, kinds: MediaKindRule[]): MediaKind | null {
+/** 文件属于哪个类别；不在任何规则内返回 null */
+export function fileKindOf(file: File, kinds: UploadKindRule[]): string | null {
   return ruleOf(file, kinds)?.kind ?? null
 }
 
 /** 客户端预检：通过返回 null；否则返回可直接展示的拦截原因（此时不应发任何请求） */
-export function precheckFile(file: File, kinds: MediaKindRule[]): string | null {
+export function precheckFile(file: File, kinds: UploadKindRule[]): string | null {
   if (!file.size) return '空文件无法上传'
   const rule = ruleOf(file, kinds)
   if (!rule) {
@@ -283,7 +236,7 @@ export interface UploadResult {
 /** 单独查询秒传（一般无需直接调：uploadOne / uploadMultipart 已内置 check 编排） */
 export async function checkExists(file: File, hooks: UploadHooks = {}): Promise<CheckData> {
   const md5 = await computeMd5(file)
-  return apiJson<CheckData>('/api/admin/upload/check', {
+  return uploadApi<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
     token: tokenOf(hooks),
@@ -353,16 +306,15 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
 export interface UploadHooks {
   /** 触发即中止在途请求、停发剩余分片（新契约无续传，重传需全量重来） */
   signal?: AbortSignal
-  /** 显式令牌（或取令牌的函数）：业务页面传主站会话令牌；缺省读测试页独立令牌。
-   *  显式传入后完全以此为准（含空值），不再回退测试页令牌 */
+  /** 显式令牌（或取令牌的函数）：覆盖缺省的主站登录会话（含 401 静默续期），
+   *  供独立会话场景（如测试页）使用。显式传入后完全以此为准（含空值） */
   token?: string | (() => string)
 }
 
-/** 解析本次请求应携带的令牌：显式 token 优先（函数即时求值），否则测试页独立会话 */
-function tokenOf(hooks?: UploadHooks): string {
+/** 解析本次请求的令牌：显式 token 优先（函数即时求值）；缺省返回 undefined 走主站会话 */
+function tokenOf(hooks?: UploadHooks): string | undefined {
   const t = hooks?.token
-  if (t !== undefined) return typeof t === 'function' ? t() : t
-  return getUploadToken()
+  return t === undefined ? undefined : typeof t === 'function' ? t() : t
 }
 
 const MAX_ATTEMPTS = 2
@@ -374,7 +326,7 @@ const MAX_ATTEMPTS = 2
  */
 async function checkOrUpload(file: File, run: () => Promise<UploadResult>, hooks: UploadHooks = {}): Promise<UploadResult> {
   const md5 = await computeMd5(file)
-  const check = () => apiJson<CheckData>('/api/admin/upload/check', {
+  const check = () => uploadApi<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
     token: tokenOf(hooks),
@@ -410,7 +362,7 @@ export async function uploadOne(
   const signals = hooks.signal ? [hooks.signal] : []
 
   return checkOrUpload(file, async () => {
-    const pre = await apiJson<PresignData>('/api/admin/upload/presign', {
+    const pre = await uploadApi<PresignData>('/api/admin/upload/presign', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file) },
       token: tokenOf(hooks),
@@ -438,7 +390,7 @@ export async function uploadMultipart(
   hooks: UploadHooks = {},
 ): Promise<UploadResult> {
   return checkOrUpload(file, async () => {
-    const init = await apiJson<MultipartInitData>('/api/admin/upload/multipart/init', {
+    const init = await uploadApi<MultipartInitData>('/api/admin/upload/multipart/init', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file), sizeBytes: file.size },
       token: tokenOf(hooks),
@@ -500,7 +452,7 @@ export async function uploadMultipart(
     if (firstError) throw firstError
 
     // complete：后端 listParts 向 RustFS 核对，前端只报 key + uploadId
-    const done = await apiJson<MultipartCompleteData>('/api/admin/upload/multipart/complete', {
+    const done = await uploadApi<MultipartCompleteData>('/api/admin/upload/multipart/complete', {
       method: 'POST',
       body: { key: init.key, uploadId: init.uploadId },
       token: tokenOf(hooks),

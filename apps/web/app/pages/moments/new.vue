@@ -106,7 +106,6 @@
         <div class="composer__bar">
           <UploadPicker
             ref="imagePicker"
-            :token="siteToken"
             class="composer__tool"
             :kinds="[IMAGE_RULE]"
             multiple
@@ -122,7 +121,6 @@
           </UploadPicker>
           <UploadPicker
             ref="audioPicker"
-            :token="siteToken"
             class="composer__tool"
             :kinds="[AUDIO_RULE]"
             :disabled="!auth.isAuthenticated || !!audioItem"
@@ -136,7 +134,6 @@
           </UploadPicker>
           <UploadPicker
             ref="videoPicker"
-            :token="siteToken"
             class="composer__tool"
             :kinds="[VIDEO_RULE]"
             :disabled="!auth.isAuthenticated || !!videoItem"
@@ -197,7 +194,8 @@ import type { ProfileInfo } from '#shared/types'
 import { useAuthStore } from '~/stores/auth'
 import { useMomentsStore } from '~/stores/moments'
 import { initialOf } from '~/utils/format'
-import { AUDIO_RULE, IMAGE_RULE, VIDEO_RULE, type MediaKind, type UploadResult } from '~/utils/directUpload'
+import { AUDIO_RULE, IMAGE_RULE, VIDEO_RULE } from '~/utils/mediaKinds'
+import type { UploadResult } from '~/utils/directUpload'
 
 usePageSeo({
   title: '发布动态 · 补陋阁',
@@ -208,8 +206,7 @@ usePageSeo({
 const auth = useAuthStore()
 auth.hydrate()
 
-/** 直传请求携带主站会话令牌（UploadPicker 显式注入，避免回退到测试页独立令牌） */
-const siteToken = () => loadAuth()?.accessToken ?? ''
+/** 直传请求缺省走共享 apiFetch 的主站登录会话，无需显式注入令牌 */
 const momentsStore = useMomentsStore()
 
 /** 作者头像：取登录用户资料（自定义头像 / Gravatar）；未登录 / 失败兜底首字头像 */
@@ -228,7 +225,7 @@ interface AttachItem {
   id: number
   /** UploadPicker 事件里的文件 id（进度 / 结果事件按它回填） */
   compId: number
-  kind: MediaKind
+  kind: string
   file: File
   status: 'uploading' | 'done' | 'error'
   /** 上传进度 0-100 */
@@ -264,7 +261,7 @@ function notice(msg: string) {
   noticeText.value = msg
 }
 
-function onPicked(kind: MediaKind, files: { id: number, file: File }[]) {
+function onPicked(kind: string, files: { id: number, file: File }[]) {
   for (const f of files) {
     items.value.push(reactive<AttachItem>({
       id: ++seq,
@@ -307,7 +304,7 @@ const imagePicker = ref<PickerLike | null>(null)
 const audioPicker = ref<PickerLike | null>(null)
 const videoPicker = ref<PickerLike | null>(null)
 
-function pickerOf(kind: MediaKind): PickerLike | null {
+function pickerOf(kind: string): PickerLike | null {
   return kind === 'image' ? imagePicker.value : kind === 'audio' ? audioPicker.value : videoPicker.value
 }
 

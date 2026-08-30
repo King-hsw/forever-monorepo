@@ -33,15 +33,15 @@ import {
   SINGLE_FILE_MAX,
   uploadMultipart,
   uploadOne,
-  type MediaKind,
-  type MediaKindRule,
+  type UploadKindRule,
   type UploadResult,
 } from '~/utils/directUpload'
 
 const props = withDefaults(defineProps<{
-  /** 可上传格式（能力声明）：每条规则含 MIME / 扩展名白名单与默认大小上限，
-   *  accept 与预检从这里派生；预置能力见 directUpload 的 IMAGE_RULE 等 */
-  kinds: MediaKindRule[]
+  /** 可上传类别（能力声明，由使用方定义）：每条规则含自定义类别标识 kind（事件
+   *  原样带回）、MIME / 扩展名白名单与默认大小上限，accept 与预检从这里派生；
+   *  预置媒体规则见 ~/utils/mediaKinds，也可按业务自定义任意类别 */
+  kinds: UploadKindRule[]
   /** 本次上传的最大字节数：覆盖 kinds 里各类别的默认上限（预检按它拦截）。
    *  只建议收紧——超过后端白名单上限时，分片路径仍会被后端 init 校验拦下 */
   maxSize?: number
@@ -52,7 +52,8 @@ const props = withDefaults(defineProps<{
   /** 本次最多接收的文件数，超出整批拦截提示；默认不限 */
   maxCount?: number
   disabled?: boolean
-  /** 请求携带的令牌（或取令牌的函数）：业务页面传主站会话；缺省读测试页独立令牌 */
+  /** 显式覆盖请求令牌（或取令牌的函数）：供独立会话场景使用；
+   *  缺省走共享 apiFetch 的主站登录会话（401 自动静默续期） */
   token?: () => string
 }>(), {
   mode: 'auto',
@@ -62,10 +63,11 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  /** 预检全部通过、即将开始上传（每个文件有稳定 id，后续事件按 id 关联） */
-  picked: [files: { id: number, file: File, kind: MediaKind }[]]
+  /** 预检全部通过、即将开始上传（每个文件有稳定 id，后续事件按 id 关联；
+   *  kind 为 kinds 规则里声明的类别标识） */
+  picked: [files: { id: number, file: File, kind: string }[]]
   progress: [p: { id: number, percent: number }]
-  uploaded: [u: { id: number, file: File, kind: MediaKind, result: UploadResult }]
+  uploaded: [u: { id: number, file: File, kind: string, result: UploadResult }]
   failed: [f: { id: number, file: File, message: string, aborted: boolean }]
   /** 本地拦截（类型不符 / 超限 / 超量），未发任何请求，message 可直接展示 */
   rejected: [message: string]
@@ -92,7 +94,7 @@ function onChange() {
     return
   }
 
-  const picked: { id: number, file: File, kind: MediaKind }[] = []
+  const picked: { id: number, file: File, kind: string }[] = []
   for (const file of files) {
     // 预检一并覆盖类型与大小（不在白名单也在这里拦截）；maxSize 优先于类别默认上限
     const problem = precheckFile(file, effectiveKinds.value)
@@ -109,7 +111,7 @@ function onChange() {
 }
 
 /** 一批文件顺序上传：批内共享一个中止信号，任一文件失败不影响后续文件 */
-async function runBatch(picked: { id: number, file: File, kind: MediaKind }[]) {
+async function runBatch(picked: { id: number, file: File, kind: string }[]) {
   busy.value = true
   batch = new AbortController()
   try {
