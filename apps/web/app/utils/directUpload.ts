@@ -11,8 +11,7 @@
  *
  * 后端请求统一走 ~/utils/api 的 apiFetch（同一套信封解包 / 错误语义 / apiBase）：
  * 缺省携带主站登录令牌（401 自动静默续期），hooks.token 可显式覆盖为其他会话。
- * 本模块不感知具体业务白名单——类别规则（UploadKindRule）由调用方声明，
- * 预置媒体规则见 ~/utils/mediaKinds。
+ * 本模块不感知具体业务白名单——允许的后缀与大小上限由调用方声明。
  *
  * 上传编排（checkOrUpload 内统一收口）：
  * ① computeMd5 → ② POST check：exists=true 直接返回 accessUrl（秒传，零上传，流程结束）；
@@ -37,58 +36,28 @@ const MB = 1024 * 1024
 /** 单文件直传与分片的凭证路径分界：≤8MB 走 presign 单文件，>8MB 走分片 init */
 export const SINGLE_FILE_MAX = 8 * MB
 
-/* ========== 类别规则：由调用方声明，内核不限定媒体类型 ========== */
+/* ========== 预检：按后缀白名单 + 大小上限，超限零请求拦截 ========== */
 
-/**
- * 一类上传内容的能力规则：类别标识 kind 由调用方自定义（image / audio / pdf /
- * attachment…，事件按它原样带回），附 MIME / 扩展名白名单与大小上限。
- * 预置媒体规则（图片 / 音频 / 视频）见 ~/utils/mediaKinds。
- */
-export interface UploadKindRule {
-  /** 调用方自定义类别标识，picked / uploaded 事件原样带回 */
-  kind: string
-  /** 展示用名称（预检提示里拼接）：图片 / 音频 / PDF… */
-  label: string
-  mimes: string[]
-  /** 扩展名兜底（浏览器对 m4a 等的 MIME 不稳定），生成 accept 时转 .ext */
-  exts: string[]
-  maxBytes: number
-}
-
-/** 字节数格式化（预检提示与页面展示共用） */
-export function fmtBytes(n: number): string {
+/** 字节数格式化（预检提示用） */
+function fmtBytes(n: number): string {
   if (n >= MB) return `${(n / MB).toFixed(1).replace(/\.0$/, '')}MB`
   if (n >= 1024) return `${Math.round(n / 1024)}KB`
   return `${n}B`
 }
 
-/** 由白名单生成文件选择器的 accept 属性（MIME + .扩展名） */
-export function acceptOf(kinds: UploadKindRule[]): string {
-  const parts: string[] = []
-  for (const rule of kinds) parts.push(...rule.mimes, ...rule.exts.map(ext => `.${ext}`))
-  return parts.join(',')
-}
-
-function ruleOf(file: File, kinds: UploadKindRule[]): UploadKindRule | null {
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  return kinds.find(r => r.mimes.includes(file.type) || r.exts.includes(ext)) ?? null
-}
-
-/** 文件属于哪个类别；不在任何规则内返回 null */
-export function fileKindOf(file: File, kinds: UploadKindRule[]): string | null {
-  return ruleOf(file, kinds)?.kind ?? null
+/** 文件的小写扩展名（无后缀返回空串） */
+export function extOf(file: File): string {
+  return file.name.split('.').pop()?.toLowerCase() ?? ''
 }
 
 /** 客户端预检：通过返回 null；否则返回可直接展示的拦截原因（此时不应发任何请求） */
-export function precheckFile(file: File, kinds: UploadKindRule[]): string | null {
+export function precheckFile(file: File, exts: string[], maxBytes?: number): string | null {
   if (!file.size) return '空文件无法上传'
-  const rule = ruleOf(file, kinds)
-  if (!rule) {
-    const supported = kinds.map(r => `${r.label} ${r.exts.join('/')}`).join('、')
-    return `不支持的文件类型（仅支持：${supported}），已拦截，未发起任何请求`
+  if (!exts.includes(extOf(file))) {
+    return `不支持的文件类型（仅支持：${exts.join('/')}），已拦截，未发起任何请求`
   }
-  if (file.size > rule.maxBytes) {
-    return `${rule.label}超过 ${fmtBytes(rule.maxBytes)} 限制（当前 ${fmtBytes(file.size)}），已拦截，未发起任何请求`
+  if (maxBytes && file.size > maxBytes) {
+    return `超过 ${fmtBytes(maxBytes)} 限制（当前 ${fmtBytes(file.size)}），已拦截，未发起任何请求`
   }
   return null
 }

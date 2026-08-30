@@ -107,7 +107,8 @@
           <UploadPicker
             ref="imagePicker"
             class="composer__tool"
-            :kinds="[IMAGE_RULE]"
+            :exts="IMAGE_EXTS"
+            :max-size="5 * MB"
             multiple
             :max-count="9 - imageItems.length"
             :disabled="!auth.isAuthenticated || imageItems.length >= 9"
@@ -122,7 +123,8 @@
           <UploadPicker
             ref="audioPicker"
             class="composer__tool"
-            :kinds="[AUDIO_RULE]"
+            :exts="AUDIO_EXTS"
+            :max-size="20 * MB"
             :disabled="!auth.isAuthenticated || !!audioItem"
             @picked="files => onPicked('audio', files)"
             @progress="onUploadProgress"
@@ -135,7 +137,8 @@
           <UploadPicker
             ref="videoPicker"
             class="composer__tool"
-            :kinds="[VIDEO_RULE]"
+            :exts="VIDEO_EXTS"
+            :max-size="100 * MB"
             :disabled="!auth.isAuthenticated || !!videoItem"
             @picked="files => onPicked('video', files)"
             @progress="onUploadProgress"
@@ -194,7 +197,6 @@ import type { ProfileInfo } from '#shared/types'
 import { useAuthStore } from '~/stores/auth'
 import { useMomentsStore } from '~/stores/moments'
 import { initialOf } from '~/utils/format'
-import { AUDIO_RULE, IMAGE_RULE, VIDEO_RULE } from '~/utils/mediaKinds'
 import type { UploadResult } from '~/utils/directUpload'
 
 usePageSeo({
@@ -239,6 +241,11 @@ interface AttachItem {
 }
 
 const MB = 1024 * 1024
+
+/** 各类附件的后缀白名单与单文件上限（与后端校验一致，预检零请求拦截） */
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif']
+const AUDIO_EXTS = ['mp3', 'm4a', 'wav']
+const VIDEO_EXTS = ['mp4', 'webm', 'mkv']
 
 const items = ref<AttachItem[]>([])
 let seq = 0

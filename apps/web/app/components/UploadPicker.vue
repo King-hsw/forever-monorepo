@@ -18,7 +18,7 @@
  * 通用上传组件：能力声明 + 预检 + 直传编排的 UI 收口。
  *
  * 底层走 directUpload 模块（先查秒传、再发凭证），组件只补 UI 层的最后一公里：
- * - accept 从能力（kinds）派生，选中即预检，超限 / 类型不符零请求并 rejected 提示；
+ * - accept 从 exts 派生，选中即预检，超限 / 类型不符零请求并 rejected 提示；
  * - 隐藏原生 input，触发按钮完全由使用方的 slot 决定（class 落在根 label 上自由定制）；
  * - 凭证路径按大小自动路由：≤8MB 单文件 presign，>8MB 分片 init（分界 SINGLE_FILE_MAX）；
  * - 逐个文件顺序上传，进度 / 结果 / 失败按文件 id 事件化抛出，列表 UI 由页面自持；
@@ -26,23 +26,19 @@
  *   事件，进度走回调、结果走 Promise，页面直接复用自己的条目状态）。
  */
 import {
-  acceptOf,
-  fileKindOf,
+  extOf,
   precheckFile,
   SINGLE_FILE_MAX,
   uploadMultipart,
   uploadOne,
-  type UploadKindRule,
   type UploadResult,
 } from '~/utils/directUpload'
 
 const props = withDefaults(defineProps<{
-  /** 可上传类别（能力声明，由使用方定义）：每条规则含自定义类别标识 kind（事件
-   *  原样带回）、MIME / 扩展名白名单与默认大小上限，accept 与预检从这里派生；
-   *  预置媒体规则见 ~/utils/mediaKinds，也可按业务自定义任意类别 */
-  kinds: UploadKindRule[]
-  /** 本次上传的最大字节数：覆盖 kinds 里各类别的默认上限（预检按它拦截）。
-   *  只建议收紧——超过后端白名单上限时，分片路径仍会被后端 init 校验拦下 */
+  /** 允许上传的后缀白名单（不含点，如 ['jpg', 'png']）：文件选择器的 accept
+   *  与本地预检都从这里派生；不在白名单内的文件零请求直接拦截 */
+  exts: string[]
+  /** 单文件最大字节数（预检按它拦截）；缺省不限，超限由后端白名单兜底 */
   maxSize?: number
   /** 允许多选（多选时逐个顺序上传） */
   multiple?: boolean
@@ -60,20 +56,16 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   /** 预检全部通过、即将开始上传（每个文件有稳定 id，后续事件按 id 关联；
-   *  kind 为 kinds 规则里声明的类别标识） */
-  picked: [files: { id: number, file: File, kind: string }[]]
+   *  ext 为文件的小写扩展名，页面靠它区分类型） */
+  picked: [files: { id: number, file: File, ext: string }[]]
   progress: [p: { id: number, percent: number }]
-  uploaded: [u: { id: number, file: File, kind: string, result: UploadResult }]
+  uploaded: [u: { id: number, file: File, ext: string, result: UploadResult }]
   failed: [f: { id: number, file: File, message: string, aborted: boolean }]
   /** 本地拦截（类型不符 / 超限 / 超量），未发任何请求，message 可直接展示 */
   rejected: [message: string]
 }>()
 
-const accept = computed(() => acceptOf(props.kinds))
-/** 预检用的生效能力：maxSize 存在时覆盖各类别的默认上限（格式白名单不变） */
-const effectiveKinds = computed(() => props.maxSize
-  ? props.kinds.map(r => ({ ...r, maxBytes: props.maxSize! }))
-  : props.kinds)
+const accept = computed(() => props.exts.map(ext => `.${ext}`).join(','))
 const inputEl = ref<HTMLInputElement | null>(null)
 const busy = ref(false)
 let seq = 0
@@ -90,15 +82,14 @@ function onChange() {
     return
   }
 
-  const picked: { id: number, file: File, kind: string }[] = []
+  const picked: { id: number, file: File, ext: string }[] = []
   for (const file of files) {
-    // 预检一并覆盖类型与大小（不在白名单也在这里拦截）；maxSize 优先于类别默认上限
-    const problem = precheckFile(file, effectiveKinds.value)
+    const problem = precheckFile(file, props.exts, props.maxSize)
     if (problem) {
       emit('rejected', `${file.name}：${problem}`)
       continue
     }
-    picked.push({ id: ++seq, file, kind: fileKindOf(file, props.kinds)! })
+    picked.push({ id: ++seq, file, ext: extOf(file) })
   }
   if (!picked.length) return
 
@@ -107,7 +98,7 @@ function onChange() {
 }
 
 /** 一批文件顺序上传：批内共享一个中止信号，任一文件失败不影响后续文件 */
-async function runBatch(picked: { id: number, file: File, kind: string }[]) {
+async function runBatch(picked: { id: number, file: File, ext: string }[]) {
   busy.value = true
   batch = new AbortController()
   try {
@@ -116,7 +107,7 @@ async function runBatch(picked: { id: number, file: File, kind: string }[]) {
         const result = await uploadById(item.id, item.file, batch.signal, (percent) => {
           emit('progress', { id: item.id, percent })
         })
-        emit('uploaded', { id: item.id, file: item.file, kind: item.kind, result })
+        emit('uploaded', { id: item.id, file: item.file, ext: item.ext, result })
       } catch (err) {
         emit('failed', {
           id: item.id,
