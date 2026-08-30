@@ -3,14 +3,15 @@
     <header class="utest__head">
       <h1>文件直传测试页</h1>
       <p class="utest__sub">
-        验证 forever-server 的直传 / 分片 / 断点续传能力。BASE_URL：
-        <code>{{ apiBase || '（同源）' }}</code>；PUT 均直连对象存储（RustFS），不经后端转发。
+        验证「先查秒传、再发凭证」的内容寻址直传能力：key 按内容 MD5 寻址（{md5}.{ext}），
+        同内容 = 同 key = 同直链。BASE_URL：<code>{{ apiBase || '（同源）' }}</code>；
+        PUT 均直连对象存储（RustFS），不经后端转发。
       </p>
     </header>
 
     <!-- 1 · 登录区 -->
     <section class="utest-card">
-      <h2 class="utest-card__title">1 · 登录</h2>
+      <h2 class="utest-card__title">1 · 登录（需 upload:upload 权限码）</h2>
       <form v-if="!auth" class="utest-login" @submit.prevent="handleLogin">
         <input
           v-model="username"
@@ -40,9 +41,16 @@
 
     <!-- 2 · 单文件直传区 -->
     <section class="utest-card">
-      <h2 class="utest-card__title">2 · 单文件直传（presign → PUT，建议 ≤8MB）</h2>
-      <p class="utest-cap">本组件支持：{{ capSummary(singleUpload.capability) }}</p>
-      <input ref="singleInput" class="utest-file" type="file" :accept="singleUpload.accept" @change="onSinglePick">
+      <h2 class="utest-card__title">2 · 单文件直传（check → 秒传? 预览 : presign → PUT，≤8MB）</h2>
+      <p class="utest-cap">本区支持：{{ capSummary(MOMENT_KINDS) }}</p>
+      <input ref="singleInput" class="utest-file" type="file" :accept="singleAccept" @change="onSinglePick">
+
+      <p v-if="singleFile" class="utest-muted">
+        {{ singleFile.name }}（{{ fmtBytes(singleFile.size) }}，{{ singleFile.type || '未知类型' }}）
+        ｜ MD5：<code v-if="singleMd5">{{ singleMd5 }}</code>
+        <template v-else-if="singleMd5Busy">计算中…（分块增量，大文件稍慢）</template>
+        <b v-else-if="singleMd5Error" class="utest-err">{{ singleMd5Error }}</b>
+      </p>
       <p v-if="singlePrecheck" class="field-error" role="alert">{{ singlePrecheck }}</p>
       <p v-else-if="singleHint" class="utest-muted">{{ singleHint }}</p>
 
@@ -50,7 +58,7 @@
         <button class="btn btn--primary" type="button" :disabled="!singleFile || !!singlePrecheck || singleBusy" @click="startSingle">
           {{ singleBusy ? '上传中…' : '开始上传' }}
         </button>
-        <button v-if="singleBusy" class="btn btn--danger" type="button" @click="cancelSingle">取消上传</button>
+        <button v-if="singleBusy" class="btn btn--danger" type="button" @click="cancelSingle">取消</button>
       </div>
 
       <div v-if="singleBusy || singleProgress > 0" class="utest-bar"><i :style="{ width: `${singleProgress}%` }" /></div>
@@ -59,61 +67,62 @@
       <p v-if="singleError" class="field-error" role="alert">{{ singleError }}</p>
 
       <div v-if="singleResult" class="utest-result">
-        <p>assetId：<code>{{ singleResult.assetId }}</code></p>
         <p>
-          accessUrl：<a :href="singleResult.accessUrl" target="_blank" rel="noopener">{{ singleResult.accessUrl }}</a>
+          <b :class="singleResult.instant ? 'utest-tag-instant' : 'utest-tag-fresh'">
+            {{ singleResult.instant ? '⚡ 秒传命中：check 直接返回直链，零上传' : '✅ 直传完成' }}
+          </b>
         </p>
+        <p>accessUrl：<a :href="singleResult.accessUrl" target="_blank" rel="noopener">{{ singleResult.accessUrl }}</a></p>
         <img v-if="singleKind === 'image'" :src="singleResult.accessUrl" class="utest-preview" alt="上传结果预览">
         <audio v-else-if="singleKind === 'audio'" :src="singleResult.accessUrl" controls class="utest-audio" />
+        <video v-else-if="singleKind === 'video'" :src="singleResult.accessUrl" controls class="utest-video" />
       </div>
     </section>
 
-    <!-- 3 & 4 · 大文件分片 / 断点续传区 -->
+    <!-- 3 · 大文件分片区 -->
     <section class="utest-card">
-      <h2 class="utest-card__title">3 · 大文件分片上传 / 断点续传（init → 分片 PUT → complete）</h2>
-      <p class="utest-cap">本组件支持：{{ capSummary(mpUpload.capability) }}</p>
-      <input ref="mpInput" class="utest-file" type="file" :accept="mpUpload.accept" @change="onMultipartPick">
+      <h2 class="utest-card__title">3 · 大文件分片上传（check → init → 并发逐片 PUT → complete，>8MB）</h2>
+      <p class="utest-cap">本区支持：{{ capSummary([VIDEO_RULE]) }}；中断无续传，重传即重新 check → init 全量重来</p>
+      <input ref="mpInput" class="utest-file" type="file" :accept="mpAccept" @change="onMultipartPick">
+
+      <p v-if="mpFile" class="utest-muted">
+        {{ mpFile.name }}（{{ fmtBytes(mpFile.size) }}，{{ mpFile.type || '未知类型' }}）
+        ｜ MD5：<code v-if="mpMd5">{{ mpMd5 }}</code>
+        <template v-else-if="mpMd5Busy">计算中…（分块增量，大文件稍慢）</template>
+        <b v-else-if="mpMd5Error" class="utest-err">{{ mpMd5Error }}</b>
+      </p>
       <p v-if="mpPrecheck" class="field-error" role="alert">{{ mpPrecheck }}</p>
-      <p v-if="mpSavedHint" class="utest-hint">♻️ {{ mpSavedHint }}</p>
+      <p v-else-if="mpHint" class="utest-muted">{{ mpHint }}</p>
 
       <div class="utest-actions">
         <button class="btn btn--primary" type="button" :disabled="!mpFile || !!mpPrecheck || mpBusy" @click="startMultipart">
           {{ mpBusy ? '上传中…' : '开始上传' }}
         </button>
-        <button v-if="mpBusy" class="btn" type="button" @click="interruptMultipart">模拟中断</button>
-        <button v-if="mpBusy" class="btn btn--danger" type="button" @click="cancelMultipart">取消上传</button>
-        <button v-if="mpSaved && !mpBusy" class="btn btn--danger" type="button" @click="discardSaved">放弃本地会话</button>
+        <button v-if="mpBusy" class="btn btn--danger" type="button" @click="cancelMultipart">取消</button>
       </div>
 
       <div v-if="mpBusy || mpProgress > 0" class="utest-bar"><i :style="{ width: `${mpProgress}%` }" /></div>
-      <p v-if="mpProgress > 0" class="utest-muted">{{ mpProgress }}%（XHR 分片进度累加）</p>
-      <p v-if="mpSession" class="utest-muted">
-        <b :class="mpResumeInfo?.resumed ? 'utest-tag-resume' : 'utest-tag-fresh'">{{ mpResumeInfo?.resumed ? '续传' : '全新会话' }}</b>
-        assetId：<code>{{ mpSession.assetId }}</code>
-        ｜ partSize：<code>{{ fmtBytes(mpSession.partSize) }}</code>
-        ｜ 共 <code>{{ mpSession.partCount }}</code> 片
-        <template v-if="mpResumeInfo?.uploadedParts.length">
-          ｜ 服务端已传：<code>{{ mpResumeInfo.uploadedParts.join(', ') }}</code>（将跳过，只补缺失分片）
-        </template>
-      </p>
+      <p v-if="mpProgress > 0" class="utest-muted">{{ mpProgress }}%（xhr.upload.onprogress 按分片累加）</p>
       <p v-if="mpNotice" class="utest-muted" role="status">{{ mpNotice }}</p>
       <p v-if="mpError" class="field-error" role="alert">{{ mpError }}</p>
 
       <div v-if="mpResult" class="utest-result">
-        <p>assetId：<code>{{ mpResult.assetId }}</code> ｜ 大小：<code>{{ fmtBytes(mpResult.sizeBytes) }}</code></p>
         <p>
-          accessUrl：<a :href="mpResult.accessUrl" target="_blank" rel="noopener">{{ mpResult.accessUrl }}</a>
+          <b :class="mpResult.instant ? 'utest-tag-instant' : 'utest-tag-fresh'">
+            {{ mpResult.instant ? '⚡ 秒传命中：check 直接返回直链，零上传' : '✅ 分片上传完成（complete 已由后端核对）' }}
+          </b>
         </p>
+        <p>accessUrl：<a :href="mpResult.accessUrl" target="_blank" rel="noopener">{{ mpResult.accessUrl }}</a></p>
         <video :src="mpResult.accessUrl" controls class="utest-video" />
       </div>
     </section>
 
-    <!-- 6 · 发布联测 -->
+    <!-- 4 · 发布联测 -->
     <section class="utest-card">
       <h2 class="utest-card__title">4 · 发布联测（POST /api/admin/moments + 公开时间线）</h2>
       <p v-if="!uploadedItems.length" class="utest-muted">暂无已上传素材，先在上方完成一次上传。</p>
       <template v-else>
-        <p class="utest-muted">勾选要带入发布请求的 accessUrl（图片 ≤9 个；契约固定 audio: null，音频不参与发布）：</p>
+        <p class="utest-muted">勾选要带入发布请求的 accessUrl（业务字段只填 accessUrl；图片 ≤9 个；契约固定 audio: null）：</p>
         <ul class="utest-media-list">
           <li v-for="item in uploadedItems" :key="item.id">
             <label :class="{ 'is-disabled': item.kind === 'audio' }">
@@ -165,14 +174,14 @@
       </div>
     </section>
 
-    <!-- 7 · 调试面板 -->
+    <!-- 5 · 调试面板 -->
     <section class="utest-card">
       <div class="utest-debug-head">
         <h2 class="utest-card__title">5 · 调试面板</h2>
         <span class="utest-muted">{{ logs.length }} 条</span>
         <button class="btn btn--ghost" type="button" @click="logs = []">清空</button>
       </div>
-      <p v-if="!logs.length" class="utest-muted">暂无请求记录；每次请求 / 响应都会落在这里，PUT 目标应为 RustFS 直链。</p>
+      <p v-if="!logs.length" class="utest-muted">暂无请求记录；每步请求 / 响应 JSON 都会落在这里（可展开），PUT 目标应为 RustFS 直链而非 BASE_URL。</p>
       <details v-for="log in logs" :key="log.id" class="utest-log" :class="{ 'is-err': log.status === 0 || log.status >= 400 }">
         <summary>
           <span class="utest-log-time">{{ log.time }}</span>
@@ -189,28 +198,28 @@
 </template>
 
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import type { Moment, PageResult } from '#shared/types'
 import {
-  abortUpload,
+  acceptOf,
   apiJson,
   clearUploadAuth,
-  createUploader,
-  fingerprintOf,
+  computeMd5,
+  fileKindOf,
   fmtBytes,
-  getUploadRecord,
   loadUploadAuth,
   MOMENT_KINDS,
   onUploadLog,
+  precheckFile,
   saveUploadAuth,
+  uploadMultipart,
+  uploadOne,
   VIDEO_RULE,
   type MediaKind,
-  type ResumeInfo,
+  type MediaKindRule,
   type UploadAuth,
-  type UploadCapability,
   type UploadLogEntry,
-  type UploadMultipartResult,
-  type UploadOneResult,
-  type UploadRecord,
+  type UploadResult,
 } from '~/utils/directUpload'
 
 // 纯客户端测试页，无需博客布局；robots 禁止收录
@@ -224,19 +233,12 @@ const MB = 1024 * 1024
 const config = useRuntimeConfig()
 const apiBase = computed(() => config.public.apiBase as string)
 
-/* ---------- 上传能力：每个上传区自己声明支持什么格式、多大、什么场景 ---------- */
-
-// 单文件区：动态媒体全类别（>8MB 仅提示建议改走分片区，不做硬限制）
-const singleUpload = createUploader({ scene: 'moment', kinds: MOMENT_KINDS })
-// 分片区：只收视频（大文件场景）；不同组件声明不同能力，预检与 accept 各自约束
-const mpUpload = createUploader({ scene: 'moment', kinds: [VIDEO_RULE] })
-
-/** 能力摘要：给用户看的「本组件支持什么」 */
-function capSummary(capability: UploadCapability): string {
-  return capability.kinds.map(k => `${k.label} ${k.exts.join('/')} ≤${fmtBytes(k.maxBytes)}`).join('；')
-}
-
 const kindLabel: Record<MediaKind, string> = { image: '图', audio: '音', video: '视' }
+
+/** 白名单摘要：给用户看的「本区支持什么」 */
+function capSummary(kinds: MediaKindRule[]): string {
+  return kinds.map(k => `${k.label} ${k.exts.join('/')} ≤${fmtBytes(k.maxBytes)}`).join('；')
+}
 
 /* ---------- 调试面板 ---------- */
 
@@ -310,16 +312,37 @@ function handleLogout() {
   authError.value = ''
 }
 
+/* ---------- MD5 预热：选文件后即后台计算，上传时直接复用缓存 ---------- */
+
+function warmupMd5(
+  file: File,
+  busy: Ref<boolean>,
+  value: Ref<string>,
+  error: Ref<string>,
+) {
+  busy.value = true
+  error.value = ''
+  value.value = ''
+  computeMd5(file)
+    .then((md5) => { value.value = md5 })
+    .catch((err) => { error.value = err instanceof Error ? `MD5 计算失败：${err.message}` : 'MD5 计算失败' })
+    .finally(() => { busy.value = false })
+}
+
 /* ---------- 2 · 单文件直传 ---------- */
 
+const singleAccept = acceptOf(MOMENT_KINDS)
 const singleInput = ref<HTMLInputElement | null>(null)
 const singleFile = ref<File | null>(null)
 const singleKind = ref<MediaKind | null>(null)
 const singlePrecheck = ref('')
 const singleHint = ref('')
+const singleMd5 = ref('')
+const singleMd5Busy = ref(false)
+const singleMd5Error = ref('')
 const singleBusy = ref(false)
 const singleProgress = ref(0)
-const singleResult = ref<UploadOneResult | null>(null)
+const singleResult = ref<UploadResult | null>(null)
 const singleError = ref('')
 const singleNotice = ref('')
 let singleAbort: AbortController | null = null
@@ -329,15 +352,16 @@ function onSinglePick() {
   // 立即清空 input.value，保证重新选择同一文件时 change 仍会触发
   if (singleInput.value) singleInput.value.value = ''
   singleFile.value = file
-  singleKind.value = file ? singleUpload.kindOf(file) : null
-  singlePrecheck.value = file ? (singleUpload.precheck(file) ?? '') : ''
+  singleKind.value = file ? fileKindOf(file, MOMENT_KINDS) : null
+  singlePrecheck.value = file ? (precheckFile(file, MOMENT_KINDS) ?? '') : ''
   singleHint.value = file && !singlePrecheck.value && file.size > 8 * MB
-    ? '提示：文件超过 8MB，建议改用下方分片上传（直传仍可尝试）'
+    ? '提示：文件超过 8MB，建议改用下方分片上传（单文件直传仍可尝试）'
     : ''
   singleProgress.value = 0
   singleResult.value = null
   singleError.value = ''
   singleNotice.value = ''
+  if (file && !singlePrecheck.value) warmupMd5(file, singleMd5Busy, singleMd5, singleMd5Error)
 }
 
 async function startSingle() {
@@ -351,14 +375,12 @@ async function startSingle() {
   const ac = new AbortController()
   singleAbort = ac
   try {
-    const result = await singleUpload.uploadOne(file, p => (singleProgress.value = p), {
-      cancelSignal: ac.signal,
-    })
+    const result = await uploadOne(file, p => (singleProgress.value = p), { signal: ac.signal })
     singleResult.value = result
-    if (singleKind.value) addUploadedItem(file.name, singleKind.value, result.accessUrl, result.assetId)
+    if (singleKind.value) addUploadedItem(file.name, singleKind.value, result.accessUrl)
   } catch (err) {
     const msg = err instanceof Error ? err.message : '上传失败'
-    if (ac.signal.aborted) singleNotice.value = msg
+    if (ac.signal.aborted) singleNotice.value = '已取消：本契约无续传，重新上传将全量重来（同内容若已传完会直接秒传）'
     else singleError.value = msg
   } finally {
     singleBusy.value = false
@@ -370,46 +392,37 @@ function cancelSingle() {
   singleAbort?.abort()
 }
 
-/* ---------- 3 · 分片上传 / 断点续传 ---------- */
+/* ---------- 3 · 大文件分片 ---------- */
 
+const mpAccept = acceptOf([VIDEO_RULE])
 const mpInput = ref<HTMLInputElement | null>(null)
 const mpFile = ref<File | null>(null)
-const mpKind = ref<MediaKind | null>(null)
 const mpPrecheck = ref('')
+const mpHint = ref('')
+const mpMd5 = ref('')
+const mpMd5Busy = ref(false)
+const mpMd5Error = ref('')
 const mpBusy = ref(false)
 const mpProgress = ref(0)
-const mpResult = ref<UploadMultipartResult | null>(null)
+const mpResult = ref<UploadResult | null>(null)
 const mpError = ref('')
 const mpNotice = ref('')
-const mpSaved = ref<UploadRecord | null>(null)
-const mpSavedHint = ref('')
-const mpResumeInfo = ref<ResumeInfo | null>(null)
-const mpSession = ref<{ assetId: number; partSize: number; partCount: number } | null>(null)
-let mpInterruptCtl: AbortController | null = null
-let mpCancelCtl: AbortController | null = null
+let mpAbort: AbortController | null = null
 
-async function onMultipartPick() {
+function onMultipartPick() {
   const file = mpInput.value?.files?.[0] ?? null
-  // 立即清空 input.value，保证「中断后重选同一文件」时 change 仍会触发
+  // 立即清空 input.value，保证重新选择同一文件时 change 仍会触发
   if (mpInput.value) mpInput.value.value = ''
   mpFile.value = file
-  mpKind.value = file ? mpUpload.kindOf(file) : null
-  mpPrecheck.value = file ? (mpUpload.precheck(file) ?? '') : ''
+  mpPrecheck.value = file ? (precheckFile(file, [VIDEO_RULE]) ?? '') : ''
+  mpHint.value = file && !mpPrecheck.value && file.size <= 8 * MB
+    ? '提示：文件不超过 8MB，走上方单文件直传即可（分片上传同样可用，init 会按实际大小定片）'
+    : ''
   mpProgress.value = 0
   mpResult.value = null
   mpError.value = ''
   mpNotice.value = ''
-  mpResumeInfo.value = null
-  mpSession.value = null
-  mpSaved.value = null
-  mpSavedHint.value = ''
-  if (!file || mpPrecheck.value) return
-  // 重选同一文件：按指纹查本地未完成会话，提示将走 resume 续传
-  const saved = await getUploadRecord(fingerprintOf(file))
-  if (saved) {
-    mpSaved.value = saved
-    mpSavedHint.value = `本地存在未完成会话：assetId=${saved.assetId}，${saved.fileName}（${fmtBytes(saved.fileSize)}，共 ${saved.partCount} 片 × ${fmtBytes(saved.partSize)}）。点「开始上传」将先 resume 对账服务端已传分片，只补缺失分片`
-  }
+  if (file && !mpPrecheck.value) warmupMd5(file, mpMd5Busy, mpMd5, mpMd5Error)
 }
 
 async function startMultipart() {
@@ -420,63 +433,24 @@ async function startMultipart() {
   mpNotice.value = ''
   mpProgress.value = 0
   mpResult.value = null
-  const interruptCtl = new AbortController()
-  const cancelCtl = new AbortController()
-  mpInterruptCtl = interruptCtl
-  mpCancelCtl = cancelCtl
+  const ac = new AbortController()
+  mpAbort = ac
   try {
-    const result = await mpUpload.uploadMultipart(
-      file,
-      p => (mpProgress.value = p),
-      (info) => {
-        mpResumeInfo.value = info
-        mpSession.value = { assetId: info.assetId, partSize: info.partSize, partCount: info.partCount }
-      },
-      {
-        interruptSignal: interruptCtl.signal,
-        cancelSignal: cancelCtl.signal,
-      },
-    )
+    const result = await uploadMultipart(file, p => (mpProgress.value = p), { signal: ac.signal })
     mpResult.value = result
-    if (mpKind.value) addUploadedItem(file.name, mpKind.value, result.accessUrl, result.assetId)
+    if (fileKindOf(file, [VIDEO_RULE]) === 'video') addUploadedItem(file.name, 'video', result.accessUrl)
   } catch (err) {
     const msg = err instanceof Error ? err.message : '上传失败'
-    // 中断 / 取消是预期流程，用提示而非错误样式
-    if (interruptCtl.signal.aborted || cancelCtl.signal.aborted) mpNotice.value = msg
+    if (ac.signal.aborted) mpNotice.value = '已取消：本契约无续传，重新上传将全量重来（同内容若已传完会直接秒传）'
     else mpError.value = msg
   } finally {
     mpBusy.value = false
-    mpInterruptCtl = null
-    mpCancelCtl = null
-    // 会话终态后重查本地记录：complete / 取消后应已清除，中断后应保留
-    if (mpFile.value) mpSaved.value = (await getUploadRecord(fingerprintOf(mpFile.value))) ?? null
-    if (mpSaved.value) {
-      mpSavedHint.value = `会话已保留：assetId=${mpSaved.value.assetId}。重新选择同一文件即可续传；也可点「放弃本地会话」彻底作废`
-    } else {
-      mpSavedHint.value = ''
-    }
+    mpAbort = null
   }
-}
-
-function interruptMultipart() {
-  mpInterruptCtl?.abort()
 }
 
 function cancelMultipart() {
-  mpCancelCtl?.abort()
-}
-
-async function discardSaved() {
-  const saved = mpSaved.value
-  if (!saved) return
-  try {
-    await abortUpload(saved.assetId, saved.fingerprint)
-    mpSaved.value = null
-    mpSavedHint.value = ''
-    mpNotice.value = `会话 ${saved.assetId} 已放弃：服务端档案已删、本地记录已清，再次上传将走全新 init`
-  } catch (err) {
-    mpError.value = err instanceof Error ? err.message : '放弃会话失败'
-  }
+  mpAbort?.abort()
 }
 
 /* ---------- 4 · 发布联测 ---------- */
@@ -486,15 +460,14 @@ interface UploadedItem {
   name: string
   kind: MediaKind
   accessUrl: string
-  assetId: number
   checked: boolean
 }
 
 const uploadedItems = ref<UploadedItem[]>([])
 let uploadedItemId = 0
 
-function addUploadedItem(name: string, kind: MediaKind, accessUrl: string, assetId: number) {
-  uploadedItems.value.push({ id: ++uploadedItemId, name, kind, accessUrl, assetId, checked: false })
+function addUploadedItem(name: string, kind: MediaKind, accessUrl: string) {
+  uploadedItems.value.push({ id: ++uploadedItemId, name, kind, accessUrl, checked: false })
 }
 
 function toggleItem(item: UploadedItem) {
@@ -688,14 +661,8 @@ async function checkTimeline(quiet = false) {
   word-break: break-all;
 }
 
-.utest-hint {
-  margin: 8px 0 0;
-  font-size: 13px;
-  color: var(--c-primary);
-  background: var(--c-primary-light);
-  border-radius: 8px;
-  padding: 8px 12px;
-  line-height: 1.7;
+.utest-err {
+  color: var(--c-danger);
 }
 
 .utest-result {
@@ -708,6 +675,14 @@ async function checkTimeline(quiet = false) {
 .utest-result p {
   margin: 0 0 8px;
   word-break: break-all;
+}
+
+.utest-tag-instant {
+  color: #d97706;
+}
+
+.utest-tag-fresh {
+  color: var(--c-primary);
 }
 
 .utest-preview {
@@ -733,14 +708,6 @@ async function checkTimeline(quiet = false) {
   border: 1px solid var(--c-border);
   margin-top: 8px;
   background: var(--c-bg-soft);
-}
-
-.utest-tag-resume {
-  color: #d97706;
-}
-
-.utest-tag-fresh {
-  color: var(--c-primary);
 }
 
 .utest-textarea {
