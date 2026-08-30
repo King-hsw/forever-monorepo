@@ -1,6 +1,6 @@
 // iOS PWA 启动图：apple-touch-startup-image 要求与设备物理像素精确匹配才命中，
-// 逐设备出图（横竖屏各一张，共 n×2），由 scripts/gen-ios-splash.py 生成到
-// public/splash/{宽}x{高}.png，设备表与脚本内保持一致。媒体查询宽高为逻辑点(pt)
+// 逐设备出图（横竖屏各一张，共 n×2），预生成后放入
+// public/splash/{宽}x{高}.png，新增设备时在此表补一行。媒体查询宽高为逻辑点(pt)
 const SPLASH_DEVICES: [number, number, number, number, number][] = [
   // [图宽, 图高, pt宽, pt高, dpr]
   [750, 1334, 375, 667, 2], // 6/7/8/SE2/SE3
