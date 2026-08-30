@@ -41,7 +41,8 @@
     <!-- 2 · 单文件直传区 -->
     <section class="utest-card">
       <h2 class="utest-card__title">2 · 单文件直传（presign → PUT，建议 ≤8MB）</h2>
-      <input ref="singleInput" class="utest-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,.m4a" @change="onSinglePick">
+      <p class="utest-cap">本组件支持：{{ capSummary(singleUpload.capability) }}</p>
+      <input ref="singleInput" class="utest-file" type="file" :accept="singleUpload.accept" @change="onSinglePick">
       <p v-if="singlePrecheck" class="field-error" role="alert">{{ singlePrecheck }}</p>
       <p v-else-if="singleHint" class="utest-muted">{{ singleHint }}</p>
 
@@ -70,7 +71,8 @@
     <!-- 3 & 4 · 大文件分片 / 断点续传区 -->
     <section class="utest-card">
       <h2 class="utest-card__title">3 · 大文件分片上传 / 断点续传（init → 分片 PUT → complete）</h2>
-      <input ref="mpInput" class="utest-file" type="file" accept="video/mp4,video/webm" @change="onMultipartPick">
+      <p class="utest-cap">本组件支持：{{ capSummary(mpUpload.capability) }}</p>
+      <input ref="mpInput" class="utest-file" type="file" :accept="mpUpload.accept" @change="onMultipartPick">
       <p v-if="mpPrecheck" class="field-error" role="alert">{{ mpPrecheck }}</p>
       <p v-if="mpSavedHint" class="utest-hint">♻️ {{ mpSavedHint }}</p>
 
@@ -192,16 +194,19 @@ import {
   abortUpload,
   apiJson,
   clearUploadAuth,
-  fileKind,
+  createUploader,
   fingerprintOf,
+  fmtBytes,
   getUploadRecord,
   loadUploadAuth,
+  MOMENT_KINDS,
   onUploadLog,
-  precheckFile,
   saveUploadAuth,
+  VIDEO_RULE,
+  type MediaKind,
   type ResumeInfo,
   type UploadAuth,
-  type MediaKind,
+  type UploadCapability,
   type UploadLogEntry,
   type UploadMultipartResult,
   type UploadOneResult,
@@ -219,10 +224,16 @@ const MB = 1024 * 1024
 const config = useRuntimeConfig()
 const apiBase = computed(() => config.public.apiBase as string)
 
-function fmtBytes(n: number): string {
-  if (n >= MB) return `${(n / MB).toFixed(1).replace(/\.0$/, '')}MB`
-  if (n >= 1024) return `${Math.round(n / 1024)}KB`
-  return `${n}B`
+/* ---------- 上传能力：每个上传区自己声明支持什么格式、多大、什么场景 ---------- */
+
+// 单文件区：动态媒体全类别（>8MB 仅提示建议改走分片区，不做硬限制）
+const singleUpload = createUploader({ scene: 'moment', kinds: MOMENT_KINDS })
+// 分片区：只收视频（大文件场景）；不同组件声明不同能力，预检与 accept 各自约束
+const mpUpload = createUploader({ scene: 'moment', kinds: [VIDEO_RULE] })
+
+/** 能力摘要：给用户看的「本组件支持什么」 */
+function capSummary(capability: UploadCapability): string {
+  return capability.kinds.map(k => `${k.label} ${k.exts.join('/')} ≤${fmtBytes(k.maxBytes)}`).join('；')
 }
 
 const kindLabel: Record<MediaKind, string> = { image: '图', audio: '音', video: '视' }
@@ -318,8 +329,8 @@ function onSinglePick() {
   // 立即清空 input.value，保证重新选择同一文件时 change 仍会触发
   if (singleInput.value) singleInput.value.value = ''
   singleFile.value = file
-  singleKind.value = file ? fileKind(file) : null
-  singlePrecheck.value = file ? (precheckFile(file) ?? '') : ''
+  singleKind.value = file ? singleUpload.kindOf(file) : null
+  singlePrecheck.value = file ? (singleUpload.precheck(file) ?? '') : ''
   singleHint.value = file && !singlePrecheck.value && file.size > 8 * MB
     ? '提示：文件超过 8MB，建议改用下方分片上传（直传仍可尝试）'
     : ''
@@ -340,11 +351,11 @@ async function startSingle() {
   const ac = new AbortController()
   singleAbort = ac
   try {
-    const result = await uploadOne(file, p => (singleProgress.value = p), {
+    const result = await singleUpload.uploadOne(file, p => (singleProgress.value = p), {
       cancelSignal: ac.signal,
     })
     singleResult.value = result
-    addUploadedItem(file, result.accessUrl, result.assetId)
+    if (singleKind.value) addUploadedItem(file.name, singleKind.value, result.accessUrl, result.assetId)
   } catch (err) {
     const msg = err instanceof Error ? err.message : '上传失败'
     if (ac.signal.aborted) singleNotice.value = msg
@@ -363,6 +374,7 @@ function cancelSingle() {
 
 const mpInput = ref<HTMLInputElement | null>(null)
 const mpFile = ref<File | null>(null)
+const mpKind = ref<MediaKind | null>(null)
 const mpPrecheck = ref('')
 const mpBusy = ref(false)
 const mpProgress = ref(0)
@@ -381,7 +393,8 @@ async function onMultipartPick() {
   // 立即清空 input.value，保证「中断后重选同一文件」时 change 仍会触发
   if (mpInput.value) mpInput.value.value = ''
   mpFile.value = file
-  mpPrecheck.value = file ? (precheckFile(file) ?? '') : ''
+  mpKind.value = file ? mpUpload.kindOf(file) : null
+  mpPrecheck.value = file ? (mpUpload.precheck(file) ?? '') : ''
   mpProgress.value = 0
   mpResult.value = null
   mpError.value = ''
@@ -412,7 +425,7 @@ async function startMultipart() {
   mpInterruptCtl = interruptCtl
   mpCancelCtl = cancelCtl
   try {
-    const result = await uploadMultipart(
+    const result = await mpUpload.uploadMultipart(
       file,
       p => (mpProgress.value = p),
       (info) => {
@@ -425,7 +438,7 @@ async function startMultipart() {
       },
     )
     mpResult.value = result
-    addUploadedItem(file, result.accessUrl, result.assetId)
+    if (mpKind.value) addUploadedItem(file.name, mpKind.value, result.accessUrl, result.assetId)
   } catch (err) {
     const msg = err instanceof Error ? err.message : '上传失败'
     // 中断 / 取消是预期流程，用提示而非错误样式
@@ -480,10 +493,8 @@ interface UploadedItem {
 const uploadedItems = ref<UploadedItem[]>([])
 let uploadedItemId = 0
 
-function addUploadedItem(file: File, accessUrl: string, assetId: number) {
-  const kind = fileKind(file)
-  if (!kind) return
-  uploadedItems.value.push({ id: ++uploadedItemId, name: file.name, kind, accessUrl, assetId, checked: false })
+function addUploadedItem(name: string, kind: MediaKind, accessUrl: string, assetId: number) {
+  uploadedItems.value.push({ id: ++uploadedItemId, name, kind, accessUrl, assetId, checked: false })
 }
 
 function toggleItem(item: UploadedItem) {
@@ -635,6 +646,15 @@ async function checkTimeline(quiet = false) {
   display: block;
   font-size: 13px;
   margin-bottom: 10px;
+}
+
+.utest-cap {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--c-text-muted);
+  background: var(--c-bg-soft);
+  border-radius: 8px;
+  padding: 6px 12px;
 }
 
 .utest-actions {

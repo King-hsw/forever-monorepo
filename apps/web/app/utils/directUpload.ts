@@ -1,7 +1,10 @@
 /**
  * 文件直传测试支撑模块：assetId 生命周期管理 + 直传 / 分片 / 断点续传编排
  *
- * 测试页的请求逻辑全部收在这里，页面组件只调 uploadOne / uploadMultipart：
+ * 测试页的请求逻辑全部收在这里，页面组件只调 createUploader(能力) 后的
+ * uploadOne / uploadMultipart：
+ * - 上传能力（UploadCapability）由组件声明：支持什么格式、每类多大、哪个 scene；
+ *   预检、文件选择器 accept、presign/init 的 scene 均从能力派生；
  * - 测试页独立的登录令牌存取（localStorage 专属 key，不与后台管理会话互相影响）；
  * - 后端信封请求解包（code !== 0 一律视为失败，抛 ApiError）；
  * - 单文件直传：presign → XHR PUT 裸二进制（403 视为签名过期，重签后重试一次）；
@@ -137,38 +140,71 @@ export async function apiJson<T>(path: string, options: ApiJsonOptions = {}): Pr
   }
 }
 
-/* ========== 客户端预检白名单 ========== */
+/* ========== 上传能力：组件声明自己支持什么格式与大小 ========== */
 
 export type MediaKind = 'image' | 'audio' | 'video'
 
-interface KindRule {
+/** 组件支持的一种媒体类别：格式与大小上限由使用方（组件）声明 */
+export interface MediaKindRule {
   kind: MediaKind
+  /** 展示用名称：图片 / 音频 / 视频 */
   label: string
+  /** 允许的 MIME，参与签名与 input[accept] 生成 */
   mimes: string[]
-  /** 浏览器对 m4a 等扩展的 MIME 不稳定，按扩展名兜底 */
+  /** 扩展名兜底（浏览器对 m4a 等的 MIME 不稳定），生成 accept 时转 .ext */
   exts: string[]
-  max: number
+  /** 该类别大小上限（字节），组件自定 */
+  maxBytes: number
 }
 
-const KIND_RULES: KindRule[] = [
-  { kind: 'image', label: '图片', mimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], exts: ['jpg', 'jpeg', 'png', 'webp', 'gif'], max: 5 * MB },
-  { kind: 'audio', label: '音频', mimes: ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav'], exts: ['mp3', 'm4a', 'wav'], max: 20 * MB },
-  { kind: 'video', label: '视频', mimes: ['video/mp4', 'video/webm'], exts: ['mp4', 'webm'], max: 100 * MB },
-]
+/** 上传能力：一个上传组件（业务位）支持的 scene、格式与大小，全部由组件声明；
+ *  预检、文件选择器 accept、presign/init 的 scene 都从这里派生 */
+export interface UploadCapability {
+  /** 业务场景：presign / multipart init 的 scene 参数 */
+  scene: string
+  kinds: MediaKindRule[]
+}
 
-export function fileKind(file: File): MediaKind | null {
+/** 动态媒体三类规则（与后端契约白名单一致），组件按需自由组合 */
+export const IMAGE_RULE: MediaKindRule = { kind: 'image', label: '图片', mimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], exts: ['jpg', 'jpeg', 'png', 'webp', 'gif'], maxBytes: 5 * MB }
+export const AUDIO_RULE: MediaKindRule = { kind: 'audio', label: '音频', mimes: ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav'], exts: ['mp3', 'm4a', 'wav'], maxBytes: 20 * MB }
+export const VIDEO_RULE: MediaKindRule = { kind: 'video', label: '视频', mimes: ['video/mp4', 'video/webm'], exts: ['mp4', 'webm'], maxBytes: 100 * MB }
+export const MOMENT_KINDS: MediaKindRule[] = [IMAGE_RULE, AUDIO_RULE, VIDEO_RULE]
+
+/** 字节数格式化（预检提示与页面展示共用） */
+export function fmtBytes(n: number): string {
+  if (n >= MB) return `${(n / MB).toFixed(1).replace(/\.0$/, '')}MB`
+  if (n >= 1024) return `${Math.round(n / 1024)}KB`
+  return `${n}B`
+}
+
+/** 由能力生成文件选择器的 accept 属性（MIME + .扩展名） */
+export function acceptOf(capability: UploadCapability): string {
+  const parts: string[] = []
+  for (const rule of capability.kinds) parts.push(...rule.mimes, ...rule.exts.map(ext => `.${ext}`))
+  return parts.join(',')
+}
+
+function ruleOf(file: File, capability: UploadCapability): MediaKindRule | null {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-  const rule = KIND_RULES.find(r => r.mimes.includes(file.type) || r.exts.includes(ext))
-  return rule?.kind ?? null
+  return capability.kinds.find(r => r.mimes.includes(file.type) || r.exts.includes(ext)) ?? null
 }
 
-/** 预检通过返回 null；否则返回可直接展示的拦截原因（此时不应发任何请求） */
-export function precheckFile(file: File): string | null {
+/** 文件属于能力中的哪一类；不在能力内返回 null */
+export function fileKindOf(file: File, capability: UploadCapability): MediaKind | null {
+  return ruleOf(file, capability)?.kind ?? null
+}
+
+/** 按组件能力预检：通过返回 null；否则返回可直接展示的拦截原因（此时不应发任何请求） */
+export function precheckFile(file: File, capability: UploadCapability): string | null {
   if (!file.size) return '空文件无法上传'
-  const rule = KIND_RULES.find(r => fileKind(file) === r.kind)
-  if (!rule) return '不支持的文件类型（仅限图片 jpg/png/webp/gif、音频 mp3/m4a/wav、视频 mp4/webm）'
-  if (file.size > rule.max) {
-    return `${rule.label}超过 ${rule.max / MB}MB 限制（当前 ${(file.size / MB).toFixed(1)}MB），已拦截，未发起任何请求`
+  const rule = ruleOf(file, capability)
+  if (!rule) {
+    const supported = capability.kinds.map(r => `${r.label} ${r.exts.join('/')}`).join('、')
+    return `本组件不支持的文件类型（仅支持：${supported}），已拦截，未发起任何请求`
+  }
+  if (file.size > rule.maxBytes) {
+    return `${rule.label}超过 ${fmtBytes(rule.maxBytes)} 限制（当前 ${fmtBytes(file.size)}），已拦截，未发起任何请求`
   }
   return null
 }
@@ -364,6 +400,8 @@ export interface ResumeInfo {
 }
 
 export interface UploadHooks {
+  /** 业务场景（presign / init 的 scene，默认 'moment'）；createUploader 按能力注入 */
+  scene?: string
   /** 触发即放弃整个上传：DELETE 服务端档案并清本地记录 */
   cancelSignal?: AbortSignal
   /** 触发即停发剩余分片，但保留服务端会话与本地记录（模拟中断用） */
@@ -394,7 +432,7 @@ export async function uploadOne(
 
   const presign = () => apiJson<PresignData>('/api/admin/upload/presign', {
     method: 'POST',
-    body: { scene: 'moment', contentType: file.type },
+    body: { scene: hooks.scene ?? 'moment', contentType: file.type },
   })
 
   let pre = await presign()
@@ -451,7 +489,7 @@ export async function uploadMultipart(
   async function initSession(): Promise<ActiveSession> {
     const r = await apiJson<MultipartInitData>('/api/admin/upload/multipart/init', {
       method: 'POST',
-      body: { scene: 'moment', contentType: file.type, sizeBytes: file.size },
+      body: { scene: hooks.scene ?? 'moment', contentType: file.type, sizeBytes: file.size },
     })
     await idbPut({
       fingerprint,
@@ -601,4 +639,35 @@ export async function uploadMultipart(
   })
   await idbDel(fingerprint)
   return { assetId: done.assetId ?? assetId, key: done.key ?? session.key, accessUrl: done.accessUrl, sizeBytes: done.sizeBytes ?? file.size }
+}
+
+/* ========== 能力工厂：组件用它把「支持什么格式/多大/什么场景」绑定成一个上传器 ========== */
+
+/** 绑定了能力的上传器：预检、accept、上传全部按能力约束，请求机制仍收在本模块 */
+export interface Uploader {
+  capability: UploadCapability
+  /** 文件选择器的 accept 属性 */
+  accept: string
+  /** 按能力预检，返回 null 表示通过 */
+  precheck: (file: File) => string | null
+  /** 文件属于能力中的哪一类；不在能力内返回 null */
+  kindOf: (file: File) => MediaKind | null
+  uploadOne: (file: File, onProgress?: (percent: number) => void, hooks?: UploadHooks) => Promise<UploadOneResult>
+  uploadMultipart: (file: File, onProgress?: (percent: number) => void, onResume?: (info: ResumeInfo) => void, hooks?: UploadHooks) => Promise<UploadMultipartResult>
+}
+
+/**
+ * 每个上传组件（业务位）用自己声明的能力实例化一个上传器：
+ * 能力声明什么格式、多大、哪个 scene，组件就获得什么样的上传行为；
+ * 多个组件可自由组合同类规则（见 MOMENT_KINDS / IMAGE_RULE 等）。
+ */
+export function createUploader(capability: UploadCapability): Uploader {
+  return {
+    capability,
+    accept: acceptOf(capability),
+    precheck: file => precheckFile(file, capability),
+    kindOf: file => fileKindOf(file, capability),
+    uploadOne: (file, onProgress, hooks = {}) => uploadOne(file, onProgress, { ...hooks, scene: capability.scene }),
+    uploadMultipart: (file, onProgress, onResume, hooks = {}) => uploadMultipart(file, onProgress, onResume, { ...hooks, scene: capability.scene }),
+  }
 }
