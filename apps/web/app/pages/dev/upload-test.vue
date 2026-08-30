@@ -100,6 +100,7 @@
         @picked="onMpPicked"
         @progress="onMpProgress"
         @uploaded="onMpUploaded"
+        :max-size="1024*1024*1024*1000"
         @failed="onMpFailed"
         @rejected="msg => (mpPrecheck = msg)"
       >

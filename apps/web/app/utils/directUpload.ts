@@ -166,7 +166,7 @@ export interface MediaKindRule {
 
 export const IMAGE_RULE: MediaKindRule = { kind: 'image', label: '图片', mimes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], exts: ['jpg', 'jpeg', 'png', 'webp', 'gif'], maxBytes: 5 * MB }
 export const AUDIO_RULE: MediaKindRule = { kind: 'audio', label: '音频', mimes: ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav'], exts: ['mp3', 'm4a', 'wav'], maxBytes: 20 * MB }
-export const VIDEO_RULE: MediaKindRule = { kind: 'video', label: '视频', mimes: ['video/mp4', 'video/webm'], exts: ['mp4', 'webm'], maxBytes: 100 * MB }
+export const VIDEO_RULE: MediaKindRule = { kind: 'video', label: '视频', mimes: ['video/mp4', 'video/webm', 'video/mkv'], exts: ['mp4', 'webm', 'mkv'], maxBytes: 100 * MB }
 export const MOMENT_KINDS: MediaKindRule[] = [IMAGE_RULE, AUDIO_RULE, VIDEO_RULE]
 
 /** 字节数格式化（预检提示与页面展示共用） */
