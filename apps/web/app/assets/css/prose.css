@@ -11,6 +11,7 @@
 /* ---- 参数化变量（默认取 MarkdownView 原始值） ---- */
 :is(.markdown-view, .tiptap) {
   --prose-heading-border: #eaecef;            /* H1/H2 下边框 */
+  --prose-heading-shadow: 0 1px 2px rgb(28 25 23 / 22%); /* 标题微投影：墨字沉纸感 */
   --prose-rule-border: #d0d7de;               /* 引用竖线 / 分割线 / 表格边框 */
   --prose-inline-code-bg: rgb(175 184 193 / 20%); /* 行内代码底色 */
   --prose-pre-padding: 16px;                  /* 代码块内边距 */
@@ -31,24 +32,34 @@
 }
 
 /* ---- 标题 ----
- * 衬线墨字与全站大标题同源；h2 前置玉青短竖标点出章节 */
+ * 衬线墨字 + 微投影与正文区分；h1 双线压底，h2 玉青竖标 + 渐隐洗色 */
 :is(.markdown-view, .tiptap) :is(h1, h2, h3, h4, h5, h6) {
   font-family: var(--font-serif);
   font-weight: 600;
   line-height: 1.35;
   margin: 1.5em 0 0.7em;
+  letter-spacing: 0.02em;
+  text-shadow: var(--prose-heading-shadow);
 }
 
 :is(.markdown-view, .tiptap) h1 {
-  font-size: 1.55em;
+  font-size: 1.65em;
+  font-weight: 700;
   padding-bottom: 0.3em;
-  border-bottom: 1px solid var(--prose-heading-border);
+  border-bottom: 3px double var(--prose-heading-border); /* 古籍双线栏 */
 }
 
 :is(.markdown-view, .tiptap) h2 {
   font-size: 1.3em;
-  padding-bottom: 0.3em;
+  padding: 0.25em 0.7em 0.3em;
+  margin-left: -0.7em; /* 洗色从竖标处起笔，与上下元素左缘对齐 */
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--c-primary) 9%, transparent),
+    transparent 62%
+  );
   border-bottom: 1px solid var(--prose-heading-border);
+  border-radius: 4px 4px 0 0;
 }
 
 /* 章节竖标：玉青短线，与目录墨线、引用「注」字引首同一套点缀语言 */
@@ -60,6 +71,7 @@
   margin-right: 0.45em;
   border-radius: 2px;
   background: var(--c-primary);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--c-primary) 45%, transparent);
 }
 
 :is(.markdown-view, .tiptap) :is(h3, h4, h5, h6) {
@@ -352,6 +364,7 @@
 /* ---- 深色模式：参数化变量换暗色阶（结构规则共用） ---- */
 html[data-theme='dark'] :is(.markdown-view, .tiptap) {
   --prose-heading-border: #33302c;
+  --prose-heading-shadow: 0 1px 3px rgb(0 0 0 / 60%);
   --prose-rule-border: #3a3733;
   --prose-inline-code-bg: rgb(168 162 158 / 16%);
 }
