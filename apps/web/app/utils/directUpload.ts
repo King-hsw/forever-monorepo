@@ -10,7 +10,7 @@
  * - uploadMultipart(file, onProgress)：大文件分片编排（>8MB），并发 3 逐片 PUT + complete。
  *
  * 后端请求统一走 ~/utils/api 的 apiFetch（同一套信封解包 / 错误语义 / apiBase）：
- * 缺省携带主站登录令牌（401 自动静默续期），hooks.token 可显式覆盖为其他会话。
+ * 令牌由 apiFetch 统一从主站登录会话取（401 自动静默续期），本模块不感知令牌。
  * 本模块不感知具体业务白名单——允许的后缀与大小上限由调用方声明。
  *
  * 上传编排（checkOrUpload 内统一收口）：
@@ -141,7 +141,6 @@ export async function checkExists(file: File, hooks: UploadHooks = {}): Promise<
   return apiFetch<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
-    token: tokenOf(hooks),
   })
 }
 
@@ -203,15 +202,6 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
 export interface UploadHooks {
   /** 触发即中止在途请求、停发剩余分片（新契约无续传，重传需全量重来） */
   signal?: AbortSignal
-  /** 显式令牌（或取令牌的函数）：覆盖缺省的主站登录会话（含 401 静默续期），
-   *  供独立会话场景使用。显式传入后完全以此为准（含空值） */
-  token?: string | (() => string)
-}
-
-/** 解析本次请求的令牌：显式 token 优先（函数即时求值）；缺省返回 undefined 走主站会话 */
-function tokenOf(hooks?: UploadHooks): string | undefined {
-  const t = hooks?.token
-  return t === undefined ? undefined : typeof t === 'function' ? t() : t
 }
 
 const MAX_ATTEMPTS = 2
@@ -226,7 +216,6 @@ async function checkOrUpload(file: File, run: () => Promise<UploadResult>, hooks
   const check = () => apiFetch<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
-    token: tokenOf(hooks),
   })
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const found = await check()
@@ -262,7 +251,6 @@ export async function uploadOne(
     const pre = await apiFetch<PresignData>('/api/admin/upload/presign', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file) },
-      token: tokenOf(hooks),
     })
     await putBlob(pre.uploadUrl, pre.contentType, file, { onLoaded: report, signals })
     return { accessUrl: pre.accessUrl, contentType: pre.contentType, instant: false }
@@ -290,7 +278,6 @@ export async function uploadMultipart(
     const init = await apiFetch<MultipartInitData>('/api/admin/upload/multipart/init', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file), sizeBytes: file.size },
-      token: tokenOf(hooks),
     })
     const { partSize, partCount, contentType } = init
     // 后端 init 自带去重兜底：check 未命中但对象在 init 时已存在（竞态），
@@ -352,7 +339,6 @@ export async function uploadMultipart(
     const done = await apiFetch<MultipartCompleteData>('/api/admin/upload/multipart/complete', {
       method: 'POST',
       body: { key: init.key, uploadId: init.uploadId },
-      token: tokenOf(hooks),
     })
     return { accessUrl: done.accessUrl, contentType, instant: false }
   }, hooks)

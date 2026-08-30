@@ -45,9 +45,6 @@ const props = withDefaults(defineProps<{
   /** 本次最多接收的文件数，超出整批拦截提示；默认不限 */
   maxCount?: number
   disabled?: boolean
-  /** 显式覆盖请求令牌（或取令牌的函数）：供独立会话场景使用；
-   *  缺省走共享 apiFetch 的主站登录会话（401 自动静默续期） */
-  token?: () => string
 }>(), {
   multiple: false,
   maxCount: Number.POSITIVE_INFINITY,
@@ -129,7 +126,7 @@ function routeOf(file: File) {
 }
 
 function uploadById(id: number, file: File, signal?: AbortSignal, onProgress?: (percent: number) => void) {
-  return routeOf(file)(file, onProgress, { signal, token: props.token })
+  return routeOf(file)(file, onProgress, { signal })
 }
 
 /** 页面级重试：复用上传管线但不再发 picked / progress / uploaded / failed 事件，

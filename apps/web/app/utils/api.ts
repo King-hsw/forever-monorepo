@@ -98,8 +98,6 @@ export interface ApiOptions {
   query?: Record<string, unknown>
   /** 额外请求头（如登录时令牌尚未落盘，需要显式传入） */
   headers?: Record<string, string>
-  /** 显式覆盖令牌：传了（含空字符串）完全以此为准；缺省自动携带主站登录令牌 */
-  token?: string
 }
 
 /** 请求失败时清除本地登录态并跳转登录页（仅客户端执行一次） */
@@ -139,7 +137,7 @@ function refreshToken(): Promise<boolean> {
 /**
  * 发起 API 请求并解包统一响应体。
  * 失败时抛出 ApiError；业务请求 401 时先用 refreshToken 静默续期重试一次，
- * 刷新失败才清除本地登录态并跳转登录页（显式 token 的请求例外：不触发续期与跳转）。
+ * 刷新失败才清除本地登录态并跳转登录页。
  */
 export async function apiFetch<T>(path: string, options: ApiOptions = {}, retried = false): Promise<T> {
   // devProxy 只对浏览器请求生效；SSR 内部 $fetch 必须直连后端地址
@@ -147,16 +145,12 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
   const headers: Record<string, string> = { ...options.headers }
 
-  // 显式 token 完全以此为准（含空值 = 不带令牌）；缺省自动携带主站登录令牌。
-  // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401。
+  // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401；
+  // 显式传入 Authorization 头时不覆盖，供特殊会话场景使用。
   // SSR 阶段 localStorage 不可用，改从镜像 cookie 取令牌（需 Nuxt 请求上下文）
-  if (options.token !== undefined) {
-    if (options.token) headers.Authorization = `Bearer ${options.token}`
-  } else {
-    const auth = import.meta.server ? loadAuthFromCookie() : loadAuth()
-    if (auth?.accessToken && !headers.Authorization && path !== '/api/auth/login') {
-      headers.Authorization = `Bearer ${auth.accessToken}`
-    }
+  const auth = import.meta.server ? loadAuthFromCookie() : loadAuth()
+  if (auth?.accessToken && !headers.Authorization && path !== '/api/auth/login') {
+    headers.Authorization = `Bearer ${auth.accessToken}`
   }
 
   let res: ApiResponse<T>
@@ -172,9 +166,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
       ?? (err as { status?: number })?.status
     if (status === 401) {
       // 登录接口自身的 401 是“账号或密码错误”，不能触发刷新/跳转，
-      // 否则登录页会被整页刷新，错误提示根本来不及显示。
-      // 显式 token 的会话与主站登录态无关（如独立测试页会话），过期由调用方自行处理
-      if (options.token === undefined && !retried && !path.startsWith('/api/auth/')) {
+      // 否则登录页会被整页刷新，错误提示根本来不及显示
+      if (!retried && !path.startsWith('/api/auth/')) {
         if (await refreshToken()) return apiFetch<T>(path, options, true)
         handleUnauthorized()
       }
