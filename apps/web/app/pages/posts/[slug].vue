@@ -18,7 +18,7 @@
               :href="`#${item.id}`"
               class="toc__link"
               :class="{ 'is-active': activeId === item.id }"
-              :style="{ paddingLeft: `${14 + (item.level - 2) * 14}px` }"
+              :style="{ paddingLeft: `${14 + Math.max(0, item.level - 2) * 14}px` }"
               @click.prevent="scrollToHeading(item.id)"
             >{{ item.text }}</a>
           </li>
@@ -66,6 +66,7 @@
 
 <script setup lang="ts">
 import type { Post } from '#shared/types'
+import { Marked } from 'marked'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -87,23 +88,21 @@ const categorySlug = computed(() =>
   categories.value?.find(c => c.id === post.value?.categoryId)?.slug ?? '',
 )
 
-/** 从 Markdown 提取 h2~h6 标题生成目录（跳过围栏代码块；id 按出现顺序编号，渲染时按同样顺序写入 DOM） */
-// ponytail: 只识别 ATX 标题（# 形式），setext 标题（=== 下划线）极少用，需要时再支持
+/** 裸 marked 实例：与 MarkdownView 共用同一套 tokenizer，保证目录识别的标题集合、层级、顺序与正文渲染严格一致 */
+const md = new Marked()
+
+/** 从 Markdown 提取标题生成目录（h1~h6 全收，正文用 h1 写章节同样出目录；
+ *  id 按出现顺序编号，渲染时按同样顺序写入 DOM） */
+// ponytail: 标题文本用正则去行内标记即可，与渲染文本完全一致需走 parseInline，目录显示场景不值得
 const toc = computed(() => {
   const items: { id: string; text: string; level: number }[] = []
-  let inCode = false
-  for (const line of (post.value?.content ?? '').split('\n')) {
-    if (/^(```|~~~)/.test(line.trim())) inCode = !inCode
-    if (inCode) continue
-    const match = line.match(/^(#{2,6})\s+(.+?)\s*#*\s*$/)
-    const tag = match?.[1]
-    const raw = match?.[2]
-    if (!tag || !raw) continue
-    const text = raw
+  for (const token of md.lexer(post.value?.content ?? '')) {
+    if (token.type !== 'heading') continue
+    const text = token.text
       .replace(/!?!\[([^\]]*)\]\([^)]*\)/g, '$1') // 图片/链接只留文字
       .replace(/[*_~`]/g, '')
       .trim()
-    if (text) items.push({ id: `toc-${items.length}`, text, level: tag.length })
+    if (text) items.push({ id: `toc-${items.length}`, text, level: token.depth })
   }
   return items
 })
@@ -113,9 +112,9 @@ const activeId = ref('')
 /** 移动端目录面板展开状态（桌面端常显，不生效） */
 const tocOpen = ref(false)
 
-/** 挂载后给正文中对应的 h2~h6 写入锚点 id（顺序与 toc 一致） */
+/** 挂载后给正文中对应的 h1~h6 写入锚点 id（顺序与 toc 一致；选择器必须与 toc 的收录范围同步） */
 onMounted(() => {
-  const nodes = bodyEl.value?.querySelectorAll('.article-body :is(h2, h3, h4, h5, h6)')
+  const nodes = bodyEl.value?.querySelectorAll('.article-body :is(h1, h2, h3, h4, h5, h6)')
   nodes?.forEach((el, i) => {
     if (toc.value[i]) el.id = toc.value[i]!.id
   })
@@ -336,6 +335,7 @@ usePageSeo({
 }
 
 /* 锚点跳转时给固定 Header 留出空间 */
+.article-body :deep(h1),
 .article-body :deep(h2),
 .article-body :deep(h3) {
   scroll-margin-top: 90px;
