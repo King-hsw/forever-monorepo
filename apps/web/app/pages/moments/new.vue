@@ -102,32 +102,52 @@
           </button>
         </div>
 
-        <!-- 底部工具条：图片 / 音频 / 视频 / 位置 + 发布 -->
+        <!-- 底部工具条：图片 / 音频 / 视频 / 位置 + 发布（上传编排收口在 UploadPicker） -->
         <div class="composer__bar">
-          <label class="composer__tool">
+          <UploadPicker
+            ref="imagePicker"
+            :token="siteToken"
+            class="composer__tool"
+            :kinds="[IMAGE_RULE]"
+            multiple
+            :max-count="9 - imageItems.length"
+            :disabled="!auth.isAuthenticated || imageItems.length >= 9"
+            @picked="files => onPicked('image', files)"
+            @progress="onUploadProgress"
+            @uploaded="onUploaded"
+            @failed="onFailed"
+            @rejected="notice"
+          >
             <Icon name="lucide:camera" /> 图片
-            <input
-              type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
-              class="composer__file"
-              @change="pick('image', $event)"
-            >
-          </label>
-          <label class="composer__tool">
+          </UploadPicker>
+          <UploadPicker
+            ref="audioPicker"
+            :token="siteToken"
+            class="composer__tool"
+            :kinds="[AUDIO_RULE]"
+            :disabled="!auth.isAuthenticated || !!audioItem"
+            @picked="files => onPicked('audio', files)"
+            @progress="onUploadProgress"
+            @uploaded="onUploaded"
+            @failed="onFailed"
+            @rejected="notice"
+          >
             <Icon name="lucide:music" /> 音频
-            <input
-              type="file" accept="audio/mpeg,audio/mp4,audio/wav"
-              class="composer__file"
-              @change="pick('audio', $event)"
-            >
-          </label>
-          <label class="composer__tool">
+          </UploadPicker>
+          <UploadPicker
+            ref="videoPicker"
+            :token="siteToken"
+            class="composer__tool"
+            :kinds="[VIDEO_RULE]"
+            :disabled="!auth.isAuthenticated || !!videoItem"
+            @picked="files => onPicked('video', files)"
+            @progress="onUploadProgress"
+            @uploaded="onUploaded"
+            @failed="onFailed"
+            @rejected="notice"
+          >
             <Icon name="lucide:clapperboard" /> 视频
-            <input
-              type="file" accept="video/mp4,video/webm"
-              class="composer__file"
-              @change="pick('video', $event)"
-            >
-          </label>
+          </UploadPicker>
           <button
             type="button"
             class="composer__tool"
@@ -177,8 +197,7 @@ import type { ProfileInfo } from '#shared/types'
 import { useAuthStore } from '~/stores/auth'
 import { useMomentsStore } from '~/stores/moments'
 import { initialOf } from '~/utils/format'
-import { presignAndUpload, UPLOAD_RULES } from '~/utils/uploadService'
-import type { UploadKind } from '~/utils/uploadService'
+import { AUDIO_RULE, IMAGE_RULE, VIDEO_RULE, type MediaKind, type UploadResult } from '~/utils/directUpload'
 
 usePageSeo({
   title: '发布动态 · 补陋阁',
@@ -188,6 +207,9 @@ usePageSeo({
 
 const auth = useAuthStore()
 auth.hydrate()
+
+/** 直传请求携带主站会话令牌（UploadPicker 显式注入，避免回退到测试页独立令牌） */
+const siteToken = () => loadAuth()?.accessToken ?? ''
 const momentsStore = useMomentsStore()
 
 /** 作者头像：取登录用户资料（自定义头像 / Gravatar）；未登录 / 失败兜底首字头像 */
@@ -200,30 +222,34 @@ onMounted(async () => {
 /* ---------- 文本 ---------- */
 const content = ref('')
 
-/* ---------- 附件：选择后直传 RustFS（presigned PUT），本地预览用 objectURL ---------- */
+/* ---------- 附件：选完即直传 RustFS（内容寻址，先查秒传再发凭证），本地预览用 objectURL ---------- */
 interface AttachItem {
+  /** 页面自增 id（列表 key） */
   id: number
-  kind: UploadKind
+  /** UploadPicker 事件里的文件 id（进度 / 结果事件按它回填） */
+  compId: number
+  kind: MediaKind
   file: File
   status: 'uploading' | 'done' | 'error'
   /** 上传进度 0-100 */
   progress: number
-  /** 本地预览地址（URL.createObjectURL）；tmp key 不是可访问地址，不能拿来预览 */
+  /** 本地预览地址（URL.createObjectURL），选中即出图，不等网络 */
   previewUrl?: string
-  /** 上传成功后的 tmp key（回退模式为正式地址），提交时填进 images / audio / video */
-  key?: string
+  /** 上传完成后的 accessUrl（RustFS 公开桶直链），提交时填进 images / audio / video */
+  accessUrl?: string
   /** 失败原因（令牌过期 / 非 0 code / 网络错误） */
   error?: string
 }
 
 const MB = 1024 * 1024
-const KIND_LABEL: Record<UploadKind, string> = { image: '图片', audio: '音频', video: '视频' }
 
 const items = ref<AttachItem[]>([])
 let seq = 0
 
 const imageItems = computed(() => items.value.filter(i => i.kind === 'image'))
 const mediaItems = computed(() => items.value.filter(i => i.kind !== 'image'))
+const audioItem = computed(() => items.value.find(i => i.kind === 'audio'))
+const videoItem = computed(() => items.value.find(i => i.kind === 'video'))
 const uploading = computed(() => items.value.some(i => i.status === 'uploading'))
 
 function fmtSize(bytes: number): string {
@@ -232,74 +258,78 @@ function fmtSize(bytes: number): string {
   return `${Math.ceil(bytes / 1024)}KB`
 }
 
-/** 客户端校验：MIME 白名单 + 单文件大小 + 数量上限 */
+/** 客户端拦截提示（类型 / 大小 / 数量由 UploadPicker 预检，这里只负责展示） */
 const noticeText = ref('')
 function notice(msg: string) {
   noticeText.value = msg
 }
 
-function pick(kind: UploadKind, event: Event) {
-  if (!auth.isAuthenticated) {
-    notice('登录后才能添加附件')
-    return
-  }
-  const input = event.target as HTMLInputElement
-  const files = Array.from(input.files ?? [])
-  input.value = ''
-  if (!files.length) return
-
-  const rule = UPLOAD_RULES[kind]
-  const room = rule.maxCount - items.value.filter(i => i.kind === kind).length
-  if (room <= 0) {
-    notice(kind === 'image' ? '最多添加 9 张图片' : `${KIND_LABEL[kind]}只能上传 1 个`)
-    return
-  }
-
-  for (const file of files.slice(0, room)) {
-    if (!rule.types.includes(file.type)) {
-      notice(`${KIND_LABEL[kind]}仅支持 ${rule.types.map(t => t.split('/')[1]).join(' / ')} 格式`)
-      continue
-    }
-    if (file.size > rule.max) {
-      notice(`${KIND_LABEL[kind]} ${file.name} 超过 ${rule.max / MB}MB 上限`)
-      continue
-    }
-    const item = reactive<AttachItem>({
+function onPicked(kind: MediaKind, files: { id: number, file: File }[]) {
+  for (const f of files) {
+    items.value.push(reactive<AttachItem>({
       id: ++seq,
+      compId: f.id,
       kind,
-      file,
+      file: f.file,
       status: 'uploading',
       progress: 0,
-      previewUrl: kind === 'image' ? URL.createObjectURL(file) : undefined,
-    })
-    items.value.push(item)
-    void upload(item)
+      previewUrl: kind === 'image' ? URL.createObjectURL(f.file) : undefined,
+    }))
   }
-  if (files.length > room)
-    notice(`最多添加 ${rule.maxCount} 个${KIND_LABEL[kind]}`)
 }
 
-async function upload(item: AttachItem) {
+function onUploadProgress(p: { id: number, percent: number }) {
+  const item = items.value.find(i => i.compId === p.id)
+  if (item) item.progress = p.percent
+}
+
+function onUploaded(u: { id: number, file: File, result: UploadResult }) {
+  const item = items.value.find(i => i.compId === u.id)
+  if (!item) return
+  item.accessUrl = u.result.accessUrl
+  item.status = 'done'
+  if (u.result.instant)
+    notice(`${u.file.name} 内容已存在，秒传命中（零上传）`)
+}
+
+function onFailed(f: { id: number, message: string }) {
+  const item = items.value.find(i => i.compId === f.id)
+  if (!item) return
+  item.status = 'error'
+  item.error = f.message
+}
+
+/** UploadPicker 暴露的上传入口：重试直接复用管线，进度回调驱动条目状态 */
+interface PickerLike {
+  upload: (file: File, opts?: { onProgress?: (percent: number) => void }) => Promise<UploadResult>
+}
+const imagePicker = ref<PickerLike | null>(null)
+const audioPicker = ref<PickerLike | null>(null)
+const videoPicker = ref<PickerLike | null>(null)
+
+function pickerOf(kind: MediaKind): PickerLike | null {
+  return kind === 'image' ? imagePicker.value : kind === 'audio' ? audioPicker.value : videoPicker.value
+}
+
+async function retry(item: AttachItem) {
+  const picker = pickerOf(item.kind)
+  if (!picker || item.status === 'uploading') return
   item.status = 'uploading'
   item.progress = 0
   item.error = undefined
   try {
-    const media = await presignAndUpload(item.file, {
-      onProgress: (percent) => {
-        item.progress = percent
-      },
+    const result = await picker.upload(item.file, {
+      onProgress: percent => (item.progress = percent),
     })
-    item.key = media.key
+    item.accessUrl = result.accessUrl
     item.status = 'done'
+    if (result.instant)
+      notice(`${item.file.name} 内容已存在，秒传命中（零上传）`)
   }
   catch (err) {
     item.status = 'error'
     item.error = errMsg(err, '上传失败，请重试')
   }
-}
-
-function retry(item: AttachItem) {
-  void upload(item)
 }
 
 function removeItem(item: AttachItem) {
@@ -371,11 +401,11 @@ async function submit() {
     return
   }
   const text = content.value.trim()
-  // 提交 tmp key（回退模式为正式地址），后端收口为 /uploads/moment/... 正式地址
-  const images = items.value.filter(i => i.kind === 'image' && i.status === 'done').map(i => i.key!)
-  const audio = items.value.find(i => i.kind === 'audio' && i.status === 'done')
-  const video = items.value.find(i => i.kind === 'video' && i.status === 'done')
-  if (!text && !images.length && !audio && !video) {
+  // 提交 accessUrl（RustFS 公开桶直链，内容寻址），业务字段只填直传接口返回的直链
+  const images = items.value.filter(i => i.kind === 'image' && i.status === 'done').map(i => i.accessUrl!)
+  const audio = audioItem.value
+  const video = videoItem.value
+  if (!text && !images.length && !audio?.accessUrl && !video?.accessUrl) {
     error.value = '写点什么，或添加图片 / 音频 / 视频'
     return
   }
@@ -385,8 +415,8 @@ async function submit() {
     await momentsStore.createMoment({
       content: text,
       images,
-      audio: audio?.key ?? null,
-      video: video?.key ?? null,
+      audio: audio?.accessUrl ?? null,
+      video: video?.accessUrl ?? null,
       location: locationText.value.trim() || null,
       lat: geo.value?.lat ?? null,
       lng: geo.value?.lng ?? null,

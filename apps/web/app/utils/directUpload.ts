@@ -30,6 +30,9 @@ import type { ApiResponse } from '#shared/types'
 
 const MB = 1024 * 1024
 
+/** 单文件直传与分片的凭证路径分界：≤8MB 走 presign 单文件，>8MB 走分片 init */
+export const SINGLE_FILE_MAX = 8 * MB
+
 /* ========== 调试日志：页面订阅后统一进调试面板 ========== */
 
 export interface UploadLogEntry {
@@ -278,11 +281,12 @@ export interface UploadResult {
 }
 
 /** 单独查询秒传（一般无需直接调：uploadOne / uploadMultipart 已内置 check 编排） */
-export async function checkExists(file: File): Promise<CheckData> {
+export async function checkExists(file: File, hooks: UploadHooks = {}): Promise<CheckData> {
   const md5 = await computeMd5(file)
   return apiJson<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
+    token: tokenOf(hooks),
   })
 }
 
@@ -349,6 +353,16 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
 export interface UploadHooks {
   /** 触发即中止在途请求、停发剩余分片（新契约无续传，重传需全量重来） */
   signal?: AbortSignal
+  /** 显式令牌（或取令牌的函数）：业务页面传主站会话令牌；缺省读测试页独立令牌。
+   *  显式传入后完全以此为准（含空值），不再回退测试页令牌 */
+  token?: string | (() => string)
+}
+
+/** 解析本次请求应携带的令牌：显式 token 优先（函数即时求值），否则测试页独立会话 */
+function tokenOf(hooks?: UploadHooks): string {
+  const t = hooks?.token
+  if (t !== undefined) return typeof t === 'function' ? t() : t
+  return getUploadToken()
 }
 
 const MAX_ATTEMPTS = 2
@@ -363,6 +377,7 @@ async function checkOrUpload(file: File, run: () => Promise<UploadResult>, hooks
   const check = () => apiJson<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
+    token: tokenOf(hooks),
   })
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const found = await check()
@@ -398,6 +413,7 @@ export async function uploadOne(
     const pre = await apiJson<PresignData>('/api/admin/upload/presign', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file) },
+      token: tokenOf(hooks),
     })
     await putBlob(pre.uploadUrl, pre.contentType, file, { onLoaded: report, signals })
     return { accessUrl: pre.accessUrl, contentType: pre.contentType, instant: false }
@@ -425,6 +441,7 @@ export async function uploadMultipart(
     const init = await apiJson<MultipartInitData>('/api/admin/upload/multipart/init', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file), sizeBytes: file.size },
+      token: tokenOf(hooks),
     })
     const { partSize, partCount, contentType } = init
     // 后端 init 自带去重兜底：check 未命中但对象在 init 时已存在（竞态），
@@ -486,6 +503,7 @@ export async function uploadMultipart(
     const done = await apiJson<MultipartCompleteData>('/api/admin/upload/multipart/complete', {
       method: 'POST',
       body: { key: init.key, uploadId: init.uploadId },
+      token: tokenOf(hooks),
     })
     return { accessUrl: done.accessUrl, contentType, instant: false }
   }, hooks)

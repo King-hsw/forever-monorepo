@@ -43,7 +43,19 @@
     <section class="utest-card">
       <h2 class="utest-card__title">2 · 单文件直传（check → 秒传? 预览 : presign → PUT，≤8MB）</h2>
       <p class="utest-cap">本区支持：{{ capSummary(MOMENT_KINDS) }}</p>
-      <input ref="singleInput" class="utest-file" type="file" :accept="singleAccept" @change="onSinglePick">
+      <UploadPicker
+        ref="singlePicker"
+        class="utest-file"
+        :kinds="MOMENT_KINDS"
+        mode="single"
+        @picked="onSinglePicked"
+        @progress="onSingleProgress"
+        @uploaded="onSingleUploaded"
+        @failed="onSingleFailed"
+        @rejected="msg => (singlePrecheck = msg)"
+      >
+        选择文件（图片 / 音频 / 视频）
+      </UploadPicker>
 
       <p v-if="singleFile" class="utest-muted">
         {{ singleFile.name }}（{{ fmtBytes(singleFile.size) }}，{{ singleFile.type || '未知类型' }}）
@@ -54,11 +66,8 @@
       <p v-if="singlePrecheck" class="field-error" role="alert">{{ singlePrecheck }}</p>
       <p v-else-if="singleHint" class="utest-muted">{{ singleHint }}</p>
 
-      <div class="utest-actions">
-        <button class="btn btn--primary" type="button" :disabled="!singleFile || !!singlePrecheck || singleBusy" @click="startSingle">
-          {{ singleBusy ? '上传中…' : '开始上传' }}
-        </button>
-        <button v-if="singleBusy" class="btn btn--danger" type="button" @click="cancelSingle">取消</button>
+      <div v-if="singleBusy" class="utest-actions">
+        <button class="btn btn--danger" type="button" @click="cancelSingle">取消上传</button>
       </div>
 
       <div v-if="singleBusy || singleProgress > 0" class="utest-bar"><i :style="{ width: `${singleProgress}%` }" /></div>
@@ -83,7 +92,19 @@
     <section class="utest-card">
       <h2 class="utest-card__title">3 · 大文件分片上传（check → init → 并发逐片 PUT → complete，>8MB）</h2>
       <p class="utest-cap">本区支持：{{ capSummary([VIDEO_RULE]) }}；中断无续传，重传即重新 check → init 全量重来</p>
-      <input ref="mpInput" class="utest-file" type="file" :accept="mpAccept" @change="onMultipartPick">
+      <UploadPicker
+        ref="mpPicker"
+        class="utest-file"
+        :kinds="[VIDEO_RULE]"
+        mode="multipart"
+        @picked="onMpPicked"
+        @progress="onMpProgress"
+        @uploaded="onMpUploaded"
+        @failed="onMpFailed"
+        @rejected="msg => (mpPrecheck = msg)"
+      >
+        选择视频文件（mp4 / webm）
+      </UploadPicker>
 
       <p v-if="mpFile" class="utest-muted">
         {{ mpFile.name }}（{{ fmtBytes(mpFile.size) }}，{{ mpFile.type || '未知类型' }}）
@@ -94,11 +115,8 @@
       <p v-if="mpPrecheck" class="field-error" role="alert">{{ mpPrecheck }}</p>
       <p v-else-if="mpHint" class="utest-muted">{{ mpHint }}</p>
 
-      <div class="utest-actions">
-        <button class="btn btn--primary" type="button" :disabled="!mpFile || !!mpPrecheck || mpBusy" @click="startMultipart">
-          {{ mpBusy ? '上传中…' : '开始上传' }}
-        </button>
-        <button v-if="mpBusy" class="btn btn--danger" type="button" @click="cancelMultipart">取消</button>
+      <div v-if="mpBusy" class="utest-actions">
+        <button class="btn btn--danger" type="button" @click="cancelMultipart">取消上传</button>
       </div>
 
       <div v-if="mpBusy || mpProgress > 0" class="utest-bar"><i :style="{ width: `${mpProgress}%` }" /></div>
@@ -201,19 +219,14 @@
 import type { Ref } from 'vue'
 import type { Moment, PageResult } from '#shared/types'
 import {
-  acceptOf,
   apiJson,
   clearUploadAuth,
   computeMd5,
-  fileKindOf,
   fmtBytes,
   loadUploadAuth,
   MOMENT_KINDS,
   onUploadLog,
-  precheckFile,
   saveUploadAuth,
-  uploadMultipart,
-  uploadOne,
   VIDEO_RULE,
   type MediaKind,
   type MediaKindRule,
@@ -331,8 +344,11 @@ function warmupMd5(
 
 /* ---------- 2 · 单文件直传 ---------- */
 
-const singleAccept = acceptOf(MOMENT_KINDS)
-const singleInput = ref<HTMLInputElement | null>(null)
+interface PickedItem { id: number, file: File, kind: MediaKind }
+interface PickerResult { file: File, kind: MediaKind, result: UploadResult }
+interface PickerFailure { message: string, aborted: boolean }
+
+const singlePicker = ref<{ cancel: () => void } | null>(null)
 const singleFile = ref<File | null>(null)
 const singleKind = ref<MediaKind | null>(null)
 const singlePrecheck = ref('')
@@ -345,57 +361,45 @@ const singleProgress = ref(0)
 const singleResult = ref<UploadResult | null>(null)
 const singleError = ref('')
 const singleNotice = ref('')
-let singleAbort: AbortController | null = null
 
-function onSinglePick() {
-  const file = singleInput.value?.files?.[0] ?? null
-  // 立即清空 input.value，保证重新选择同一文件时 change 仍会触发
-  if (singleInput.value) singleInput.value.value = ''
+function onSinglePicked(files: PickedItem[]) {
+  const { file, kind } = files[0]!
   singleFile.value = file
-  singleKind.value = file ? fileKindOf(file, MOMENT_KINDS) : null
-  singlePrecheck.value = file ? (precheckFile(file, MOMENT_KINDS) ?? '') : ''
-  singleHint.value = file && !singlePrecheck.value && file.size > 8 * MB
+  singleKind.value = kind
+  singleHint.value = file.size > 8 * MB
     ? '提示：文件超过 8MB，建议改用下方分片上传（单文件直传仍可尝试）'
     : ''
   singleProgress.value = 0
   singleResult.value = null
   singleError.value = ''
   singleNotice.value = ''
-  if (file && !singlePrecheck.value) warmupMd5(file, singleMd5Busy, singleMd5, singleMd5Error)
+  singleBusy.value = true
+  warmupMd5(file, singleMd5Busy, singleMd5, singleMd5Error)
 }
 
-async function startSingle() {
-  const file = singleFile.value
-  if (!file || singlePrecheck.value || singleBusy.value) return
-  singleBusy.value = true
-  singleError.value = ''
-  singleNotice.value = ''
-  singleProgress.value = 0
-  singleResult.value = null
-  const ac = new AbortController()
-  singleAbort = ac
-  try {
-    const result = await uploadOne(file, p => (singleProgress.value = p), { signal: ac.signal })
-    singleResult.value = result
-    if (singleKind.value) addUploadedItem(file.name, singleKind.value, result.accessUrl)
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : '上传失败'
-    if (ac.signal.aborted) singleNotice.value = '已取消：本契约无续传，重新上传将全量重来（同内容若已传完会直接秒传）'
-    else singleError.value = msg
-  } finally {
-    singleBusy.value = false
-    singleAbort = null
-  }
+function onSingleProgress(p: { id: number, percent: number }) {
+  singleProgress.value = p.percent
+}
+
+function onSingleUploaded(u: PickerResult) {
+  singleBusy.value = false
+  singleResult.value = u.result
+  addUploadedItem(u.file.name, u.kind, u.result.accessUrl)
+}
+
+function onSingleFailed(f: PickerFailure) {
+  singleBusy.value = false
+  if (f.aborted) singleNotice.value = '已取消：本契约无续传，重新上传将全量重来（同内容若已传完会直接秒传）'
+  else singleError.value = f.message
 }
 
 function cancelSingle() {
-  singleAbort?.abort()
+  singlePicker.value?.cancel()
 }
 
 /* ---------- 3 · 大文件分片 ---------- */
 
-const mpAccept = acceptOf([VIDEO_RULE])
-const mpInput = ref<HTMLInputElement | null>(null)
+const mpPicker = ref<{ cancel: () => void } | null>(null)
 const mpFile = ref<File | null>(null)
 const mpPrecheck = ref('')
 const mpHint = ref('')
@@ -407,50 +411,39 @@ const mpProgress = ref(0)
 const mpResult = ref<UploadResult | null>(null)
 const mpError = ref('')
 const mpNotice = ref('')
-let mpAbort: AbortController | null = null
 
-function onMultipartPick() {
-  const file = mpInput.value?.files?.[0] ?? null
-  // 立即清空 input.value，保证重新选择同一文件时 change 仍会触发
-  if (mpInput.value) mpInput.value.value = ''
+function onMpPicked(files: PickedItem[]) {
+  const { file } = files[0]!
   mpFile.value = file
-  mpPrecheck.value = file ? (precheckFile(file, [VIDEO_RULE]) ?? '') : ''
-  mpHint.value = file && !mpPrecheck.value && file.size <= 8 * MB
-    ? '提示：文件不超过 8MB，走上方单文件直传即可（分片上传同样可用，init 会按实际大小定片）'
+  mpHint.value = file.size <= 8 * MB
+    ? '提示：文件不超过 8MB，走上方单文件直传即可（本区强制分片路径，init 会按实际大小定片）'
     : ''
   mpProgress.value = 0
   mpResult.value = null
   mpError.value = ''
   mpNotice.value = ''
-  if (file && !mpPrecheck.value) warmupMd5(file, mpMd5Busy, mpMd5, mpMd5Error)
+  mpBusy.value = true
+  warmupMd5(file, mpMd5Busy, mpMd5, mpMd5Error)
 }
 
-async function startMultipart() {
-  const file = mpFile.value
-  if (!file || mpPrecheck.value || mpBusy.value) return
-  mpBusy.value = true
-  mpError.value = ''
-  mpNotice.value = ''
-  mpProgress.value = 0
-  mpResult.value = null
-  const ac = new AbortController()
-  mpAbort = ac
-  try {
-    const result = await uploadMultipart(file, p => (mpProgress.value = p), { signal: ac.signal })
-    mpResult.value = result
-    if (fileKindOf(file, [VIDEO_RULE]) === 'video') addUploadedItem(file.name, 'video', result.accessUrl)
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : '上传失败'
-    if (ac.signal.aborted) mpNotice.value = '已取消：本契约无续传，重新上传将全量重来（同内容若已传完会直接秒传）'
-    else mpError.value = msg
-  } finally {
-    mpBusy.value = false
-    mpAbort = null
-  }
+function onMpProgress(p: { id: number, percent: number }) {
+  mpProgress.value = p.percent
+}
+
+function onMpUploaded(u: PickerResult) {
+  mpBusy.value = false
+  mpResult.value = u.result
+  addUploadedItem(u.file.name, 'video', u.result.accessUrl)
+}
+
+function onMpFailed(f: PickerFailure) {
+  mpBusy.value = false
+  if (f.aborted) mpNotice.value = '已取消：本契约无续传，重新上传将全量重来（同内容若已传完会直接秒传）'
+  else mpError.value = f.message
 }
 
 function cancelMultipart() {
-  mpAbort?.abort()
+  mpPicker.value?.cancel()
 }
 
 /* ---------- 4 · 发布联测 ---------- */
