@@ -20,8 +20,7 @@
  * 底层走 directUpload 模块（先查秒传、再发凭证），组件只补 UI 层的最后一公里：
  * - accept 从能力（kinds）派生，选中即预检，超限 / 类型不符零请求并 rejected 提示；
  * - 隐藏原生 input，触发按钮完全由使用方的 slot 决定（class 落在根 label 上自由定制）；
- * - 凭证路径三选一：auto 按大小路由（≤8MB 单文件 presign，>8MB 分片 init，分界
- *   SINGLE_FILE_MAX），single / multipart 强制指定（联调测试页用）；
+ * - 凭证路径按大小自动路由：≤8MB 单文件 presign，>8MB 分片 init（分界 SINGLE_FILE_MAX）；
  * - 逐个文件顺序上传，进度 / 结果 / 失败按文件 id 事件化抛出，列表 UI 由页面自持；
  * - ref 暴露 cancel()（中止整批）与 upload(file, opts)（页面级重试：不发 picked 等
  *   事件，进度走回调、结果走 Promise，页面直接复用自己的条目状态）。
@@ -45,8 +44,6 @@ const props = withDefaults(defineProps<{
   /** 本次上传的最大字节数：覆盖 kinds 里各类别的默认上限（预检按它拦截）。
    *  只建议收紧——超过后端白名单上限时，分片路径仍会被后端 init 校验拦下 */
   maxSize?: number
-  /** 凭证路径：auto（默认，按大小路由）/ single（强制单文件）/ multipart（强制分片） */
-  mode?: 'auto' | 'single' | 'multipart'
   /** 允许多选（多选时逐个顺序上传） */
   multiple?: boolean
   /** 本次最多接收的文件数，超出整批拦截提示；默认不限 */
@@ -56,7 +53,6 @@ const props = withDefaults(defineProps<{
    *  缺省走共享 apiFetch 的主站登录会话（401 自动静默续期） */
   token?: () => string
 }>(), {
-  mode: 'auto',
   multiple: false,
   maxCount: Number.POSITIVE_INFINITY,
   disabled: false,
@@ -137,10 +133,8 @@ async function runBatch(picked: { id: number, file: File, kind: string }[]) {
 }
 
 function routeOf(file: File) {
-  // 凭证路径：分片只发生在强制模式或 auto 下超过单文件分界时
-  if (props.mode === 'multipart' || (props.mode === 'auto' && file.size > SINGLE_FILE_MAX))
-    return uploadMultipart
-  return uploadOne
+  // 凭证路径按大小路由：超过单文件分界走分片，其余走单文件直传
+  return file.size > SINGLE_FILE_MAX ? uploadMultipart : uploadOne
 }
 
 function uploadById(id: number, file: File, signal?: AbortSignal, onProgress?: (percent: number) => void) {

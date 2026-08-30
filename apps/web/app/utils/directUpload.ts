@@ -10,9 +10,9 @@
  * - uploadMultipart(file, onProgress)：大文件分片编排（>8MB），并发 3 逐片 PUT + complete。
  *
  * 后端请求统一走 ~/utils/api 的 apiFetch（同一套信封解包 / 错误语义 / apiBase）：
- * 缺省携带主站登录令牌（401 自动静默续期），hooks.token 可显式覆盖为任意会话
- * （如独立测试页会话）。本模块不感知具体业务白名单——类别规则（UploadKindRule）
- * 由调用方声明，预置媒体规则见 ~/utils/mediaKinds。
+ * 缺省携带主站登录令牌（401 自动静默续期），hooks.token 可显式覆盖为其他会话。
+ * 本模块不感知具体业务白名单——类别规则（UploadKindRule）由调用方声明，
+ * 预置媒体规则见 ~/utils/mediaKinds。
  *
  * 上传编排（checkOrUpload 内统一收口）：
  * ① computeMd5 → ② POST check：exists=true 直接返回 accessUrl（秒传，零上传，流程结束）；
@@ -36,73 +36,6 @@ const MB = 1024 * 1024
 
 /** 单文件直传与分片的凭证路径分界：≤8MB 走 presign 单文件，>8MB 走分片 init */
 export const SINGLE_FILE_MAX = 8 * MB
-
-/* ========== 调试日志：页面订阅后统一进调试面板 ========== */
-
-export interface UploadLogEntry {
-  /** 发起时间（毫秒时间戳） */
-  time: number
-  method: string
-  /** 完整目标地址；PUT 应为 RustFS 直链而非后端地址 */
-  url: string
-  /** HTTP 状态码；0 表示网络层失败（CORS / 断网 / 域名不可达） */
-  status: number
-  durationMs: number
-  /** 请求 / 响应详情（PUT 的二进制 body 以占位说明代替） */
-  detail?: { request?: unknown; response?: unknown }
-  note?: string
-}
-
-const logListeners = new Set<(entry: UploadLogEntry) => void>()
-
-/** 订阅模块内所有请求日志（上传链路的后端请求 + PUT 直传），返回退订函数 */
-export function onUploadLog(cb: (entry: UploadLogEntry) => void): () => void {
-  logListeners.add(cb)
-  return () => logListeners.delete(cb)
-}
-
-function emitLog(entry: UploadLogEntry) {
-  logListeners.forEach(cb => cb(entry))
-}
-
-/* ========== 上传链路的后端请求：apiFetch 统一收口，日志面向调试面板 ========== */
-
-interface UploadApiOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  body?: Record<string, unknown>
-  /** 显式覆盖令牌；缺省走 apiFetch 的主站登录会话 */
-  token?: string
-}
-
-/**
- * 上传链路专用的 apiFetch 薄壳：请求与信封解包完全复用共享客户端，
- * 这里只负责计时并把每次请求 / 失败写入调试日志（状态码：HTTP 状态或信封业务码，
- * 网络层失败为 0）。
- */
-async function uploadApi<T>(path: string, options: UploadApiOptions = {}): Promise<T> {
-  const base = useRuntimeConfig().public.apiBase as string
-  const url = `${base}${path}`
-  const method = options.method ?? 'GET'
-  const started = Date.now()
-  try {
-    const data = await apiFetch<T>(path, { method, body: options.body, token: options.token })
-    emitLog({ time: started, method, url, status: 200, durationMs: Date.now() - started, detail: { request: options.body } })
-    return data
-  } catch (err) {
-    // ApiError.code>0 为 HTTP 状态 / 信封业务码；网络层失败（-1 等）按 0 记录
-    const code = err instanceof ApiError ? err.code : -1
-    emitLog({
-      time: started,
-      method,
-      url,
-      status: code > 0 ? code : 0,
-      durationMs: Date.now() - started,
-      detail: { request: options.body },
-      note: err instanceof Error ? err.message : '请求失败',
-    })
-    throw err
-  }
-}
 
 /* ========== 类别规则：由调用方声明，内核不限定媒体类型 ========== */
 
@@ -236,7 +169,7 @@ export interface UploadResult {
 /** 单独查询秒传（一般无需直接调：uploadOne / uploadMultipart 已内置 check 编排） */
 export async function checkExists(file: File, hooks: UploadHooks = {}): Promise<CheckData> {
   const md5 = await computeMd5(file)
-  return uploadApi<CheckData>('/api/admin/upload/check', {
+  return apiFetch<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
     token: tokenOf(hooks),
@@ -263,9 +196,7 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
       reject(new DOMException('上传已中止', 'AbortError'))
       return
     }
-    const started = Date.now()
     const xhr = new XMLHttpRequest()
-    const detail = () => ({ request: { headers: { 'Content-Type': contentType }, body: `（裸二进制 ${blob.size} 字节）` } })
     const onAbort = () => xhr.abort()
     options.signals?.forEach(s => s.addEventListener('abort', onAbort))
     const cleanup = () => options.signals?.forEach(s => s.removeEventListener('abort', onAbort))
@@ -280,7 +211,6 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
     }
     xhr.onload = () => {
       cleanup()
-      emitLog({ time: started, method: 'PUT', url, status: xhr.status, durationMs: Date.now() - started, detail: { ...detail(), response: xhr.responseText || '（空）' } })
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve()
       } else {
@@ -289,9 +219,7 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
     }
     xhr.onerror = () => {
       cleanup()
-      const note = '直传网络错误：多为 RustFS 未配 CORS 或 storage.endpoint 不可达，属后端环境问题，需后端排查'
-      emitLog({ time: started, method: 'PUT', url, status: 0, durationMs: Date.now() - started, detail: detail(), note })
-      reject(new ApiError(note, 0))
+      reject(new ApiError('直传网络错误：多为 RustFS 未配 CORS 或 storage.endpoint 不可达，属后端环境问题，需后端排查', 0))
     }
     xhr.onabort = () => {
       cleanup()
@@ -307,7 +235,7 @@ export interface UploadHooks {
   /** 触发即中止在途请求、停发剩余分片（新契约无续传，重传需全量重来） */
   signal?: AbortSignal
   /** 显式令牌（或取令牌的函数）：覆盖缺省的主站登录会话（含 401 静默续期），
-   *  供独立会话场景（如测试页）使用。显式传入后完全以此为准（含空值） */
+   *  供独立会话场景使用。显式传入后完全以此为准（含空值） */
   token?: string | (() => string)
 }
 
@@ -326,7 +254,7 @@ const MAX_ATTEMPTS = 2
  */
 async function checkOrUpload(file: File, run: () => Promise<UploadResult>, hooks: UploadHooks = {}): Promise<UploadResult> {
   const md5 = await computeMd5(file)
-  const check = () => uploadApi<CheckData>('/api/admin/upload/check', {
+  const check = () => apiFetch<CheckData>('/api/admin/upload/check', {
     method: 'POST',
     body: { contentType: file.type, md5 },
     token: tokenOf(hooks),
@@ -362,7 +290,7 @@ export async function uploadOne(
   const signals = hooks.signal ? [hooks.signal] : []
 
   return checkOrUpload(file, async () => {
-    const pre = await uploadApi<PresignData>('/api/admin/upload/presign', {
+    const pre = await apiFetch<PresignData>('/api/admin/upload/presign', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file) },
       token: tokenOf(hooks),
@@ -390,7 +318,7 @@ export async function uploadMultipart(
   hooks: UploadHooks = {},
 ): Promise<UploadResult> {
   return checkOrUpload(file, async () => {
-    const init = await uploadApi<MultipartInitData>('/api/admin/upload/multipart/init', {
+    const init = await apiFetch<MultipartInitData>('/api/admin/upload/multipart/init', {
       method: 'POST',
       body: { contentType: file.type, md5: await computeMd5(file), sizeBytes: file.size },
       token: tokenOf(hooks),
@@ -452,7 +380,7 @@ export async function uploadMultipart(
     if (firstError) throw firstError
 
     // complete：后端 listParts 向 RustFS 核对，前端只报 key + uploadId
-    const done = await uploadApi<MultipartCompleteData>('/api/admin/upload/multipart/complete', {
+    const done = await apiFetch<MultipartCompleteData>('/api/admin/upload/multipart/complete', {
       method: 'POST',
       body: { key: init.key, uploadId: init.uploadId },
       token: tokenOf(hooks),
