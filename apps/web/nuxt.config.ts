@@ -50,9 +50,11 @@ export default defineNuxtConfig({
   devServer: {
     host: '0.0.0.0',
   },
-  // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
+  // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳；
+  // /dev/** 同理（开发者工具页，如文件直传测试页，依赖 localStorage/IndexedDB）
   routeRules: {
     '/admin/**': { ssr: false },
+    '/dev/**': { ssr: false },
   },
   devtools: { enabled: true },
   runtimeConfig: {
