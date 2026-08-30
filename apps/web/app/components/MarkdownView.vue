@@ -147,7 +147,10 @@ const html = computed(() => {
   return markNonProseParagraphs(
     decorateCodeBlocks(md.parse(props.source, { async: false }))
       // 防盗链站点会拒给带 Referer 的图片，补上 no-referrer（已手动写过的跳过）
-      .replace(/<img(?![^>]*\sreferrerpolicy=)/g, '<img referrerpolicy="no-referrer"'),
+      .replace(/<img(?![^>]*\sreferrerpolicy=)/g, '<img referrerpolicy="no-referrer"')
+      // 表格包一层圆角边框容器，窄屏可横向滚动（样式见 prose.css .md-table-wrap）
+      .replace(/<table>/g, '<div class="md-table-wrap"><table>')
+      .replace(/<\/table>/g, '</table></div>'),
   )
 })
 
