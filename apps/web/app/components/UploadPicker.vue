@@ -39,8 +39,12 @@ import {
 } from '~/utils/directUpload'
 
 const props = withDefaults(defineProps<{
-  /** 能力声明：允许的媒体类别（格式 / 大小白名单），accept 与预检从这里派生 */
+  /** 可上传格式（能力声明）：每条规则含 MIME / 扩展名白名单与默认大小上限，
+   *  accept 与预检从这里派生；预置能力见 directUpload 的 IMAGE_RULE 等 */
   kinds: MediaKindRule[]
+  /** 本次上传的最大字节数：覆盖 kinds 里各类别的默认上限（预检按它拦截）。
+   *  只建议收紧——超过后端白名单上限时，分片路径仍会被后端 init 校验拦下 */
+  maxSize?: number
   /** 凭证路径：auto（默认，按大小路由）/ single（强制单文件）/ multipart（强制分片） */
   mode?: 'auto' | 'single' | 'multipart'
   /** 允许多选（多选时逐个顺序上传） */
@@ -68,6 +72,10 @@ const emit = defineEmits<{
 }>()
 
 const accept = computed(() => acceptOf(props.kinds))
+/** 预检用的生效能力：maxSize 存在时覆盖各类别的默认上限（格式白名单不变） */
+const effectiveKinds = computed(() => props.maxSize
+  ? props.kinds.map(r => ({ ...r, maxBytes: props.maxSize! }))
+  : props.kinds)
 const inputEl = ref<HTMLInputElement | null>(null)
 const busy = ref(false)
 let seq = 0
@@ -86,8 +94,8 @@ function onChange() {
 
   const picked: { id: number, file: File, kind: MediaKind }[] = []
   for (const file of files) {
-    // 预检一并覆盖类型与大小（不在白名单也在这里拦截）
-    const problem = precheckFile(file, props.kinds)
+    // 预检一并覆盖类型与大小（不在白名单也在这里拦截）；maxSize 优先于类别默认上限
+    const problem = precheckFile(file, effectiveKinds.value)
     if (problem) {
       emit('rejected', `${file.name}：${problem}`)
       continue
