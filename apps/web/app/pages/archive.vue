@@ -266,7 +266,8 @@ function formatDate(dateStr: string): string {
 .arch-item__dot {
   position: absolute;
   top: 50%;
-  left: -29px; /* 34px 缩进 - 14px 半径 - 6px 主轴偏移 */
+  /* 圆心落在虚线中心：34px 缩进 - 轴线 12px（::before left 11px + 线宽一半）- 6px 半径 */
+  left: -28px;
   width: 12px;
   height: 12px;
   background: var(--c-bg-card);
@@ -352,9 +353,9 @@ function formatDate(dateStr: string): string {
     padding-left: 26px;
   }
 
-  /* 缩进变了，节点跟着挪 */
+  /* 缩进变了，节点跟着挪：26px 缩进 - 轴线 12px - 6px 半径（轴线 left 不随断点变） */
   .arch-item__dot {
-    left: -23px;
+    left: -20px;
   }
 
   .arch-item {

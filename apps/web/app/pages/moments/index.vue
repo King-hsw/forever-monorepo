@@ -149,7 +149,8 @@ function removeFromList(id: number) {
 .moments-main {
   flex: 1;
   width: 100%;
-  max-width: 960px;
+  /* 与归档 / 文章页同宽（800px），保证各页标题左缘对齐 */
+  max-width: 800px;
   margin: 0 auto;
   padding: 96px 20px 56px;
 }
