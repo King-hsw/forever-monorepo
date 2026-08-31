@@ -3,7 +3,7 @@ import type { SettingItem } from '#shared/types'
 /**
  * 配置项元数据（与 settings / setup 两页共用，对应服务端 SiteConfigService 的登记表）。
  */
-export type SettingType = 'boolean' | 'number' | 'email' | 'url' | 'date' | 'text'
+export type SettingType = 'boolean' | 'number' | 'email' | 'url' | 'date' | 'text' | 'password'
 
 export interface ItemMeta {
   label: string
@@ -24,6 +24,11 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },
   'comment.owner-email': { label: '站长邮箱', type: 'email' },
   'comment.from-email': { label: '发件人地址', type: 'email', defaultValue: 'noreply@example.com' },
+  'mail.host': { label: 'SMTP 服务器地址', type: 'text' },
+  'mail.port': { label: 'SMTP 端口', type: 'number', defaultValue: '465' },
+  'mail.username': { label: 'SMTP 登录账号', type: 'text' },
+  'mail.password': { label: 'SMTP 登录密码', type: 'password' },
+  'mail.ssl': { label: 'SSL 直连', type: 'boolean', defaultValue: 'true' },
   'moments.amapKey': { label: '高德 Web 服务 Key', type: 'text' },
   'ai.summary-enabled': { label: '概要总开关', type: 'boolean', defaultValue: 'false' },
   'ai.api-key': { label: 'API Key', type: 'text' },

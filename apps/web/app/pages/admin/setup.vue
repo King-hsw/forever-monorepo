@@ -110,7 +110,7 @@ const steps: Step[] = [
   {
     title: '邮件通知（可选）',
     icon: 'lucide:mail',
-    desc: '需服务端已配置 SMTP；不配置则评论通知保持关闭',
+    desc: 'SMTP 账号在「站点设置 → 评论邮件通知」分组配置；未配置时邮件通知保持关闭',
     keys: ['comment.notify-mail', 'comment.owner-email', 'comment.from-email'],
   },
 ]
