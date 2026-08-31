@@ -288,13 +288,6 @@ export interface ProfileInfo {
   avatarUrl: string | null
 }
 
-/** 资料更新请求（留空字符串表示清空字段） */
-export interface ProfileInput {
-  nickname: string
-  email: string
-  site: string
-}
-
 /** 角色（对应 SysRole） */
 export interface SysRole {
   id: number

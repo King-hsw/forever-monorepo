@@ -1,44 +1,3 @@
-// iOS PWA 启动图：apple-touch-startup-image 要求与设备物理像素精确匹配才命中，
-// 逐设备出图（横竖屏各一张，共 n×2），预生成后放入
-// public/splash/{宽}x{高}.png，新增设备时在此表补一行。媒体查询宽高为逻辑点(pt)
-const SPLASH_DEVICES: [number, number, number, number, number][] = [
-  // [图宽, 图高, pt宽, pt高, dpr]
-  [750, 1334, 375, 667, 2], // 6/7/8/SE2/SE3
-  [1242, 2208, 414, 736, 3], // 6/7/8 Plus
-  [1125, 2436, 375, 812, 3], // X/XS/11 Pro
-  [828, 1792, 414, 896, 2], // XR/11
-  [1242, 2688, 414, 896, 3], // XS Max/11 Pro Max
-  [1170, 2532, 390, 844, 3], // 12/13/14/16e
-  [1179, 2556, 393, 852, 3], // 12-15 Pro/14/15
-  [1284, 2778, 428, 926, 3], // 12/13 Pro Max, 14 Plus
-  [1290, 2796, 430, 932, 3], // 14-16 Plus/Pro Max
-  [1206, 2622, 402, 874, 3], // 16/17 Pro
-  [1320, 2868, 440, 956, 3], // 16/17 Pro Max
-  [1260, 2736, 420, 912, 3], // iPhone Air
-  [1536, 2048, 768, 1024, 2], // iPad mini 4 / Air 2 / 9.7
-  [1620, 2160, 810, 1080, 2], // iPad 7-9
-  [1640, 2360, 820, 1180, 2], // iPad 10/11
-  [1488, 2266, 744, 1133, 2], // iPad mini 6/7
-  [1668, 2224, 834, 1112, 2], // iPad Air 3 / Pro 10.5
-  [1668, 2388, 834, 1194, 2], // iPad Pro 11 / Air 4-5
-  [1668, 2420, 838, 1210, 2], // iPad Pro 11 M4
-  [2048, 2732, 1024, 1366, 2], // iPad Pro 12.9
-  [2064, 2752, 1032, 1376, 2], // iPad Pro 13 M4
-]
-const splashLinks = SPLASH_DEVICES.flatMap(([w, h, ptW, ptH, dpr]) => [
-  {
-    // rel 需字面量类型（Nuxt 的 link 类型是按 rel 判别的联合）
-    rel: 'apple-touch-startup-image' as const,
-    href: `/splash/${w}x${h}.png`,
-    media: `(device-width: ${ptW}px) and (device-height: ${ptH}px) and (-webkit-device-pixel-ratio: ${dpr})`,
-  },
-  {
-    rel: 'apple-touch-startup-image' as const,
-    href: `/splash/${h}x${w}.png`,
-    media: `(device-width: ${ptH}px) and (device-height: ${ptW}px) and (-webkit-device-pixel-ratio: ${dpr})`,
-  },
-])
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   // 页面导航启用 View Transition：用浏览器原生的交叉淡化，纯合成器动画不卡顿
@@ -50,11 +9,9 @@ export default defineNuxtConfig({
   devServer: {
     host: '0.0.0.0',
   },
-  // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳；
-  // /dev/** 同理（开发者工具页，如文件直传测试页，依赖 localStorage/IndexedDB）
+  // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
   routeRules: {
     '/admin/**': { ssr: false },
-    '/dev/**': { ssr: false },
   },
   devtools: { enabled: true },
   runtimeConfig: {
@@ -137,9 +94,6 @@ export default defineNuxtConfig({
     },
     injectManifest: {
       globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
-      // 启动图不进预缓存：iOS 只在添加到主屏时由系统拉取并自带缓存，
-      // 进 SW 预缓存只会白白撑大 5MB+ 的离线包
-      globIgnores: ['splash/**']
     },
     devOptions: {
       enabled: true,
@@ -175,9 +129,6 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/webp', href: '/favicon.webp' },
         { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
-        // iOS standalone 冷启动的启动屏：系统按媒体查询挑最匹配的一张，
-        // 添加到主屏时拉取后由系统自带缓存，运行时零请求
-        ...splashLinks,
         // 不引任何外部样式表：Google Fonts 之类的外链 CSS 是渲染阻塞资源，
         // 会让首帧白白等一个对外的网络往返（PWA 冷启动白屏的主要来源之一）
       ]

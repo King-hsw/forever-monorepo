@@ -2,10 +2,7 @@
  * 内容寻址直传模块：先查秒传、再发凭证（MD5 寻址 + RustFS 公开桶直链）
  *
  * 对象 key 按「内容 MD5」寻址（{md5}.{ext}），同内容 = 同 key = 同直链。
- * 调用方只调本模块的四个入口，md5 计算与 check 编排都在内部：
- * - computeMd5(file)：spark-md5 分块增量计算（逐块读，大文件不一次性进内存），
- *   结果按 File 实例缓存（含进行中的 Promise），同文件多处调用只算一次；
- * - checkExists(file)：先算 md5 再 POST /api/admin/upload/check，命中即拿 accessUrl；
+ * 调用方只调 uploadOne / uploadMultipart 两个入口，md5 计算与 check 编排都在内部：
  * - uploadOne(file, onProgress)：单文件直传编排（≤8MB），403 自动重签重试；
  * - uploadMultipart(file, onProgress)：大文件分片编排（>8MB），并发 3 逐片 PUT + complete。
  *
@@ -74,7 +71,7 @@ const md5Cache = new WeakMap<File, Promise<string>>()
  * 按 MD5_CHUNK 逐块 slice → arrayBuffer → append，任意时刻只有一块在内存；
  * 结果按 File 实例缓存，同文件重复调用（含并发）不重算。
  */
-export function computeMd5(file: File): Promise<string> {
+function computeMd5(file: File): Promise<string> {
   const cached = md5Cache.get(file)
   if (cached) return cached
   const task = (async () => {
@@ -133,15 +130,6 @@ export interface UploadResult {
   accessUrl: string
   contentType: string
   instant: boolean
-}
-
-/** 单独查询秒传（一般无需直接调：uploadOne / uploadMultipart 已内置 check 编排） */
-export async function checkExists(file: File, hooks: UploadHooks = {}): Promise<CheckData> {
-  const md5 = await computeMd5(file)
-  return apiFetch<CheckData>('/api/admin/upload/check', {
-    method: 'POST',
-    body: { contentType: file.type, md5 },
-  })
 }
 
 /* ========== XHR PUT：裸二进制 + 单 Content-Type 头 ========== */
