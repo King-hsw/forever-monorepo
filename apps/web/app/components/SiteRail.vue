@@ -52,18 +52,16 @@
         </NuxtLink>
       </Tooltip>
       <div v-else class="site-rail__login">
-        <Tooltip label="登录">
-          <button
-            type="button"
-            class="site-rail__btn"
-            :class="{ 'site-rail__btn--active': loginOpen }"
-            :aria-expanded="loginOpen"
-            aria-label="登录"
-            @click="loginOpen = !loginOpen"
-          >
-            <Icon name="lucide:user" mode="svg" :size="19" />
-          </button>
-        </Tooltip>
+        <button
+          type="button"
+          class="site-rail__btn"
+          :class="{ 'site-rail__btn--active': loginOpen }"
+          :aria-expanded="loginOpen"
+          aria-label="登录"
+          @click="loginOpen = !loginOpen"
+        >
+          <Icon name="lucide:user" mode="svg" :size="19" />
+        </button>
         <div v-if="loginOpen" class="site-rail__login-panel">
           <NuxtLink to="/admin/login" @click="closeLogin">账号登录</NuxtLink>
           <NuxtLink to="/guest" @click="closeLogin">游客登录</NuxtLink>
