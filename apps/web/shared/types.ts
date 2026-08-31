@@ -217,9 +217,6 @@ export interface Moment {
   lat: number | null
   lng: number | null
   createdAt: string
-  likeCount: number
-  /** 当前访问者（登录时）是否已赞；匿名恒 false */
-  liked: boolean
   /** 已过审评论数 */
   commentCount: number
   /** 作者本人或 ADMIN 角色可删；匿名恒 false */
@@ -378,12 +375,6 @@ export interface AdminArticleQuery {
   status?: PostStatus | ''
   keyword?: string
   categoryId?: number | null
-}
-
-/** 动态点赞响应 */
-export interface MomentLikeResult {
-  likeCount: number
-  liked: boolean
 }
 
 /** 归档条目（公开归档接口；按 publishedAt 倒序） */

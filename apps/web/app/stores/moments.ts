@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { CommentNode, Moment, MomentInput, MomentLikeResult, PageResult } from '#shared/types'
+import type { CommentNode, Moment, MomentInput, PageResult } from '#shared/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const useMomentsStore = defineStore('moments', () => {
@@ -23,13 +23,6 @@ export const useMomentsStore = defineStore('moments', () => {
     await apiFetch<void>(`/api/admin/moments/${id}`, { method: 'DELETE' })
   }
 
-  /** 点赞 / 取消点赞（幂等切换由前端按当前 liked 调对应方法） */
-  async function toggleLike(id: number, liked: boolean): Promise<MomentLikeResult> {
-    return apiFetch<MomentLikeResult>(`/api/admin/moments/${id}/like`, {
-      method: liked ? 'DELETE' : 'POST',
-    })
-  }
-
   /** 动态评论（与留言板同形：根评论倒序，楼内回复随根返回） */
   async function fetchMomentComments(momentId: number, page = 1, size = 10) {
     return apiFetch<PageResult<CommentNode>>(`/api/v1/moments/${momentId}/comments`, {
@@ -37,5 +30,5 @@ export const useMomentsStore = defineStore('moments', () => {
     })
   }
 
-  return { fetchMoments, createMoment, removeMoment, toggleLike, fetchMomentComments }
+  return { fetchMoments, createMoment, removeMoment, fetchMomentComments }
 })

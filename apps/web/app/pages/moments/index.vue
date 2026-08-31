@@ -126,7 +126,7 @@ function clearUser() {
 
 onMounted(async () => {
   if (!auth.isAuthenticated) return
-  // SSR 首屏按匿名渲染；登录态刷新一次，带回 liked / canDelete
+  // SSR 首屏按匿名渲染；登录态刷新一次，带回 canDelete
   await auth.ensureMe()
   void refresh()
 })

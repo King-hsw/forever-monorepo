@@ -58,21 +58,8 @@
       <video v-if="moment.media.video" controls :src="moment.media.video" />
     </div>
 
-    <!-- 底部：点赞 / 评论 / 删除 -->
+    <!-- 底部：评论 / 删除 -->
     <footer class="moment-card__foot">
-      <button
-        type="button"
-        class="moment-card__like"
-        :class="{ 'is-liked': moment.liked }"
-        :aria-pressed="moment.liked"
-        :disabled="likePending"
-        @click="toggleLike"
-      >
-        <span class="moment-card__like-icon" aria-hidden="true">
-          <Icon name="lucide:heart" mode="svg" />
-        </span>
-        <span>{{ moment.likeCount }}</span>
-      </button>
       <button
         type="button"
         class="moment-card__comments-btn"
@@ -170,28 +157,6 @@ function openPreview(index: number, event: MouseEvent) {
 function goUser() {
   if (Number(route.query.user) !== props.moment.uid)
     router.push({ query: { ...route.query, user: String(props.moment.uid) } })
-}
-
-/* ---------- 乐观点赞：先切换再请求，失败回滚 ---------- */
-const likePending = ref(false)
-async function toggleLike() {
-  if (likePending.value) return
-  const prev = { liked: props.moment.liked, count: props.moment.likeCount }
-  props.moment.liked = !prev.liked
-  props.moment.likeCount = prev.count + (prev.liked ? -1 : 1)
-  likePending.value = true
-  try {
-    const res = await momentsStore.toggleLike(props.moment.id, prev.liked)
-    props.moment.liked = res.liked
-    props.moment.likeCount = res.likeCount
-  }
-  catch {
-    props.moment.liked = prev.liked
-    props.moment.likeCount = prev.count
-  }
-  finally {
-    likePending.value = false
-  }
 }
 
 /* ---------- 内联评论区：评论内容常显（挂载即拉取）；输入框由 💬 按钮显隐 ---------- */
@@ -436,7 +401,6 @@ async function onDelete() {
   border-top: 1px solid var(--c-border);
 }
 
-.moment-card__like,
 .moment-card__comments-btn {
   display: inline-flex;
   align-items: center;
@@ -454,38 +418,13 @@ async function onDelete() {
     transform 0.15s var(--ease-bounce);
 }
 
-.moment-card__like:active:not(:disabled),
 .moment-card__comments-btn:active:not(:disabled) {
   transform: scale(0.9);
 }
 
-.moment-card__like:hover:not(:disabled),
 .moment-card__comments-btn:hover:not(:disabled) {
   color: var(--c-primary-hover);
   background: var(--c-primary-light);
-}
-
-.moment-card__like.is-liked {
-  color: var(--c-primary-hover);
-}
-
-.moment-card__like-icon {
-  display: inline-flex;
-  transition: transform 0.2s var(--ease-bounce);
-}
-
-.moment-card__like-icon :deep(svg) {
-  width: 15px;
-  height: 15px;
-}
-
-/* 已赞：描边心形填充为实心 */
-.moment-card__like.is-liked .moment-card__like-icon :deep(svg) {
-  fill: currentColor;
-}
-
-.moment-card__like.is-liked .moment-card__like-icon {
-  transform: scale(1.15);
 }
 
 .moment-card__delete {
