@@ -14,6 +14,7 @@ export interface ItemMeta {
 }
 
 export const SETTING_META: Record<string, ItemMeta> = {
+  'site.name': { label: '站点名称', type: 'text' },
   'site.url': { label: '站点地址', type: 'url' },
   'site.birth-date': { label: '建站时间', type: 'date' },
   'board.title': { label: '留言板标题', type: 'text' },
@@ -24,6 +25,15 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'comment.owner-email': { label: '站长邮箱', type: 'email' },
   'comment.from-email': { label: '发件人地址', type: 'email', defaultValue: 'noreply@example.com' },
   'moments.amapKey': { label: '高德 Web 服务 Key', type: 'text' },
+  'ai.summary-enabled': { label: '概要总开关', type: 'boolean', defaultValue: 'false' },
+  'ai.api-key': { label: 'API Key', type: 'text' },
+  'ai.base-url': { label: '服务地址', type: 'text', defaultValue: 'https://api.openai.com' },
+  'ai.model': { label: '模型名', type: 'text', defaultValue: 'gpt-4o-mini' },
+  'storage.endpoint': { label: 'S3 API 地址', type: 'url' },
+  'storage.access-key': { label: 'Access Key', type: 'text' },
+  'storage.secret-key': { label: 'Secret Key', type: 'text' },
+  'storage.bucket': { label: '存储桶名', type: 'text' },
+  'storage.presign-ttl': { label: '预签名有效期', type: 'text', defaultValue: '15m' },
 }
 
 const FALLBACK_META: ItemMeta = { label: '', type: 'text' }

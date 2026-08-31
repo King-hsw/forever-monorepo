@@ -160,7 +160,7 @@ interface Group {
 }
 
 const KNOWN_GROUPS: Group[] = [
-  { title: '站点', icon: 'lucide:globe', keys: ['site.url', 'site.birth-date'] },
+  { title: '站点', icon: 'lucide:globe', keys: ['site.name', 'site.url', 'site.birth-date'] },
   {
     title: '留言板',
     icon: 'lucide:clipboard-list',
@@ -182,6 +182,18 @@ const KNOWN_GROUPS: Group[] = [
     icon: 'lucide:map-pin',
     desc: '发布页「获取当前位置」走高德逆地理编码；留空时该功能静默降级，可手动填写地点',
     keys: ['moments.amapKey'],
+  },
+  {
+    title: 'AI 概要',
+    icon: 'lucide:sparkles',
+    desc: '文章 AI 摘要走 OpenAI 兼容接口；总开关打开且 API Key 已配置才会生效',
+    keys: ['ai.summary-enabled', 'ai.api-key', 'ai.base-url', 'ai.model'],
+  },
+  {
+    title: '对象存储',
+    icon: 'lucide:hard-drive',
+    desc: '图片等文件上传走 S3 / RustFS；未设置的项回落服务端 yml 或环境变量',
+    keys: ['storage.endpoint', 'storage.access-key', 'storage.secret-key', 'storage.bucket', 'storage.presign-ttl'],
   },
 ]
 
