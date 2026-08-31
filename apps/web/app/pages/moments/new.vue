@@ -138,7 +138,7 @@
             ref="videoPicker"
             class="composer__tool"
             :exts="VIDEO_EXTS"
-            :max-size="100 * MB"
+            :max-size="10000 * MB"
             :disabled="!auth.isAuthenticated || !!videoItem"
             @picked="files => onPicked('video', files)"
             @progress="onUploadProgress"
