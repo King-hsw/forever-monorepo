@@ -40,7 +40,7 @@
         </div>
         <div class="setup-row__control">
           <!-- 布尔型开关 -->
-          <SettingSwitch
+          <AdminSettingSwitch
             v-if="metaOf(item.key).type === 'boolean'"
             :on="settingBoolValue(drafts[item.key], item)"
             :label="metaOf(item.key).label"

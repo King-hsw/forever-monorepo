@@ -52,7 +52,7 @@
         <div class="settings-row__control">
           <!-- 布尔型：开关 -->
           <template v-if="metaOf(item.key).type === 'boolean'">
-            <SettingSwitch
+            <AdminSettingSwitch
               :on="settingBoolValue(drafts[item.key], item)"
               :label="metaOf(item.key).label"
               @toggle="toggleBool(item)"
