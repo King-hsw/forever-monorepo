@@ -68,6 +68,11 @@ export const usePostsStore = defineStore('admin-posts', () => {
     total.value = Math.max(0, total.value - 1)
   }
 
+  /** AI 生成摘要（需后台站点设置开启；后端已落库，返回最新文章） */
+  async function aiSummary(id: number | string): Promise<Post> {
+    return apiFetch<Post>(`/api/admin/articles/${id}/ai-summary`, { method: 'POST' })
+  }
+
   /** 发布 / 下线文章 */
   async function setStatus(id: number, status: PostStatus): Promise<void> {
     const action = status === 'PUBLISHED' ? 'publish' : 'unpublish'
@@ -92,6 +97,7 @@ export const usePostsStore = defineStore('admin-posts', () => {
     create,
     update,
     remove,
+    aiSummary,
     setStatus,
     toggleStatus,
   }

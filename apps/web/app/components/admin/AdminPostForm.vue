@@ -82,7 +82,17 @@
           </section>
 
           <section class="drawer-section">
-            <label class="drawer-label" for="post-excerpt">摘要</label>
+            <div class="summary-head">
+              <label class="drawer-label" for="post-excerpt">摘要</label>
+              <button
+                type="button"
+                class="summary-ai-btn"
+                :disabled="!postId || aiSummaryBusy"
+                @click="generateSummary"
+              >
+                <Icon name="lucide:sparkles" />{{ aiSummaryBusy ? '生成中…' : 'AI 生成' }}
+              </button>
+            </div>
             <textarea
               id="post-excerpt"
               v-model="form.summary"
@@ -90,6 +100,7 @@
               rows="4"
               placeholder="简要描述这篇文章（留空则自动截取正文前 120 字）"
             />
+            <p v-if="!postId" class="summary-hint">保存文章后即可用 AI 生成摘要</p>
           </section>
         </aside>
       </Transition>
@@ -130,6 +141,24 @@ const form = reactive({
 // 全屏专注模式（与 admin 布局共享：隐藏侧边栏与顶栏）
 const fullscreen = useState('admin-editor-fullscreen', () => false)
 const drawerOpen = ref(false)
+
+/* ---- AI 摘要：后端按文章 id 生成并落库；新建页保存前无 id，按钮置灰 ---- */
+const postsStore = usePostsStore()
+const postId = props.initial?.id
+const aiSummaryBusy = ref(false)
+
+async function generateSummary() {
+  if (!postId || aiSummaryBusy.value) return
+  aiSummaryBusy.value = true
+  try {
+    const post = await postsStore.aiSummary(postId)
+    form.summary = post.summary
+  } catch (err) {
+    alert(errMsg(err, 'AI 摘要生成失败'))
+  } finally {
+    aiSummaryBusy.value = false
+  }
+}
 
 function toggleFullscreen() {
   fullscreen.value = !fullscreen.value
@@ -468,6 +497,43 @@ select.field-input {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+/* 摘要区头部：label 与 AI 生成按钮同行 */
+.summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  .drawer-label {
+    margin-bottom: 0;
+  }
+}
+
+.summary-ai-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--c-primary-hover);
+  background: var(--c-primary-light);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--c-text-muted);
+    background: var(--c-bg-soft);
+    cursor: default;
+  }
+}
+
+.summary-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
   color: var(--c-text-muted);
 }
 
