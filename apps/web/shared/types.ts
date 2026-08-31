@@ -377,3 +377,20 @@ export interface ArchiveItem {
   slug: string
   publishedAt: string
 }
+
+/** 站内消息（消息中心；GET /api/v1/messages） */
+export interface MessageItem {
+  id: number
+  /** COMMENT_REPLY-收到回复 / NEW_COMMENT-收到新评论 */
+  type: 'COMMENT_REPLY' | 'NEW_COMMENT'
+  content: string
+  /** 点击跳转链接（含锚点） */
+  sourceUrl: string
+  isRead: boolean
+  createdAt: string
+}
+
+/** 未读数（GET /api/v1/messages/unread-count） */
+export interface UnreadCount {
+  count: number
+}

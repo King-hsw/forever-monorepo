@@ -38,6 +38,13 @@
           <Icon name="lucide:search" mode="svg" :size="16" />
         </button>
         <NuxtLink
+          v-if="auth.isAuthenticated" to="/messages" class="site-header__icon-btn msg-bell"
+          aria-label="消息" title="消息"
+        >
+          <Icon name="lucide:bell" mode="svg" :size="16" />
+          <span v-if="unread > 0" class="msg-bell__badge" :aria-label="`未读消息 ${unread}`">{{ unread > 99 ? '99+' : unread }}</span>
+        </NuxtLink>
+        <NuxtLink
           v-if="guest.isRegistered"
           class="site-header__guest"
           to="/guest"
@@ -85,6 +92,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const guest = useGuestStore()
+const { count: unread } = useUnread()
 const searchOpen = useState('global-search-open', () => false)
 const { setNext, nextLabel } = useTheme()
 
@@ -350,10 +358,35 @@ function onBrandClick() {
     display: none;
   }
 
-  /* actions 组里保留主题切换和搜索（guest / 登录移入 Tab Bar「更多」） */
-  .site-header__actions > :not(.site-header__icon-btn.theme-toggle):not(.search-toggle) {
+  /* actions 组里保留主题切换、搜索和消息铃铛（guest / 登录移入 Tab Bar「更多」） */
+  .site-header__actions > :not(.site-header__icon-btn.theme-toggle):not(.search-toggle):not(.msg-bell) {
     display: none;
   }
+
+  .msg-bell__badge {
+    top: -2px;
+    right: -2px;
+  }
+}
+
+/* 消息铃铛：未读数小徽标 */
+.msg-bell {
+  position: relative;
+}
+
+.msg-bell__badge {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 15px;
+  color: #fff;
+  background: var(--c-danger);
+  border-radius: 999px;
+  text-align: center;
 }
 
 /* 桌面端：顶栏退位，由左侧竖排导航接管 */

@@ -30,6 +30,15 @@
           {{ guest.nickname.slice(0, 1) }}
         </NuxtLink>
       </Tooltip>
+      <Tooltip
+        v-if="auth.isAuthenticated"
+        :label="unread > 0 ? `消息（${unread} 条未读）` : '消息'"
+      >
+        <NuxtLink to="/messages" class="site-rail__btn site-rail__bell" aria-label="消息">
+          <Icon name="lucide:bell" mode="svg" :size="19" />
+          <span v-if="unread > 0" class="site-rail__badge">{{ unread > 99 ? '99+' : unread }}</span>
+        </NuxtLink>
+      </Tooltip>
       <Tooltip label="搜索">
         <button type="button" class="site-rail__btn" aria-label="搜索" @click="searchOpen = true">
           <Icon name="lucide:search" mode="svg" :size="19" />
@@ -74,6 +83,7 @@
 <script setup lang="ts">
 const auth = useAuthStore()
 const guest = useGuestStore()
+const { count: unread } = useUnread()
 const searchOpen = useState('global-search-open', () => false)
 const { setNext, nextLabel } = useTheme()
 
@@ -164,6 +174,26 @@ watch(() => route.fullPath, closeLogin)
   height: 26px;
   border-radius: 50%;
   object-fit: cover;
+}
+
+/* 消息铃铛：未读数小徽标 */
+.site-rail__bell {
+  position: relative;
+}
+
+.site-rail__badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 15px;
+  color: #fff;
+  background: var(--c-danger);
+  border-radius: 999px;
+  text-align: center;
 }
 
 /* 游客身份：昵称首字，点击进入 /guest 管理 */
