@@ -49,7 +49,9 @@ export default defineNuxtConfig({
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
   // hljs-dark.css：代码高亮的深色 token 层（浅色基线是各组件引入的 highlight.js github.css）
   css: ['~/assets/css/main.css', '~/assets/css/prose.css', '~/assets/css/hljs-dark.css'],
-  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/icon'],
+  // @nuxt/icon 的本地图标数据接口默认挂在 /api/_nuxt_icon 下，会被网关 /api→后端的转发规则
+  // 截走（后端 Spring Security 直接 401 拒绝并刷日志）；改挂到 /_nuxt_icon 避开 /api 命名空间
+  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', ['@nuxt/icon', { localApiEndpoint: '/_nuxt_icon' }]],
   // 图标：iconify 本地集合（@iconify-json/lucide），构建时打包、运行时不请求外网；
   // 默认 css 模式用 mask 渲染，颜色随 currentColor、大小随 font-size，与现有线性 SVG 风格一致
   pwa: {
