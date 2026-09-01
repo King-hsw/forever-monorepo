@@ -31,8 +31,9 @@
           <Icon name="lucide:bell" mode="svg" :size="16" />
           <span v-if="unread > 0" class="msg-bell__badge" :aria-label="`未读消息 ${unread}`">{{ unread > 99 ? '99+' : unread }}</span>
         </NuxtLink>
+        <!-- 登录账号后评论/聊天均用账号身份，游客身份隐藏避免两个身份并存 -->
         <NuxtLink
-          v-if="guest.isRegistered"
+          v-if="guest.isRegistered && !auth.isAuthenticated"
           class="site-header__guest"
           to="/guest"
           :title="`游客身份：${guest.nickname}`"

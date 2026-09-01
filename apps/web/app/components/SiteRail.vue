@@ -18,8 +18,9 @@
     </nav>
 
     <div class="site-rail__foot">
+      <!-- 登录账号后评论/聊天均用账号身份，游客身份隐藏避免两个身份并存 -->
       <Tooltip
-        v-if="guest.isRegistered"
+        v-if="guest.isRegistered && !auth.isAuthenticated"
         :label="`游客身份：${guest.nickname}`"
       >
         <NuxtLink
