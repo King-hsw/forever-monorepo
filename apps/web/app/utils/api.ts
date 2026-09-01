@@ -138,11 +138,16 @@ function refreshToken(): Promise<boolean> {
  * 发起 API 请求并解包统一响应体。
  * 失败时抛出 ApiError；业务请求 401 时先用 refreshToken 静默续期重试一次，
  * 刷新失败才清除本地登录态并跳转登录页。
+ *
+ * 服务端请求统一留痕：SSR 阶段 useAsyncData 会吞掉失败（页面静默空白），
+ * 每个请求打一行概要（方法/路径/耗时/业务码）加一行响应结果，失败打一行错误。
  */
 export async function apiFetch<T>(path: string, options: ApiOptions = {}, retried = false): Promise<T> {
   // devProxy 只对浏览器请求生效；SSR 内部 $fetch 必须直连后端地址
   const config = useRuntimeConfig()
   const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
+  const method = options.method ?? 'GET'
+  const startedAt = Date.now()
   const headers: Record<string, string> = { ...options.headers }
 
   // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401；
@@ -156,7 +161,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   let res: ApiResponse<T>
   try {
     res = await $fetch<ApiResponse<T>>(`${base}${path}`, {
-      method: options.method ?? 'GET',
+      method,
       body: options.body,
       query: options.query,
       headers,
@@ -171,12 +176,23 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
         if (await refreshToken()) return apiFetch<T>(path, options, true)
         handleUnauthorized()
       }
+      console.error(`[api] ${method} ${path} 失败 → HTTP 401 (${Date.now() - startedAt}ms)`)
       throw new ApiError('登录已过期，请重新登录', 401)
     }
     const message
       = (err as { data?: { message?: string } })?.data?.message
         ?? (err instanceof Error ? err.message : '网络请求失败')
+    console.error(`[api] ${method} ${path} 失败 → HTTP ${status ?? '网络错误'} (${Date.now() - startedAt}ms): ${message}`)
     throw new ApiError(message, status ?? -1)
+  }
+
+  // 服务端把每次请求与响应结果落到日志（终端 / docker logs 可见）；
+  // 响应体截断到 2000 字符——首页一次拉 1000 篇文章，完整 JSON 可达数 MB，会刷爆日志
+  if (import.meta.server) {
+    const query = options.query && Object.keys(options.query).length ? ` ${JSON.stringify(options.query)}` : ''
+    console.log(`[api] ${method} ${path}${query} → ${Date.now() - startedAt}ms code=${res.code}${res.code === 0 ? '' : ` 业务失败: ${res.message}`}`)
+    const result = JSON.stringify(res.data) || 'null'
+    console.log(`[api] ${method} ${path} 响应: ${result.length > 2000 ? `${result.slice(0, 2000)}…(已截断)` : result}`)
   }
 
   if (res.code !== 0) {
