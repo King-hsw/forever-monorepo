@@ -46,7 +46,7 @@
       </Tooltip>
       <!-- 移动端主题切换按钮在 SiteHeader，两侧按断点互斥，DOM 中只存在一个实例 -->
       <Tooltip v-if="isDesktop" :label="nextLabel">
-        <ThemeToggle class="site-rail__btn" :size="19" stroke-width="1.8" />
+        <ThemeToggle class="site-rail__btn" :size="19" :stroke-width="1.8" />
       </Tooltip>
       <Tooltip v-if="auth.isAuthenticated" label="管理后台">
         <NuxtLink to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
@@ -81,8 +81,6 @@ const searchOpen = useState('global-search-open', () => false)
 const { nextLabel } = useTheme()
 const isDesktop = useIsDesktop()
 
-auth.hydrate()
-guest.hydrate()
 
 /** 后续加菜单只改这里 */
 const navItems = [
@@ -109,6 +107,9 @@ function onDocMouseDown(e: MouseEvent) {
 useOnEscape(closeLogin)
 
 onMounted(() => {
+  // 延到挂载后恢复登录态/游客态，让水合渲染与 SSR 输出一致（避免 hydration mismatch）
+  auth.hydrate()
+  guest.hydrate()
   document.addEventListener('mousedown', onDocMouseDown)
 })
 

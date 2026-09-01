@@ -84,9 +84,6 @@ const searchOpen = useState('global-search-open', () => false)
 const { nextLabel } = useTheme()
 const isDesktop = useIsDesktop()
 
-// 登录态存于 localStorage，仅客户端可知；SSR 默认未登录，onMounted 恢复
-auth.hydrate()
-guest.hydrate()
 
 /* 登录菜单：账号登录 / 游客登录 */
 const loginOpen = ref(false)
@@ -119,6 +116,9 @@ function onScroll() {
 }
 
 onMounted(() => {
+  // 延到挂载后恢复登录态/游客态，让水合渲染与 SSR 输出一致（避免 hydration mismatch）
+  auth.hydrate()
+  guest.hydrate()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
   document.addEventListener('mousedown', onDocMouseDown)
