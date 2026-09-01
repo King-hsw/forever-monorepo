@@ -215,7 +215,6 @@ const GAP_MS = 5 * 60 * 1000
 
 const comments = useCommentsStore()
 const auth = useAuthStore()
-auth.hydrate()
 
 const board = ref<BoardInfo | null>(null)
 const loading = ref(true)
@@ -233,7 +232,6 @@ const filterMember = ref<string | null>(null)
 const MOCK_OWNER_EMAIL = '1125030435@qq.com'
 
 const guest = useGuestStore()
-guest.hydrate()
 
 /** 当前发言身份：后台登录账号优先，其次游客身份；null = 尚未注册 */
 const identity = computed(() =>

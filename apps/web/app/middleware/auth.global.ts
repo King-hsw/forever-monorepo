@@ -1,6 +1,9 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  // localStorage 仅客户端可用，SSR 阶段放行，由客户端接管跳转
-  if (import.meta.server) return
+  // SSR：统一从镜像 cookie 恢复登录态（各页面不再各自 hydrate）；localStorage 仅客户端可用，客户端跳转由下方接管
+  if (import.meta.server) {
+    useAuthStore().hydrate()
+    return
+  }
 
   const auth = useAuthStore()
   auth.hydrate()

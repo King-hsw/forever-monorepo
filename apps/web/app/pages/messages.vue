@@ -73,8 +73,6 @@ useSeoMeta({ title: '消息 · 补陋阁' })
 const auth = useAuthStore()
 const { count: unread, refresh: refreshUnread } = useUnread()
 
-auth.hydrate()
-
 const SIZE = 20
 const page = ref(1)
 const list = ref<MessageItem[]>([])

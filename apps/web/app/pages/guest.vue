@@ -68,7 +68,6 @@ useHead({ title: '游客身份 · 补陋阁' })
 
 const route = useRoute()
 const guest = useGuestStore()
-guest.hydrate()
 
 const form = reactive({
   nickname: guest.nickname,
@@ -77,6 +76,14 @@ const form = reactive({
 })
 const errorMsg = ref('')
 const submitting = ref(false)
+
+onMounted(() => {
+  // 延到水合渲染完成后恢复身份，避免与 SSR 输出不一致；恢复后再预填表单
+  guest.hydrate()
+  form.nickname = guest.nickname
+  form.email = guest.email
+  form.site = guest.site
+})
 
 /** 保存后的回跳地址：只接受站内路径，防开放重定向 */
 const redirect = computed(() => {

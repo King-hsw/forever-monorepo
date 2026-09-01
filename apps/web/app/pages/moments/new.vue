@@ -206,7 +206,6 @@ usePageSeo({
 })
 
 const auth = useAuthStore()
-auth.hydrate()
 
 /** 直传请求缺省走共享 apiFetch 的主站登录会话，无需显式注入令牌 */
 const momentsStore = useMomentsStore()

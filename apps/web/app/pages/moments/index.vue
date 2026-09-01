@@ -62,8 +62,7 @@ usePageSeo({
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-auth.hydrate()
-// 登录态在首屏渲染前拉取权限码（SSR 与客户端整页加载各一次），按钮可见性无闪烁
+// 登录态在首屏渲染前拉取权限码（SSR 一次；客户端整页加载随 SSR 状态序列化），按钮可见性无闪烁
 if (auth.isAuthenticated)
   await auth.ensureMe()
 
