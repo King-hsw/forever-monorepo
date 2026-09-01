@@ -2,6 +2,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // SSR：统一从镜像 cookie 恢复登录态（各页面不再各自 hydrate）；localStorage 仅客户端可用，客户端跳转由下方接管
   if (import.meta.server) {
     useAuthStore().hydrate()
+    // 游客身份同样服务端统一恢复（镜像 cookie），SSR 各页直接渲染正确形态
+    useGuestStore().hydrate()
     return
   }
 
