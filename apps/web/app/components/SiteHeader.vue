@@ -13,21 +13,8 @@
       </nav>
 
       <div class="site-header__actions">
-        <button
-          type="button"
-          class="site-header__icon-btn theme-toggle"
-          :aria-label="nextLabel"
-          :title="nextLabel"
-          @click="setNext($event)"
-        >
-          <Icon name="lucide:sun" mode="svg" :size="16" class="theme-toggle__ico theme-toggle__ico--sun" />
-          <Icon name="lucide:moon" mode="svg" :size="16" class="theme-toggle__ico theme-toggle__ico--moon" />
-          <!-- 跟随系统：半明半暗圆（右半填充，lucide 无对应图形，保留自绘） -->
-          <svg class="theme-toggle__ico theme-toggle__ico--auto" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
-          </svg>
-        </button>
+        <!-- 桌面端主题切换按钮在 SiteRail，两侧按断点互斥，DOM 中只存在一个实例 -->
+        <ThemeToggle v-if="!isDesktop" class="site-header__icon-btn" :title="nextLabel" />
         <button
           type="button"
           class="site-header__icon-btn search-toggle"
@@ -94,7 +81,8 @@ const auth = useAuthStore()
 const guest = useGuestStore()
 const { count: unread } = useUnread()
 const searchOpen = useState('global-search-open', () => false)
-const { setNext, nextLabel } = useTheme()
+const { nextLabel } = useTheme()
+const isDesktop = useIsDesktop()
 
 // 登录态存于 localStorage，仅客户端可知；SSR 默认未登录，onMounted 恢复
 auth.hydrate()

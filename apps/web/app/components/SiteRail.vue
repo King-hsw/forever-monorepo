@@ -44,16 +44,9 @@
           <Icon name="lucide:search" mode="svg" :size="19" />
         </button>
       </Tooltip>
-      <Tooltip :label="nextLabel">
-        <button type="button" class="site-rail__btn theme-toggle" :aria-label="nextLabel" @click="setNext($event)">
-          <Icon name="lucide:sun" mode="svg" :size="19" class="theme-toggle__ico theme-toggle__ico--sun" />
-          <Icon name="lucide:moon" mode="svg" :size="19" class="theme-toggle__ico theme-toggle__ico--moon" />
-          <!-- 跟随系统：半明半暗圆（右半填充，lucide 无对应图形，保留自绘） -->
-          <svg class="theme-toggle__ico theme-toggle__ico--auto" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none" />
-          </svg>
-        </button>
+      <!-- 移动端主题切换按钮在 SiteHeader，两侧按断点互斥，DOM 中只存在一个实例 -->
+      <Tooltip v-if="isDesktop" :label="nextLabel">
+        <ThemeToggle class="site-rail__btn" :size="19" stroke-width="1.8" />
       </Tooltip>
       <Tooltip v-if="auth.isAuthenticated" label="管理后台">
         <NuxtLink to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
@@ -85,7 +78,8 @@ const auth = useAuthStore()
 const guest = useGuestStore()
 const { count: unread } = useUnread()
 const searchOpen = useState('global-search-open', () => false)
-const { setNext, nextLabel } = useTheme()
+const { nextLabel } = useTheme()
+const isDesktop = useIsDesktop()
 
 auth.hydrate()
 guest.hydrate()
