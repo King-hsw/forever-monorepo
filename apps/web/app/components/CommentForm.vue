@@ -68,16 +68,17 @@ const auth = useAuthStore()
 const route = useRoute()
 const { syncSubscriptionEmail } = usePush()
 
-guest.hydrate()
+// 延到水合渲染完成后恢复游客身份，避免与 SSR 输出不一致（登录态由 SSR 中间件统一恢复）
+onMounted(() => {
+  guest.hydrate()
+})
 
 /** 登录资料发言身份：仅 useLoginIdentity 开启且登录时拉取；资料缺昵称则回落游客身份流程（邮箱可为空） */
 const profile = ref<ProfileInfo | null>(null)
-if (props.useLoginIdentity) {
-  auth.hydrate()
-  if (auth.isAuthenticated)
-    void apiFetch<ProfileInfo>('/api/admin/profile').then(p => {
-      profile.value = p
-    }).catch(() => {})
+if (props.useLoginIdentity && auth.isAuthenticated) {
+  void apiFetch<ProfileInfo>('/api/admin/profile').then(p => {
+    profile.value = p
+  }).catch(() => {})
 }
 const loginIdentity = computed(() => {
   const p = profile.value

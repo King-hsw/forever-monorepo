@@ -55,9 +55,8 @@
 
 <script setup lang="ts">
 const route = useRoute()
+// 登录态由 SSR 中间件（auth.global）统一恢复，组件内不再各自 hydrate
 const auth = useAuthStore()
-
-auth.hydrate()
 
 const moreOpen = ref(false)
 
