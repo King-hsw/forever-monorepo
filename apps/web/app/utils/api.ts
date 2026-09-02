@@ -125,13 +125,49 @@ function refreshToken(): Promise<boolean> {
       if (res.code !== 0) return false
       saveAuth({ ...current, accessToken: res.data.accessToken, refreshToken: res.data.refreshToken })
       return true
-    } catch {
+    } catch (err) {
+      // base 是 try 内的块级作用域，这里拿不到，重新取一次运行时配置
+      const status = (err as { statusCode?: number })?.statusCode
+      const refreshUrl = `${useRuntimeConfig().public.apiBase}/api/auth/refresh`
+      console.error(`[api] POST ${refreshUrl} 失败 → HTTP ${status ?? '网络错误'}: ${errMsg(err)}`)
       return false
     } finally {
       refreshing = null
     }
   })()
   return refreshing
+}
+
+/**
+ * 拼出实际发往后端的完整 URL（含 query 串）。
+ * 日志里只打 path 的话，SSR 直连后端 / 浏览器走代理两种情况混在一起，
+ * 根本看不清请求到底打到哪台机器上，所以这里还原成可直接复制 curl 复现的完整地址。
+ */
+function buildUrl(base: string, path: string, query?: Record<string, unknown>): string {
+  const url = `${base}${path}`
+  if (!query) return url
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    if (value === null || value === undefined || value === '') continue
+    // 数组按 ofetch 的行为展开成重复参数（?tag=a&tag=b），而不是逗号串
+    if (Array.isArray(value)) value.forEach(item => params.append(key, String(item)))
+    else params.append(key, String(value))
+  }
+  const search = params.toString()
+  return search ? `${url}?${search}` : url
+}
+
+/**
+ * 取失败响应的响应体摘要，用于区分「后端拒的」和「网关拒的」。
+ * ofetch 会把 JSON 解析进 err.data、把非 JSON 放进 err.data 或 err.body，
+ * 这里统一取一段文本，截断到 300 字符防止刷屏。
+ */
+function describeBody(err: unknown): string {
+  const raw = (err as { data?: unknown; body?: unknown })?.data
+    ?? (err as { body?: unknown })?.body
+  if (raw === undefined || raw === null || raw === '') return ''
+  const text = typeof raw === 'string' ? raw : JSON.stringify(raw)
+  return `body=${text.length > 300 ? `${text.slice(0, 300)}…(已截断)` : text}`
 }
 
 /**
@@ -146,6 +182,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   // devProxy 只对浏览器请求生效；SSR 内部 $fetch 必须直连后端地址
   const config = useRuntimeConfig()
   const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
+  const url = buildUrl(base, path, options.query)
   const method = options.method ?? 'GET'
   const startedAt = Date.now()
   const headers: Record<string, string> = { ...options.headers }
@@ -169,6 +206,10 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   } catch (err) {
     const status = (err as { statusCode?: number; status?: number })?.statusCode
       ?? (err as { status?: number })?.status
+    // 401 大多是令牌问题，带上「有没有令牌」这一位信息，一眼就能区分
+    // 是「没登录/SSR 拿不到 cookie」还是「令牌本身被后端拒了」
+    const authFlag = `auth=${headers.Authorization ? '已带 Bearer' : '无令牌'}`
+    const detail = `(${Date.now() - startedAt}ms) ${authFlag}`
     if (status === 401) {
       // 登录接口自身的 401 是“账号或密码错误”，不能触发刷新/跳转，
       // 否则登录页会被整页刷新，错误提示根本来不及显示
@@ -176,21 +217,23 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
         if (await refreshToken()) return apiFetch<T>(path, options, true)
         handleUnauthorized()
       }
-      console.error(`[api] ${method} ${path} 失败 → HTTP 401 (${Date.now() - startedAt}ms)`)
+      // 响应体截断附上：后端 Spring 拒的会返回 {"code":40101,...}，
+      // 被 nginx/CDN/网关拦的会返回 HTML 或 401 Unauthorized 纯文本，
+      // 不打出来就只能靠猜到底是哪一层在拒绝
+      console.error(`[api] ${method} ${url} 失败 → HTTP 401 ${detail} ${describeBody(err)}`)
       throw new ApiError('登录已过期，请重新登录', 401)
     }
     const message
       = (err as { data?: { message?: string } })?.data?.message
         ?? (err instanceof Error ? err.message : '网络请求失败')
-    console.error(`[api] ${method} ${path} 失败 → HTTP ${status ?? '网络错误'} (${Date.now() - startedAt}ms): ${message}`)
+    console.error(`[api] ${method} ${url} 失败 → HTTP ${status ?? '网络错误'} ${detail}: ${message} ${describeBody(err)}`)
     throw new ApiError(message, status ?? -1)
   }
 
   // 服务端把每次请求与响应结果落到日志（终端 / docker logs 可见）；
   // 响应体截断到 2000 字符——首页一次拉 1000 篇文章，完整 JSON 可达数 MB，会刷爆日志
   if (import.meta.server) {
-    const query = options.query && Object.keys(options.query).length ? ` ${JSON.stringify(options.query)}` : ''
-    console.log(`[api] ${method} ${path}${query} → ${Date.now() - startedAt}ms code=${res.code}${res.code === 0 ? '' : ` 业务失败: ${res.message}`}`)
+    console.log(`[api] ${method} ${url} → ${Date.now() - startedAt}ms code=${res.code}${res.code === 0 ? '' : ` 业务失败: ${res.message}`}`)
     const result = JSON.stringify(res.data) || 'null'
     console.log(`[api] ${method} ${path} 响应: ${result.length > 2000 ? `${result.slice(0, 2000)}…(已截断)` : result}`)
   }
