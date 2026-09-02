@@ -124,9 +124,13 @@ jobs:
           DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
           DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
+          # 凭据为空时 skopeo 不会报错，而是回退成交互式输入（CI 无 tty，最终报
+          # "inappropriate ioctl for device"），所以逐项校验、直接给可操作的报错
           test -n "$DH_IMAGE" || { echo "请先在仓库 Settings → Variables 配置 DOCKERHUB_IMAGE（全小写，如 xxx/forever）"; exit 1; }
-          echo "$GITHUB_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          echo "$DH_TOKEN" | skopeo login docker.io -u "$DH_USER" --password-stdin
+          test -n "$DH_USER" || { echo "请先在仓库 Settings → Secrets 配置 DOCKERHUB_USERNAME（Docker Hub 账号用户名）"; exit 1; }
+          test -n "$DH_TOKEN" || { echo "请先在仓库 Settings → Secrets 配置 DOCKERHUB_TOKEN（Docker Hub Access Token，读写权限）"; exit 1; }
+          printf '%s' "$GITHUB_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          printf '%s' "$DH_TOKEN" | skopeo login docker.io -u "$DH_USER" --password-stdin
           TAGS=(latest)
           [[ "$GITHUB_REF" == refs/tags/v* ]] && TAGS+=("${GITHUB_REF#refs/tags/}")
           for TAG in "${TAGS[@]}"; do
