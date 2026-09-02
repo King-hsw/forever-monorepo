@@ -227,6 +227,16 @@ usePageSeo({
   }
 }
 
+/* 移动端（≤640px）：底部 Tab Bar（z-49）占据右下角，目录整体上移躲开，
+ * 底边与内容区 padding-bottom 同逻辑（--tabbar-space + 安全区），右缘对齐 Tab Bar */
+@media (max-width: 640px) {
+  .toc {
+    right: calc(12px + env(safe-area-inset-right));
+    bottom: calc(var(--tabbar-space) + var(--safe-area-inset-bottom));
+    z-index: 50;
+  }
+}
+
 .toc__title {
   margin: 0 0 12px;
   font-family: var(--font-serif);
