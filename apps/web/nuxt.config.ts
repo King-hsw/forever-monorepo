@@ -26,9 +26,15 @@ export default defineNuxtConfig({
       apiBase: '',
     },
   },
-  // 开发环境：浏览器发出的 /api/** 及 rss/sitemap 由 devProxy 转发到后端；
+  // 开发环境：浏览器发出的 /api/** 及 rss 由 devProxy 转发到后端；
   // 注意 devProxy 对 SSR 内部 $fetch 无效，SSR 靠上面的 apiBase 直连
   nitro: {
+    // 构建期为 .output/public 下的静态资源（/_nuxt/* 等）预生成 .gz / .br，
+    // 压缩发生在构建时，运行时零开销。
+    // 注意：这只覆盖静态资源。SSR 动态 HTML 与 server routes（/sitemap.xml、
+    // /robots.txt）目前不压缩——全站唯一能兜住它们的就是网关层，
+    // 若后续开启上级反代（Traefik / Nginx）的 gzip，记得配好类型白名单
+    compressPublicAssets: true,
     devProxy: {
       // 注意：当前 nitropack 的 devProxy 转发时会剥掉匹配的前缀（/api/），
       // 因此 target 必须带上 /api 才能还原真实路径
@@ -43,7 +49,8 @@ export default defineNuxtConfig({
             changeOrigin: true,
       },
       '/rss.xml': { target: 'http://localhost:8080/rss.xml', changeOrigin: true },
-      '/sitemap.xml': { target: 'http://localhost:8080/sitemap.xml', changeOrigin: true },
+      // /sitemap.xml 与 /robots.txt 改由 server/routes 动态生成（后端没有这两个接口），
+      // 在此转发只会得到 404
     },
   },
   // prose.css：MarkdownView 与 TiptapEditor 共用的文章排版（所见即所得）
