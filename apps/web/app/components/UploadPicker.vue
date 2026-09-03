@@ -33,6 +33,7 @@ import {
   uploadOne,
   type UploadResult,
 } from '~/utils/directUpload'
+import { compressImageFile } from '~/utils/imageUpload'
 
 const props = withDefaults(defineProps<{
   /** 允许上传的后缀白名单（不含点，如 ['jpg', 'png']）：文件选择器的 accept
@@ -68,7 +69,7 @@ const busy = ref(false)
 let seq = 0
 let batch: AbortController | null = null
 
-function onChange() {
+async function onChange() {
   const files = Array.from(inputEl.value?.files ?? [])
   // 立即清空 input.value，保证重新选择同一文件时 change 仍会触发
   if (inputEl.value) inputEl.value.value = ''
@@ -81,12 +82,14 @@ function onChange() {
 
   const picked: { id: number, file: File, ext: string }[] = []
   for (const file of files) {
-    const problem = precheckFile(file, props.exts, props.maxSize)
+    // 图片先压缩（缩放 + WebP）再预检：手机原图 10MB+ 压到几百 KB，大小限制基本不再触发
+    const target = file.type.startsWith('image/') ? await compressImageFile(file) : file
+    const problem = precheckFile(target, props.exts, props.maxSize)
     if (problem) {
       emit('rejected', `${file.name}：${problem}`)
       continue
     }
-    picked.push({ id: ++seq, file, ext: extOf(file) })
+    picked.push({ id: ++seq, file: target, ext: extOf(target) })
   }
   if (!picked.length) return
 
