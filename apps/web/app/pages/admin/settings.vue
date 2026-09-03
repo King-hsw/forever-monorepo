@@ -198,12 +198,6 @@ const KNOWN_GROUPS: Group[] = [
     ],
   },
   {
-    title: '动态',
-    icon: 'lucide:map-pin',
-    desc: '发布页「获取当前位置」走高德逆地理编码；留空时该功能静默降级，可手动填写地点',
-    keys: ['moments.amapKey'],
-  },
-  {
     title: 'AI 概要',
     icon: 'lucide:sparkles',
     desc: '文章 AI 摘要走 OpenAI 兼容接口；总开关打开且 API Key 已配置才会生效',

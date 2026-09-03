@@ -29,7 +29,6 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'mail.username': { label: 'SMTP 登录账号', type: 'text' },
   'mail.password': { label: 'SMTP 登录密码', type: 'password' },
   'mail.ssl': { label: 'SSL 直连', type: 'boolean', defaultValue: 'true' },
-  'moments.amapKey': { label: '高德 Web 服务 Key', type: 'text' },
   'ai.summary-enabled': { label: '概要总开关', type: 'boolean', defaultValue: 'false' },
   'ai.api-key': { label: 'API Key', type: 'text' },
   'ai.base-url': { label: '服务地址', type: 'text', defaultValue: 'https://api.openai.com' },
