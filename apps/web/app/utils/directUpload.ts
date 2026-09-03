@@ -175,7 +175,7 @@ function putBlob(url: string, contentType: string, blob: Blob, options: PutOptio
     }
     xhr.onerror = () => {
       cleanup()
-      reject(new ApiError('直传网络错误：多为 RustFS 未配 CORS 或 storage.endpoint 不可达，属后端环境问题，需后端排查', 0))
+      reject(new ApiError('直传网络错误：多为 RustFS 未配 CORS 或 blog.storage.endpoint 不可达，属后端环境问题，需后端排查', 0))
     }
     xhr.onabort = () => {
       cleanup()

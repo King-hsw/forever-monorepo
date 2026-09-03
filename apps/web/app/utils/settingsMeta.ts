@@ -34,11 +34,6 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'ai.api-key': { label: 'API Key', type: 'text' },
   'ai.base-url': { label: '服务地址', type: 'text', defaultValue: 'https://api.openai.com' },
   'ai.model': { label: '模型名', type: 'text', defaultValue: 'gpt-4o-mini' },
-  'storage.endpoint': { label: 'S3 API 地址', type: 'url' },
-  'storage.access-key': { label: 'Access Key', type: 'text' },
-  'storage.secret-key': { label: 'Secret Key', type: 'text' },
-  'storage.bucket': { label: '存储桶名', type: 'text' },
-  'storage.presign-ttl': { label: '预签名有效期', type: 'text', defaultValue: '15m' },
 }
 
 const FALLBACK_META: ItemMeta = { label: '', type: 'text' }

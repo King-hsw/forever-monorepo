@@ -209,12 +209,6 @@ const KNOWN_GROUPS: Group[] = [
     desc: '文章 AI 摘要走 OpenAI 兼容接口；总开关打开且 API Key 已配置才会生效',
     keys: ['ai.summary-enabled', 'ai.api-key', 'ai.base-url', 'ai.model'],
   },
-  {
-    title: '对象存储',
-    icon: 'lucide:hard-drive',
-    desc: '图片等文件上传走 S3 / RustFS；未设置的项回落服务端 yml 或环境变量',
-    keys: ['storage.endpoint', 'storage.access-key', 'storage.secret-key', 'storage.bucket', 'storage.presign-ttl'],
-  },
 ]
 
 /** 已登记配置按分组排列；未登记的归入「其他」，保证后端新增键也能显示 */
