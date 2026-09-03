@@ -164,11 +164,12 @@ usePageSeo({
 
 /* ===== 目录边栏：墨线式（仅宽屏）=====
  * 一根竖细线贯穿到底，条目纯文字；当前章节用主色短线在墨线上「点」出
+ * left 用 max() 兜底 88px SiteRail + 8px 间隙：1300~1455px 宽度区间不再被侧栏压住
  */
 .toc {
   position: fixed;
   top: 110px;
-  left: calc(50% - 640px);
+  left: max(96px, calc(50% - 640px));
   width: 220px;
   max-height: calc(100vh - 160px);
   overflow-y: auto;
