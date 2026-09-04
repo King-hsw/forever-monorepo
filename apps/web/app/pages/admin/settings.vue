@@ -164,11 +164,6 @@ interface Group {
 const KNOWN_GROUPS: Group[] = [
   { title: '站点', icon: 'lucide:globe', keys: ['site.name', 'site.url', 'site.birth-date'] },
   {
-    title: '留言板',
-    icon: 'lucide:clipboard-list',
-    keys: ['board.title', 'board.summary'],
-  },
-  {
     title: '评论',
     icon: 'lucide:message-circle',
     keys: ['comment.auto-approve', 'comment.post-interval-seconds'],

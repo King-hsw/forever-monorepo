@@ -101,7 +101,7 @@ const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
 
 // 新装环境：关键系统参数从未落库（value 为空）时，引导站长先跑一遍初始化向导
-const setupKeys = ['site.url', 'board.title']
+const setupKeys = ['site.url']
 const settings = ref<SettingItem[]>([])
 const setupNeeded = computed(() =>
   settings.value.length > 0 && setupKeys.some(key => settings.value.find(s => s.key === key)?.value === ''),

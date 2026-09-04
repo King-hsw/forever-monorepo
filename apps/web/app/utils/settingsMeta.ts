@@ -17,8 +17,6 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'site.name': { label: '站点名称', type: 'text' },
   'site.url': { label: '站点地址', type: 'url' },
   'site.birth-date': { label: '建站时间', type: 'date' },
-  'board.title': { label: '留言板标题', type: 'text' },
-  'board.summary': { label: '留言板简介', type: 'text' },
   'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
   'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },
   'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },

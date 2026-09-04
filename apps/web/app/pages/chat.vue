@@ -64,7 +64,7 @@
             </svg>
           </button>
           <div class="room__title-wrap">
-            <h1 class="room__title">{{ board?.title || '留言板' }}</h1>
+            <h1 class="room__title">{{ BOARD_TITLE }}</h1>
             <p class="room__meta">{{ members.length }} 位成员 · {{ visibleMsgs.length }} 条消息</p>
           </div>
           <div v-if="filterMember" class="room__filter">
@@ -81,7 +81,7 @@
           </div>
           <div v-else-if="!rows.length" class="msgs__state">
             <span class="msgs__face" aria-hidden="true">(˘•ω•˘)</span>
-            <p>{{ board?.summary || '对网站有任何建议、想法，或者只是想打个招呼，都欢迎在这里留言。' }}</p>
+            <p>{{ BOARD_SUMMARY }}</p>
           </div>
           <template v-else>
             <template v-for="row in rows">
@@ -173,10 +173,12 @@
 import type { CommentNode, PageResult } from '#shared/types'
 import { apiFetch } from '~/utils/api'
 
-interface BoardInfo {
-  title: string
-  summary: string
-}
+/**
+ * 留言板标题 / 简介写死：board.title、board.summary 两个站点设置已移除。
+ * 后端 CommentService 生成站内消息文案时也硬编码了同一个标题（「《留言板》收到新评论」），改这里要同步改后端。
+ */
+const BOARD_TITLE = '留言板'
+const BOARD_SUMMARY = '对网站有任何建议、想法，或者只是想打个招呼，都欢迎在这里留言。'
 
 interface ChatMsg {
   id: number
@@ -216,7 +218,6 @@ const GAP_MS = 5 * 60 * 1000
 const comments = useCommentsStore()
 const auth = useAuthStore()
 
-const board = ref<BoardInfo | null>(null)
 const loading = ref(true)
 const loadError = ref(false)
 const msgs = ref<ChatMsg[]>([])
@@ -256,12 +257,7 @@ async function load() {
   loading.value = true
   loadError.value = false
   try {
-    const [info, all] = await Promise.all([
-      apiFetch<BoardInfo>('/api/v1/board').catch(() => null),
-      loadAllMessages(),
-    ])
-    board.value = info
-    msgs.value = all
+    msgs.value = await loadAllMessages()
     await nextTick()
     scrollToBottom(false)
   }
@@ -476,10 +472,8 @@ async function send() {
 // 时间展示统一走 utils/format（动态页同款）
 
 usePageSeo({
-  title: computed(() => `${board.value?.title || '留言板'} · 聊天 - 补陋阁`),
-  description: computed(() =>
-    board.value?.summary || '补陋阁的留言板聊天群 —— 大家在这里畅所欲言。',
-  ),
+  title: `${BOARD_TITLE} · 聊天 - 补陋阁`,
+  description: BOARD_SUMMARY,
   path: '/chat',
 })
 </script>

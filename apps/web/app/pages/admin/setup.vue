@@ -105,7 +105,6 @@ interface Step {
 
 const steps: Step[] = [
   { title: '站点信息', icon: 'lucide:globe', desc: '站点对外展示的访问地址，用于 RSS、友链等场景', keys: ['site.url'] },
-  { title: '留言板', icon: 'lucide:clipboard-list', keys: ['board.title', 'board.summary'] },
   { title: '评论规则', icon: 'lucide:message-circle', keys: ['comment.auto-approve', 'comment.post-interval-seconds'] },
   {
     title: '邮件通知（可选）',
