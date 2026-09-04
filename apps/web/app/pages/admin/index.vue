@@ -104,7 +104,8 @@ const categoriesStore = useCategoriesStore()
 const setupKeys = ['comment.auto-approve', 'comment.post-interval-seconds']
 const settings = ref<SettingItem[]>([])
 const setupNeeded = computed(() =>
-  settings.value.length > 0 && setupKeys.some(key => settings.value.find(s => s.key === key)?.value === ''),
+  // value 未落库时为 null（非 ''），! 判定 null/'' 都算未设置
+  settings.value.length > 0 && setupKeys.some(key => !settings.value.find(s => s.key === key)?.value),
 )
 
 // 进入后台时拉取文章（取足够大的一页用于统计）与分类数据
