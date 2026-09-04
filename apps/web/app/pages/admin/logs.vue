@@ -121,6 +121,8 @@ async function load(targetPage = 1) {
   }
   try {
     const data = await fetchLogs(query)
+    list.value = data.list
+    total.value = data.total
     page.value = data.page
   }
   catch (err) {
