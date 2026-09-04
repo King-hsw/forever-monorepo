@@ -106,12 +106,6 @@ interface Step {
 const steps: Step[] = [
   { title: '站点信息', icon: 'lucide:globe', desc: '站点对外展示的访问地址，用于 RSS、友链等场景', keys: ['site.url'] },
   { title: '评论规则', icon: 'lucide:message-circle', keys: ['comment.auto-approve', 'comment.post-interval-seconds'] },
-  {
-    title: '邮件通知（可选）',
-    icon: 'lucide:mail',
-    desc: 'SMTP 账密在后端 BLOG_MAIL_* 环境变量；本步仅配置是否开启与通知对象',
-    keys: ['comment.notify-mail', 'comment.owner-email'],
-  },
 ]
 
 const settings = ref<SettingItem[]>([])

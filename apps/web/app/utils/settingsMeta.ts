@@ -18,8 +18,6 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'site.birth-date': { label: '建站时间', type: 'date' },
   'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
   'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },
-  'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },
-  'comment.owner-email': { label: '站长邮箱', type: 'email' },
   'ai.summary-enabled': { label: '概要总开关', type: 'boolean', defaultValue: 'false' },
   'ai.api-key': { label: 'API Key', type: 'text' },
   'ai.base-url': { label: '服务地址', type: 'text', defaultValue: 'https://api.openai.com' },
@@ -42,7 +40,6 @@ export function settingBoolValue(draft: string | number | undefined, item: Setti
 /** 未设置时的占位提示 */
 export function settingPlaceholder(item: SettingItem): string {
   if (item.value) return ''
-  if (item.key === 'comment.owner-email') return '未设置，不通知站长'
   if (item.key === 'site.birth-date') return '未设置，页脚用默认值'
   const d = metaOf(item.key).defaultValue
   return d ? `默认 ${d}` : '未设置'

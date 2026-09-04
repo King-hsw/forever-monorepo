@@ -169,15 +169,6 @@ const KNOWN_GROUPS: Group[] = [
     keys: ['comment.auto-approve', 'comment.post-interval-seconds'],
   },
   {
-    title: '评论邮件通知',
-    icon: 'lucide:mail',
-    desc: '通知失败不影响评论本身；SMTP 账密与发件人在后端 BLOG_MAIL_* 环境变量（服务启动时会自动发一封测试邮件验证 SMTP）',
-    keys: [
-      'comment.notify-mail',
-      'comment.owner-email',
-    ],
-  },
-  {
     title: 'AI 概要',
     icon: 'lucide:sparkles',
     desc: '文章 AI 摘要走 OpenAI 兼容接口；总开关打开且 API Key 已配置才会生效',
