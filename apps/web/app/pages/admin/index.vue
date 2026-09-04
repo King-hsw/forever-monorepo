@@ -5,7 +5,7 @@
       <span class="setup-banner__icon" aria-hidden="true"><Icon name="lucide:compass" /></span>
       <div class="setup-banner__text">
         <strong>完成初始化配置</strong>
-        <small>检测到站点地址、留言板等系统参数还未设置，建议先运行初始化引导</small>
+        <small>检测到评论规则等系统参数还未设置，建议先运行初始化引导</small>
       </div>
       <span class="setup-banner__go">去配置 <Icon name="lucide:chevron-right" /></span>
     </NuxtLink>
@@ -100,8 +100,8 @@ useAdminPage('仪表盘')
 const postsStore = usePostsStore()
 const categoriesStore = useCategoriesStore()
 
-// 新装环境：关键系统参数从未落库（value 为空）时，引导站长先跑一遍初始化向导
-const setupKeys = ['site.url']
+// 新装环境：评论配置等关键系统参数从未落库（value 为空）时，引导站长先跑一遍初始化向导
+const setupKeys = ['comment.auto-approve', 'comment.post-interval-seconds']
 const settings = ref<SettingItem[]>([])
 const setupNeeded = computed(() =>
   settings.value.length > 0 && setupKeys.some(key => settings.value.find(s => s.key === key)?.value === ''),

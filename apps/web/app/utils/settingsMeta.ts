@@ -14,7 +14,6 @@ export interface ItemMeta {
 }
 
 export const SETTING_META: Record<string, ItemMeta> = {
-  'site.url': { label: '站点地址', type: 'url' },
   'site.birth-date': { label: '建站时间', type: 'date' },
   'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
   'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },

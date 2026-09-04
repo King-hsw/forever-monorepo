@@ -162,7 +162,7 @@ interface Group {
 }
 
 const KNOWN_GROUPS: Group[] = [
-  { title: '站点', icon: 'lucide:globe', keys: ['site.url', 'site.birth-date'] },
+  { title: '站点', icon: 'lucide:globe', keys: ['site.birth-date'] },
   {
     title: '评论',
     icon: 'lucide:message-circle',

@@ -104,7 +104,6 @@ interface Step {
 }
 
 const steps: Step[] = [
-  { title: '站点信息', icon: 'lucide:globe', desc: '站点对外展示的访问地址，用于 RSS、友链等场景', keys: ['site.url'] },
   { title: '评论规则', icon: 'lucide:message-circle', keys: ['comment.auto-approve', 'comment.post-interval-seconds'] },
 ]
 
@@ -140,9 +139,6 @@ function validate(item: SettingItem): string {
       break
     case 'email':
       if (!EMAIL_RE.test(draft)) return `${metaOf(item.key).label}：邮箱格式不正确`
-      break
-    case 'url':
-      if (!isHttpUrl(draft)) return '站点地址必须以 http:// 或 https:// 开头'
       break
     case 'boolean':
       if (draft !== 'true' && draft !== 'false') return `${metaOf(item.key).label}：只接受 true/false`
