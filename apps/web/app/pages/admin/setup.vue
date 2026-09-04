@@ -109,8 +109,8 @@ const steps: Step[] = [
   {
     title: '邮件通知（可选）',
     icon: 'lucide:mail',
-    desc: 'SMTP 账号在「站点设置 → 评论邮件通知」分组配置；未配置时邮件通知保持关闭',
-    keys: ['comment.notify-mail', 'comment.owner-email', 'comment.from-email'],
+    desc: 'SMTP 账密在后端 BLOG_MAIL_* 环境变量；本步仅配置是否开启与通知对象',
+    keys: ['comment.notify-mail', 'comment.owner-email'],
   },
 ]
 

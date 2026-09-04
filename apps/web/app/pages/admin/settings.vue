@@ -171,11 +171,10 @@ const KNOWN_GROUPS: Group[] = [
   {
     title: '评论邮件通知',
     icon: 'lucide:mail',
-    desc: '通知失败不影响评论本身；SMTP 账密在后端 BLOG_MAIL_* 环境变量（服务启动时会自动向站长邮箱发测试邮件）',
+    desc: '通知失败不影响评论本身；SMTP 账密与发件人在后端 BLOG_MAIL_* 环境变量（服务启动时会自动发一封测试邮件验证 SMTP）',
     keys: [
       'comment.notify-mail',
       'comment.owner-email',
-      'comment.from-email',
     ],
   },
   {

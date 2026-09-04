@@ -21,7 +21,6 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },
   'comment.notify-mail': { label: '邮件通知', type: 'boolean', defaultValue: 'false' },
   'comment.owner-email': { label: '站长邮箱', type: 'email' },
-  'comment.from-email': { label: '发件人地址', type: 'email', defaultValue: 'noreply@example.com' },
   'ai.summary-enabled': { label: '概要总开关', type: 'boolean', defaultValue: 'false' },
   'ai.api-key': { label: 'API Key', type: 'text' },
   'ai.base-url': { label: '服务地址', type: 'text', defaultValue: 'https://api.openai.com' },
