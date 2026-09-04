@@ -106,15 +106,6 @@
         </div>
       </div>
 
-      <!-- 邮件组：测试发送（验证 SMTP 账密与发件人地址） -->
-      <div v-if="group.title === '评论邮件通知'" class="mail-test">
-        <button type="button" class="btn" :disabled="testingMail" @click="sendTestMail">
-          {{ testingMail ? '发送中…' : '发送测试邮件（至站长邮箱）' }}
-        </button>
-        <p v-if="mailTestMsg" class="mail-test__msg" :class="{ 'is-ok': mailTestOk }" role="status">
-          {{ mailTestMsg }}
-        </p>
-      </div>
     </section>
 
     <!-- 底部统一保存 -->
@@ -185,14 +176,9 @@ const KNOWN_GROUPS: Group[] = [
   {
     title: '评论邮件通知',
     icon: 'lucide:mail',
-    desc: '通知失败不影响评论本身；SMTP 服务器地址留空视为未配置、不发信',
+    desc: '通知失败不影响评论本身；SMTP 账密在后端 BLOG_MAIL_* 环境变量（服务启动时会自动向站长邮箱发测试邮件）',
     keys: [
       'comment.notify-mail',
-      'mail.host',
-      'mail.port',
-      'mail.username',
-      'mail.password',
-      'mail.ssl',
       'comment.owner-email',
       'comment.from-email',
     ],
@@ -238,32 +224,6 @@ watch(list, (items) => {
     if (!(item.key in drafts)) drafts[item.key] = item.value
   }
 })
-
-/* ---------- 邮件测试发送 ---------- */
-const testingMail = ref(false)
-const mailTestMsg = ref('')
-const mailTestOk = ref(false)
-
-/** 向站长邮箱发测试邮件（取草稿值，未保存也能先试发） */
-async function sendTestMail() {
-  const to = String(drafts['comment.owner-email'] ?? '').trim()
-  mailTestOk.value = false
-  if (!to) {
-    mailTestMsg.value = '请先填写站长邮箱'
-    return
-  }
-  testingMail.value = true
-  mailTestMsg.value = ''
-  try {
-    await apiFetch('/api/admin/settings/mail/test', { method: 'POST', body: { to } })
-    mailTestOk.value = true
-    mailTestMsg.value = `已发送测试邮件至 ${to}`
-  } catch (err) {
-    mailTestMsg.value = errMsg(err)
-  } finally {
-    testingMail.value = false
-  }
-}
 
 function isDirty(key: string) {
   return key in drafts && drafts[key] !== list.value.find(s => s.key === key)?.value
@@ -548,24 +508,6 @@ onBeforeUnmount(() => {
   &:hover {
     color: var(--c-danger);
     border-color: var(--c-danger);
-  }
-}
-
-/* ===== 邮件测试发送 ===== */
-.mail-test {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 0 6px;
-}
-
-.mail-test__msg {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--c-danger);
-
-  &.is-ok {
-    color: var(--c-primary);
   }
 }
 
