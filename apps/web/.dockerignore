@@ -1,13 +1,22 @@
+# 版本控制与 IDE
+.git
+.gitignore
+.idea
+
+# 本地 node 依赖与开发构建中间产物，镜像只拷 .output（CI 的 pnpm build 产出）
 node_modules
 .nuxt
-.output
-.git
-.idea
-.reference
-docs
-deploy
+.nitro
+.data
+.cache
+dist
+
+# 文档与 CI 配置不参与构建
+README.md
+.dockerignore
+Dockerfile
+.github
+
+# 本地环境文件严禁进镜像
 .env
 .env.*
-!.env.example
-Dockerfile
-.dockerignore
