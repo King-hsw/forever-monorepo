@@ -65,8 +65,11 @@ export default defineNuxtConfig({
         registerType: 'autoUpdate',
         workbox: {
             globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
-            // SPA 离线导航兜底：generateSW 下离线导航需显式 fallback 到预缓存首页
-            navigateFallback: '/',
+            // 不能开 SPA 离线导航兜底：@vite-pwa/nuxt 未显式设置时会默认 navigateFallback: '/'，
+            // 而 Nuxt 构建不产出任何可 precache 的 HTML，generateSW 会生成 SW 启动即抛
+            // non-precached-url 的 NavigationRoute，连带 pages NetworkFirst 全部失效；
+            // 显式置 null（workbox-build schema 允许 null）关掉 NavigationRoute
+            navigateFallback: null,
             runtimeCaching: [
                 {
                     // 页面导航 NetworkFirst（原 sw.ts 手写监听等价）
