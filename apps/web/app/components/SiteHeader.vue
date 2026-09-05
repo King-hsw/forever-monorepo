@@ -50,7 +50,8 @@
         >
           <Icon name="lucide:user" mode="svg" :size="16" />
         </NuxtLink>
-        <div v-else>
+        <!-- guest 已注册时登录入口消失，游客徽标是唯一身份入口（与 guest 徽标的 v-if 互斥） -->
+        <div v-else-if="!guest.isRegistered">
           <button
             type="button"
             class="site-header__icon-btn"

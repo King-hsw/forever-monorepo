@@ -54,7 +54,8 @@
           <img src="/icons/avatar.png" alt="" width="22" height="22" />
         </NuxtLink>
       </Tooltip>
-      <div v-else>
+      <!-- guest 已注册时登录入口消失，游客徽标是唯一身份入口（与 guest 徽标的 v-if 互斥） -->
+      <div v-else-if="!guest.isRegistered">
         <button type="button" class="site-rail__btn" aria-label="登录" @click="loginOpen = true">
           <Icon name="lucide:user" mode="svg" :size="19" />
         </button>
