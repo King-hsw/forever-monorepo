@@ -50,7 +50,7 @@
         >
           <Icon name="lucide:user" mode="svg" :size="16" />
         </NuxtLink>
-        <div v-else class="site-header__login">
+        <div v-else>
           <button
             type="button"
             class="site-header__icon-btn"

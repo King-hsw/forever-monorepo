@@ -58,9 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import type { MeInfo } from '#shared/types'
-import { ApiError, apiFetch, saveAuth, type TokenPair } from '~/utils/api'
-
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
@@ -117,9 +114,9 @@ function triggerShake() {
 }
 
 /**
- * 提交：成功回写登录态、清空表单并关弹窗，留在当前页不跳转；失败留弹窗显示错误并抖动。
- * 登录请求在此直接发出而非走 auth.login()：auth.login 吞掉所有异常统一返回 false，
- * 无法区分「密码错」和「断网」；成功后的状态回写与 auth.login 行为保持一致。
+ * 提交：成功由 auth.login 回写登录态，清空表单并关弹窗，留在当前页不跳转；
+ * 失败留弹窗显示错误并抖动。auth.login 对「密码错」与「断网」统一返回 false，
+ * 故用同一句诚实文案覆盖两种情况，不引入易误判的错误码启发式。
  */
 async function handleSubmit() {
   if (!username.value.trim() || !password.value) {
@@ -128,37 +125,18 @@ async function handleSubmit() {
     return
   }
   submitting.value = true
-  const user = username.value.trim()
   try {
-    const data = await apiFetch<TokenPair>('/api/auth/login', {
-      method: 'POST',
-      body: { username: user, password: password.value },
-    })
-    // 用新令牌拉取当前用户信息，确认令牌可用并取真实用户名与权限
-    const me = await apiFetch<MeInfo>('/api/admin/me', {
-      headers: { Authorization: `Bearer ${data.accessToken}` },
-    }).catch(() => null)
-    const name = me?.username ?? user
-    auth.token = data.accessToken
-    auth.username = name
-    auth.permissions = me?.permissions ?? []
-    auth.meLoaded = true
-    saveAuth({
-      accessToken: data.accessToken,
-      refreshToken: data.refreshToken,
-      username: name,
-    })
-    username.value = ''
-    password.value = ''
-    errorMsg.value = ''
-    close()
-  }
-  catch (err) {
-    // 仅后端明确拒凭证（HTTP 401 / 业务码 40000+）提示密码错误；
-    // 无响应、404、5xx 等一律走网络提示，避免断网用户被误导反复试密码
-    const credentialError = err instanceof ApiError && (err.code === 401 || err.code >= 40000)
-    errorMsg.value = credentialError ? '账号或密码错误' : '登录失败，请检查网络后重试'
-    triggerShake()
+    const ok = await auth.login(username.value.trim(), password.value)
+    if (ok) {
+      username.value = ''
+      password.value = ''
+      errorMsg.value = ''
+      close()
+    }
+    else {
+      errorMsg.value = '登录失败，请检查网络或账号密码'
+      triggerShake()
+    }
   }
   finally {
     submitting.value = false
