@@ -63,13 +63,24 @@ export default defineNuxtConfig({
     // 默认 css 模式用 mask 渲染，颜色随 currentColor、大小随 font-size，与现有线性 SVG 风格一致
     pwa: {
         registerType: 'autoUpdate',
-        // Web Push 需要在 SW 内手写 push / notificationclick 监听，generateSW 无法注入，
-        // 因此切到 injectManifest：自定义源码 app/sw.ts（Nuxt 4 下 vite root 为 app/，
-        // srcDir 需指回当前目录），构建产物仍为根路径 sw.js。
-        // 原 workbox 段的 globPatterns 迁至 injectManifest，runtimeCaching 移入 sw.ts 手写
-        strategies: 'injectManifest',
-        srcDir: '.',
-        filename: 'sw.ts',
+        workbox: {
+            globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
+            // SPA 离线导航兜底：generateSW 下离线导航需显式 fallback 到预缓存首页
+            navigateFallback: '/',
+            runtimeCaching: [
+                {
+                    // 页面导航 NetworkFirst（原 sw.ts 手写监听等价）
+                    urlPattern: ({ request, url }) => request.mode === 'navigate' && url.origin === self.location.origin,
+                    handler: 'NetworkFirst',
+                    options: {
+                        cacheName: 'pages',
+                        networkTimeoutSeconds: 5,
+                        // workbox-build 7.x 的键是 expiration（单对象），非 expirationPlugins 数组
+                    expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 },
+                    },
+                },
+            ],
+        },
         manifest: {
             name: '补陋阁',
             short_name: '补陋阁',
@@ -100,9 +111,6 @@ export default defineNuxtConfig({
                     purpose: 'maskable'
                 }
             ]
-        },
-        injectManifest: {
-            globPatterns: ['**/*.{js,css,html,ico,png,webp,svg,woff2}'],
         },
         devOptions: {
             enabled: true,

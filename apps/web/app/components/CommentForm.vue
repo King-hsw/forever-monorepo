@@ -66,7 +66,6 @@ const commentsStore = useCommentsStore()
 const guest = useGuestStore()
 const auth = useAuthStore()
 const route = useRoute()
-const { syncSubscriptionEmail } = usePush()
 
 // 延到水合渲染完成后恢复游客身份，避免与 SSR 输出不一致（登录态由 SSR 中间件统一恢复）
 onMounted(() => {
@@ -132,8 +131,6 @@ async function submit() {
     })
 
     content.value = ''
-    // 已订阅推送时把订阅绑到本条评论邮箱，被回复时可收到定向推送（内部静默，失败不影响评论）
-    syncSubscriptionEmail(commentEmail)
     if (created.status === 'PENDING') {
       tip.value = '已提交，审核通过后将展示出来'
       tipIsError.value = false
