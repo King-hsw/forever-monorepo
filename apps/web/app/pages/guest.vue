@@ -58,6 +58,7 @@
     </form>
 
     <p class="guest__hint">身份仅保存在当前浏览器，清除浏览器数据后需重新填写</p>
+    <NuxtLink to="/admin/login" class="guest__switch">{{ guest.isRegistered ? '切换账号登录' : '已有账号？切换账号登录' }}</NuxtLink>
   </div>
 </template>
 
@@ -201,5 +202,18 @@ function triggerShake() {
   font-size: 12px;
   color: var(--c-text-muted);
   text-align: center;
+}
+
+/* 底部账号登录入口：文字链，游客已注册时省略前缀 */
+.guest__switch {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--c-primary);
+  text-align: center;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 </style>

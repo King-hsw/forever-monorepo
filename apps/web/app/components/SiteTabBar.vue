@@ -38,18 +38,15 @@
           <Icon name="lucide:user" mode="svg" :size="22" />
           <span>管理后台</span>
         </NuxtLink>
-        <template v-else>
-          <NuxtLink to="/admin/login" @click="moreOpen = false">
-            <Icon name="lucide:user" mode="svg" :size="22" />
-            <span>账号登录</span>
-          </NuxtLink>
-          <NuxtLink to="/guest" @click="moreOpen = false">
-            <Icon name="lucide:link" mode="svg" :size="22" />
-            <span>游客登录</span>
-          </NuxtLink>
-        </template>
+        <button v-else type="button" @click="openLogin">
+          <Icon name="lucide:user" mode="svg" :size="22" />
+          <span>登录</span>
+        </button>
       </div>
     </Transition>
+
+    <!-- 弹窗式登录：成功留在当前页；Esc/遮罩点击/路由变化由弹窗自行处理 -->
+    <LoginDialog :open="loginOpen" @close="loginOpen = false" />
   </nav>
 </template>
 
@@ -59,6 +56,14 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const moreOpen = ref(false)
+
+/* 弹窗式登录：收起「更多」面板后打开登录弹窗 */
+const loginOpen = ref(false)
+
+function openLogin() {
+  moreOpen.value = false
+  loginOpen.value = true
+}
 
 function onDocMouseDown(e: MouseEvent) {
   if (!moreOpen.value)
@@ -184,26 +189,34 @@ watch(() => route.fullPath, () => {
   box-shadow: 0 -10px 30px rgb(0 0 0 / 14%);
 }
 
-.tabbar__panel a {
+/* 面板项：链接与「登录」按钮共用一套样式 */
+.tabbar__panel a,
+.tabbar__panel button {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   padding: 10px 4px 8px;
+  font-family: inherit;
   font-size: 12px;
   color: var(--c-text-secondary);
   text-decoration: none;
+  background: none;
+  border: none;
   border-radius: 12px;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 
 .tabbar__panel a:hover,
+.tabbar__panel button:hover,
 .tabbar__panel a.router-link-active {
   color: var(--c-primary);
 }
 
-.tabbar__panel a:hover {
+.tabbar__panel a:hover,
+.tabbar__panel button:hover {
   background: var(--c-primary-light);
 }
 

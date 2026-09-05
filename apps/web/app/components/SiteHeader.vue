@@ -54,17 +54,14 @@
           <button
             type="button"
             class="site-header__icon-btn"
-            :aria-expanded="loginOpen"
             aria-label="登录"
             title="登录"
-            @click="loginOpen = !loginOpen"
+            @click="loginOpen = true"
           >
             <Icon name="lucide:user" mode="svg" :size="16" />
           </button>
-          <div v-if="loginOpen" class="site-header__login-panel">
-            <NuxtLink to="/admin/login" @click="closeLogin">账号登录</NuxtLink>
-            <NuxtLink to="/guest" @click="closeLogin">游客登录</NuxtLink>
-          </div>
+          <!-- 弹窗式登录：成功留在当前页；Esc/遮罩点击/路由变化由弹窗自行处理 -->
+          <LoginDialog :open="loginOpen" @close="loginOpen = false" />
         </div>
         <span class="site-header__divider" aria-hidden="true" />
       </div>
@@ -86,19 +83,8 @@ const { nextLabel } = useTheme()
 const isDesktop = useIsDesktop()
 
 
-/* 登录菜单：账号登录 / 游客登录 */
+/* 弹窗式登录：局部开关，Esc/遮罩点击/路由变化由 LoginDialog 自行处理 */
 const loginOpen = ref(false)
-
-function closeLogin() {
-  loginOpen.value = false
-}
-
-function onDocMouseDown(e: MouseEvent) {
-  if (loginOpen.value && !(e.target as Element).closest('.site-header__login'))
-    closeLogin()
-}
-
-useOnEscape(closeLogin)
 
 /** 后续加菜单只改这里 */
 const navItems: { label: string, to: string }[] = [
@@ -122,16 +108,11 @@ onMounted(() => {
   guest.hydrate()
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
-  document.addEventListener('mousedown', onDocMouseDown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll)
-  document.removeEventListener('mousedown', onDocMouseDown)
 })
-
-// 路由变化时收起搜索下拉与登录菜单
-watch(() => route.fullPath, closeLogin)
 
 /** 已在首页时点品牌回到顶部，否则跳回首页 */
 function onBrandClick() {
@@ -303,41 +284,6 @@ function onBrandClick() {
   border: 1px solid var(--c-primary);
   border-radius: 999px;
   text-decoration: none;
-}
-
-/* 登录菜单：人物 icon 点开，面板从顶栏下方弹出 */
-.site-header__login {
-  position: relative;
-}
-
-.site-header__login-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  padding: 6px;
-  background: var(--c-bg-card);
-  border: 1px solid var(--c-border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card-hover);
-}
-
-.site-header__login-panel a {
-  padding: 8px 12px;
-  font-size: 13.5px;
-  color: var(--c-text-secondary);
-  text-align: center;
-  text-decoration: none;
-  white-space: nowrap;
-  border-radius: 8px;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.site-header__login-panel a:hover {
-  color: var(--c-primary);
-  background: var(--c-primary-light);
 }
 
 /* 移动端：主导航与登录入口收进底部 Tab Bar，顶栏留品牌、主题切换和搜索 */
