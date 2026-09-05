@@ -1,0 +1,33 @@
+# CNB 云原生构建：main 推送 → pnpm 构建 → 构建并推送 Docker 镜像
+# Dockerfile 是"只拷 .output"的运行镜像，.output 由本流水线的 pnpm build 产出
+main:
+  push:
+    - docker:
+        # 构建环境：node 22（与 Dockerfile 运行阶段基础镜像一致）
+        image: node:22-alpine
+
+        volumes:
+          # pnpm store 缓存：同节点二次构建免重复下载依赖
+          - /root/.local/share/pnpm:copy-on-write
+      services:
+        # 流水线中启用 docker 服务
+        - docker
+      stages:
+        # 锁死 pnpm 版本，避免上游发新版导致构建行为变化
+        - name: install pnpm
+          script: |
+            npm install -g pnpm@10.12.1
+        - name: pnpm install
+          script: |
+            pnpm install --frozen-lockfile
+        - name: pnpm build
+          script: |
+            NODE_ENV=production pnpm build
+        - name: docker build
+          script:
+            - docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest .
+        - name: docker push
+          script:
+            # 生产 compose 拉 :latest；只推 latest（不再留 commit 标签占仓库），
+            # 仅 main 推，其他分支不覆盖；版本发布时另行打 tag 号
+            - if [ "${CNB_BRANCH}" = "main" ]; then docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:latest; fi
