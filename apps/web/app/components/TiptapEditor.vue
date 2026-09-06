@@ -441,7 +441,8 @@ function confirmLink() {
     padding: 1px 8px;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--c-text-muted);
+    /* 同详情页顶栏：用 secondary，muted 对代码块底对比度在两主题都不足 */
+    color: var(--c-text-secondary);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 999px;
@@ -458,7 +459,7 @@ function confirmLink() {
     padding: 1px 8px;
     font-size: 11.5px;
     line-height: 1.5;
-    color: var(--c-text-muted);
+    color: var(--c-text-secondary);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 999px;
