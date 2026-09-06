@@ -168,12 +168,6 @@ const KNOWN_GROUPS: Group[] = [
     icon: 'lucide:message-circle',
     keys: ['comment.auto-approve', 'comment.post-interval-seconds'],
   },
-  {
-    title: 'AI 概要',
-    icon: 'lucide:sparkles',
-    desc: '文章 AI 摘要走 OpenAI 兼容接口；总开关打开且 API Key 已配置才会生效',
-    keys: ['ai.summary-enabled', 'ai.api-key', 'ai.base-url', 'ai.model'],
-  },
 ]
 
 /** 已登记配置按分组排列；未登记的归入「其他」，保证后端新增键也能显示 */

@@ -17,10 +17,6 @@ export const SETTING_META: Record<string, ItemMeta> = {
   'site.birth-date': { label: '建站时间', type: 'date' },
   'comment.auto-approve': { label: '新评论直接过审', type: 'boolean', defaultValue: 'true' },
   'comment.post-interval-seconds': { label: '同 IP 发表间隔', type: 'number', defaultValue: '10', unit: '秒' },
-  'ai.summary-enabled': { label: '概要总开关', type: 'boolean', defaultValue: 'false' },
-  'ai.api-key': { label: 'API Key', type: 'text' },
-  'ai.base-url': { label: '服务地址', type: 'text', defaultValue: 'https://api.openai.com' },
-  'ai.model': { label: '模型名', type: 'text', defaultValue: 'gpt-4o-mini' },
 }
 
 const FALLBACK_META: ItemMeta = { label: '', type: 'text' }
