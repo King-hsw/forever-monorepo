@@ -160,7 +160,8 @@ const editor = useEditor({
   extensions: [
     // 禁用 StarterKit 自带 code mark：其 excludes:'_'（排斥一切 mark）会让
     // @tiptap/markdown 解析出的 `**`code`**`（bold+code 同节点）被判非法，
-    // insertContent/setContent 时 node.check() 抛错静默失败。换成不排斥任何
+    // insertContent/insertContentAt 时 node.check() 抛错静默失败（setContent
+    // 由 markdown 扩展先 parse 成 JSON，不走该校验）。换成不排斥任何
     // mark 的等价 code mark，粗体代码等嵌套行内样式可正常表示（与 marked 渲染一致）
     StarterKit.configure({ codeBlock: false, code: false }),
     Code.extend({ excludes: '' }),
