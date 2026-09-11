@@ -95,6 +95,16 @@
         </div>
       </form>
     </dialog>
+
+    <!-- Markdown 粘贴确认弹窗：检测到 Markdown 语法时询问是否转换 -->
+    <dialog v-if="showPasteDialog" open class="tiptap-editor__dialog" @close="showPasteDialog = false">
+      <h3>检测到 Markdown 语法</h3>
+      <p>粘贴内容包含 Markdown 语法，要转换成格式化内容吗？</p>
+      <div class="tiptap-editor__dialog-actions">
+        <button type="button" @click="confirmPaste(false)">保持原样</button>
+        <button type="button" class="primary" @click="confirmPaste(true)">转换</button>
+      </div>
+    </dialog>
   </div>
 </template>
 
@@ -172,14 +182,35 @@ const editor = useEditor({
     emit('update:modelValue', editor.getHTML())
     emit('update:markdown', editor.getMarkdown())
   },
-  // 拦截粘贴 / 拖拽的图片文件，走本地上传逻辑而不是默认行为
+  // 拦截粘贴 / 拖拽的图片文件（走本地上传），以及含 Markdown 语法的纯文本（弹窗确认是否转换）
   editorProps: {
     handlePaste: (_view, event) => {
       const files = event.clipboardData?.files
-      if (!files?.length || !Array.from(files).some(isSupportedImage)) {
+      if (files?.length && Array.from(files).some(isSupportedImage)) {
+        void insertImageFiles(files)
+        return true
+      }
+      const ed = editor.value
+      if (!ed) {
         return false
       }
-      void insertImageFiles(files)
+      // 代码块/行内代码内粘贴保持纯文本，避免代码被解析成富节点
+      if (ed.isActive('codeBlock') || ed.isActive('code')) {
+        return false
+      }
+      const cd = event.clipboardData
+      // 富文本（HTML）粘贴走默认行为
+      if (cd?.getData('text/html')) {
+        return false
+      }
+      const text = cd?.getData('text/plain')?.trim()
+      if (!text || !MARKDOWN_RE.test(text)) {
+        return false
+      }
+      // 检测到 Markdown 语法：拦截并弹窗，由用户决定是否转换
+      event.preventDefault()
+      pendingPasteText.value = text
+      showPasteDialog.value = true
       return true
     },
     handleDrop: (view, event) => {
@@ -272,6 +303,30 @@ onMounted(() => {
     emit('update:markdown', ed.getMarkdown())
   }
 })
+
+// Markdown 粘贴确认弹窗
+const showPasteDialog = ref(false)
+const pendingPasteText = ref('')
+
+// 检测常见 Markdown 块级/行内语法；命中即弹窗询问（误报只会多弹一次窗，由用户拍板）
+const MARKDOWN_RE = /(^#{1,6}\s|^```|^>|\*\*[^*\n]+\*\*|`[^`\n]+`|^\s*[-*+]\s+|^\s*\d+[.)]\s|!\[[^\]]*\]\(|\[[^\]]+\]\([^)]*\)|^(-{3,}|\*{3,}|_{3,})\s*$|\+\+[^+\n]+\+\+)/m
+
+function confirmPaste(convert: boolean) {
+  const text = pendingPasteText.value
+  showPasteDialog.value = false
+  pendingPasteText.value = ''
+  const ed = editor.value
+  if (!ed || !text) {
+    return
+  }
+  if (convert) {
+    // 复用 @tiptap/markdown 的解析管线（同一 marked 实例，自定义 tokenizer / 代码块行号均生效）
+    ed.chain().focus().insertContent(text, { contentType: 'markdown' }).run()
+  }
+  else {
+    ed.chain().focus().insertContent(text).run()
+  }
+}
 
 // 链接弹窗
 const showLinkDialog = ref(false)
