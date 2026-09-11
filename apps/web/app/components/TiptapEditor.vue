@@ -111,6 +111,7 @@
 <script setup lang="ts">
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import Code from '@tiptap/extension-code'
 import { Markdown } from '@tiptap/markdown'
 import Image from '@tiptap/extension-image'
 import { Marked, marked } from 'marked'
@@ -157,7 +158,12 @@ const editor = useEditor({
   // StarterKit 自带的 CodeBlock 没有语法高亮，禁用它；换用继承自
   // CodeBlockLowlight 的 CodeBlockLineNumbers，同时提供高亮和外挂式行号栏
   extensions: [
-    StarterKit.configure({ codeBlock: false }),
+    // 禁用 StarterKit 自带 code mark：其 excludes:'_'（排斥一切 mark）会让
+    // @tiptap/markdown 解析出的 `**`code`**`（bold+code 同节点）被判非法，
+    // insertContent/setContent 时 node.check() 抛错静默失败。换成不排斥任何
+    // mark 的等价 code mark，粗体代码等嵌套行内样式可正常表示（与 marked 渲染一致）
+    StarterKit.configure({ codeBlock: false, code: false }),
+    Code.extend({ excludes: '' }),
     // 图片：本项目无后端，上传后以 data URL 内嵌，必须开启 allowBase64 才能解析回显；
     // 补充 referrerpolicy=no-referrer，避免防盗链站点拒给图片（Markdown 序列化会丢，
     // 展示端 MarkdownView 会再补）

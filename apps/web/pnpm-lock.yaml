@@ -17,6 +17,9 @@ importers:
       '@pinia/nuxt':
         specifier: ^1.0.2
         version: 1.0.2(magic-string@1.2.2)(magicast@0.5.4)(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@5.9.2)(vue@3.5.41(typescript@5.9.2)))(rolldown@1.2.5)(unplugin@3.3.0(esbuild@0.28.2)(rolldown@1.2.5)(rollup@4.62.4)(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0)))
+      '@tiptap/extension-code':
+        specifier: 3.30.2
+        version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))
       '@tiptap/extension-code-block-lowlight':
         specifier: 3.30.2
         version: 3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/extension-code-block@3.30.2(@tiptap/core@3.30.2(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2))(@tiptap/pm@3.30.2)(highlight.js@11.12.0)(lowlight@3.3.0)
