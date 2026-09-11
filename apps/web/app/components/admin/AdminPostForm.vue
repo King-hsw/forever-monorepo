@@ -218,9 +218,12 @@ const suggestions = computed(() => {
     .slice(0, 5)
 })
 
+// 创建请求在途时忽略重复回车（draft 要等 await 结束才清空，连按会重复发同名 POST）
+let tagAdding = false
 async function addTag() {
   const name = tagDraft.value.trim()
-  if (!name) return
+  if (!name || tagAdding) return
+  tagAdding = true
   try {
     // 已存在则复用，不存在则现场创建
     const existing = tagsStore.list.find(t => t.name === name)
@@ -229,6 +232,8 @@ async function addTag() {
     tagDraft.value = ''
   } catch (err) {
     alert(errMsg(err, '创建标签失败'))
+  } finally {
+    tagAdding = false
   }
 }
 
