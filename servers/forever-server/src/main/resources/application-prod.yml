@@ -1,0 +1,6 @@
+# 仅保留开发环境特性的生产关闭开关，其余配置与本地同一份 application.yml
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
