@@ -2,7 +2,7 @@
   <div :class="layoutCls">
     <t-head-menu :class="menuCls" :theme="menuTheme" expand-type="popup" :value="active">
       <template #logo>
-        <span v-if="showLogo" class="header-logo-container" @click="handleNav('/dashboard/base')">
+        <span v-if="showLogo" class="header-logo-container" @click="handleNav('/dashboard/index')">
           <logo-full class="t-logo" />
         </span>
         <div v-else class="header-operate-left">
@@ -20,31 +20,22 @@
           <!-- 全局通知 -->
           <notice />
 
-          <t-tooltip placement="bottom" :content="t('layout.header.code')">
-            <t-button theme="default" shape="square" variant="text" @click="navToGitHub">
-              <t-icon name="logo-github" />
-            </t-button>
-          </t-tooltip>
-          <t-tooltip placement="bottom" :content="t('layout.header.help')">
-            <t-button theme="default" shape="square" variant="text" @click="navToHelper">
-              <t-icon name="help-circle" />
-            </t-button>
-          </t-tooltip>
           <language-switcher />
           <t-dropdown :min-column-width="120" trigger="click">
             <template #dropdown>
-              <t-dropdown-item class="operations-dropdown-container-item" @click="handleNav('/user/index')">
-                <user-circle-icon />{{ t('layout.header.user') }}
+              <t-dropdown-item class="operations-dropdown-container-item" @click="handleNav('/profile/index')">
+                <user-circle-icon />个人资料
               </t-dropdown-item>
               <t-dropdown-item class="operations-dropdown-container-item" @click="handleLogout">
-                <poweroff-icon />{{ t('layout.header.signOut') }}
+                <poweroff-icon />退出登录
               </t-dropdown-item>
             </template>
             <t-button class="header-user-btn" theme="default" variant="text">
               <template #icon>
-                <t-icon class="header-user-avatar" name="user-circle" />
+                <t-avatar v-if="user.avatarUrl" size="small" :image="user.avatarUrl" />
+                <t-icon v-else class="header-user-avatar" name="user-circle" />
               </template>
-              <div class="header-user-account">{{ user.userInfo.name }}</div>
+              <div class="header-user-account">{{ user.displayName }}</div>
               <template #suffix><chevron-down-icon /></template>
             </t-button>
           </t-dropdown>
@@ -137,19 +128,9 @@ const handleNav = (url: string) => {
   router.push(url);
 };
 
-const handleLogout = () => {
-  router.push({
-    path: '/login',
-    query: { redirect: router.currentRoute.value.fullPath },
-  });
-};
-
-const navToGitHub = () => {
-  window.open('https://github.com/tencent/tdesign-vue-next-starter');
-};
-
-const navToHelper = () => {
-  window.open('https://tdesign.tencent.com/starter/docs/vue-next/get-started');
+const handleLogout = async () => {
+  await user.logout();
+  router.push({ path: '/login' });
 };
 </script>
 <style lang="less" scoped>

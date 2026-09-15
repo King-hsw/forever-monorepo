@@ -88,8 +88,12 @@ export interface RequestOptions {
   };
 }
 
+/** 后端统一响应体 ApiResponse<T> */
 export interface Result<T = any> {
+  /** 业务码，成功恒为 0 */
   code: number;
+  /** 业务提示信息；失败时可直接作为错误文案展示 */
+  message?: string;
   data: T;
 }
 

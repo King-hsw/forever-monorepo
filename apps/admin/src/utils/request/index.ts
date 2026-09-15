@@ -65,8 +65,6 @@ async function performRefresh(): Promise<boolean> {
     userStore.setToken({
       accessToken: body.data.accessToken,
       refreshToken: body.data.refreshToken,
-      expiresIn: body.data.expiresIn,
-      refreshExpiresIn: body.data.refreshExpiresIn,
     });
     return true;
   } catch {
