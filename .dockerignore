@@ -1,0 +1,35 @@
+# ============================================================
+# 构建上下文 = 仓库根（apps/web/Dockerfile 与 infra/Dockerfile.admin 都用仓库根做上下文）
+#
+# 只排除「两个前端镜像都不需要」的东西。
+# 千万别排除 .output/ 与 dist/ —— 那正是镜像要 COPY 的产物。
+#
+# servers/ 是独立构建上下文（servers/forever-server/），不走这个文件。
+# ============================================================
+
+# 版本控制与协作
+.git
+.gitignore
+.github
+.workbuddy
+docs
+
+# 依赖与包管理器中间产物
+**/node_modules
+**/.turbo
+**/.pnpm-store
+
+# Nuxt 开发期产物（注意：构建产物是 .output，不在此列）
+**/.nuxt
+**/.data
+**/.cache
+**/logs
+
+# 后端不在前端镜像里
+servers
+
+# 编辑器与系统垃圾
+**/.idea
+**/.vscode
+**/.DS_Store
+**/*.swp

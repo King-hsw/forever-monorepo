@@ -1,0 +1,123 @@
+# ============================================================
+# CNB 云原生构建 · Monorepo 根配置
+#
+# 合仓前：每个仓库一份 .cnb.yml，各自构建、各自推「同名制品」。
+# 合仓后：一个仓库三条流水线，用 ifModify 按改动路径分别触发，避免改前端也跑 mvn。
+#
+# 镜像名走 CNB 的「非同名制品」规则（以仓库路径作命名空间）：
+#   ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/web:latest
+#   ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/admin:latest
+#   ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/server:latest
+# ⚠️ 与合仓前相比镜像地址**变了**（多了 /web、/server 两段），
+#    生产 compose 里的 image: 要同步改。
+#
+# 三个 Dockerfile 的构建上下文都不同，注意看各自 docker build 的参数：
+#   web    → 上下文是仓库根，产物 apps/web/.output
+#   admin  → 上下文是仓库根，产物 apps/admin/dist + infra/nginx 模板
+#   server → 上下文是 servers/forever-server，产物 extracted/
+# ============================================================
+
+main:
+  push:
+    # ---------------------------------------------------------
+    # 前台（Nuxt SSR）：pnpm 构建 → 运行镜像 → 推 CNB 制品库
+    # ---------------------------------------------------------
+    web:
+      ifModify:
+        - apps/web/**
+        - packages/**
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - package.json
+      docker:
+        # 构建环境：node 22（与 Dockerfile 运行阶段基础镜像一致）
+        image: node:22-alpine
+        volumes:
+          # pnpm store 缓存：同节点二次构建免重复下载依赖
+          - /root/.local/share/pnpm:copy-on-write
+      services:
+        - docker
+      stages:
+        # 锁死 pnpm 版本，避免上游发新版导致构建行为变化
+        - name: install pnpm
+          script: npm install -g pnpm@10.12.1
+        - name: pnpm install
+          script: pnpm install --frozen-lockfile
+        - name: pnpm build
+          script: NODE_ENV=production pnpm --filter forever build
+        - name: docker build
+          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/web:latest -f apps/web/Dockerfile .
+        - name: docker push
+          script: |
+            # 生产 compose 拉 :latest；只推 latest（不再留 commit 标签占仓库），
+            # 仅 main 推，其他分支不覆盖；版本发布时另行打 tag 号
+            if [ "${CNB_BRANCH}" = "main" ]; then
+              docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/web:latest
+            fi
+
+    # ---------------------------------------------------------
+    # 后台（Vue SPA + nginx）：产物是静态站，镜像由 infra/Dockerfile.admin 托管
+    # ---------------------------------------------------------
+    admin:
+      ifModify:
+        - apps/admin/**
+        - packages/**
+        - infra/Dockerfile.admin
+        - infra/nginx/**
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - package.json
+      docker:
+        image: node:22-alpine
+        volumes:
+          - /root/.local/share/pnpm:copy-on-write
+      services:
+        - docker
+      stages:
+        - name: install pnpm
+          script: npm install -g pnpm@10.12.1
+        - name: pnpm install
+          script: pnpm install --frozen-lockfile
+        # build 脚本里已含 vue-tsc --noEmit，类型不过就不会出镜像
+        - name: pnpm build
+          script: pnpm --filter forever-admin build
+        - name: docker build
+          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/admin:latest -f infra/Dockerfile.admin .
+        - name: docker push
+          script: |
+            if [ "${CNB_BRANCH}" = "main" ]; then
+              docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/admin:latest
+            fi
+
+    # ---------------------------------------------------------
+    # 后端（Spring Boot）：Maven 打包 → 分层展开 → 运行镜像 → 推 CNB 制品库
+    # ---------------------------------------------------------
+    server:
+      ifModify:
+        - servers/forever-server/**
+      docker:
+        # 构建环境：maven + JDK 25（与 pom java.version 一致）
+        image: maven:3.9-eclipse-temurin-25
+        volumes:
+          # maven 本地仓库缓存：同节点二次构建免重复下载依赖
+          - /root/.m2:copy-on-write
+      services:
+        - docker
+      stages:
+        # 注意 workspaces 的工作目录永远是仓库根，后端命令都要先 cd
+        - name: mvn package
+          script: |
+            cd servers/forever-server
+            mvn -B package -DskipTests
+        - name: 分层展开（Dockerfile 按层 COPY extracted/，见其中注释）
+          script: |
+            cd servers/forever-server
+            java -Djarmode=tools -jar target/forever-server-*.jar extract --layers --launcher --destination extracted
+        - name: docker build
+          # 上下文是后端自己的目录，Dockerfile 在目录根部，无需 -f
+          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/server:latest servers/forever-server
+        - name: docker push
+          script: |
+            if [ "${CNB_BRANCH}" = "main" ]; then
+              docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/server:latest
+            fi

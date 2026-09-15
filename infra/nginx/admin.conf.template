@@ -1,0 +1,63 @@
+# forever-admin 的 nginx 站点配置
+#
+# 这个文件被复制成 /etc/nginx/templates/default.conf.template，
+# 容器启动时 nginx 官方 entrypoint 会用 envsubst 把 ${API_UPSTREAM} 替换成真实后端地址。
+# 注意：只替换环境变量，nginx 自己的 $uri / $host 不会被碰。
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    charset utf-8;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml font/woff2;
+
+    # 健康检查：给 Dockerfile 的 HEALTHCHECK / k8s 探针用，不写访问日志
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 'ok';
+    }
+
+    # 带内容 hash 的产物可以长缓存
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # 入口 HTML 绝不能缓存，否则发版后老用户拿到的还是旧 chunk，白屏
+    location = /index.html {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # 后端接口反向代理。
+    # admin 与 server 同源 → 浏览器全程同源请求，前端完全不涉及 CORS 与 Cookie 跨站问题。
+    # proxy_pass 不带尾部路径：原样透传 URI，/api/xxx → ${API_UPSTREAM}/api/xxx
+    # （后端没有 context-path，接口本身就在 /api 下）
+    location /api/ {
+        proxy_pass ${API_UPSTREAM};
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 附件是 8MB 分片直传，留足余量；响应头里带 presigned URL 可能较长
+        client_max_body_size 32m;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+    }
+
+    # SPA 前端路由：未命中文件的路径一律回入口 HTML，由 vue-router 接管
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

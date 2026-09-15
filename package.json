@@ -1,0 +1,28 @@
+{
+  "name": "forever-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=forever",
+    "dev:admin": "turbo run dev --filter=forever-admin",
+    "build": "turbo run build",
+    "build:web": "turbo run build --filter=forever",
+    "build:admin": "turbo run build --filter=forever-admin",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck"
+  },
+  "pnpm": {
+    "overrides": {
+      "@tiptap/extension-bubble-menu": "3.30.2",
+      "@tiptap/extension-floating-menu": "3.30.2"
+    }
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4"
+  }
+}

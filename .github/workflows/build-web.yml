@@ -1,15 +1,28 @@
-name: 构建镜像
+name: 构建镜像 · web
 
-# push main/release 分支、打 v* 标签，或手动触发（与 forever-server 的 docker.yml 一致）
+# push main/release 分支、打 v* 标签，或手动触发
+#
+# paths 过滤：只在 apps/web 或公共前端代码变化时才构建 web 镜像。
+# ⚠️ 如果你在 GitHub 上给 main 开了分支保护、并把本 workflow 设成「必需检查」，
+#    那么不匹配 paths 的 PR 永远不会触发它，检查会一直 pending → PR 卡死。
+#    这种情况改成「始终触发 + job 内用 dorny/paths-filter 判断后决定要不要构建」。
 on:
   push:
     branches: [main, release]
     tags: ['v*']
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/build-web.yml'
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  # ghcr 要求镜像名全小写
+  # ghcr 要求镜像名全小写；合仓后 GITHUB_REPOSITORY 变成 monorepo 的名字，
+  # 所以这里必须写死，否则镜像地址会变、老部署拉不到
   IMAGE: ghcr.io/king-hsw/forever
 
 jobs:
@@ -33,23 +46,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Dockerfile 只拷 .output/（构建阶段已移出镜像）：每个平台 job 先 pnpm 构建，
-      # 产物落在工作区即进入 buildx 构建上下文
+      # 不写 version：pnpm 版本以根 package.json 的 packageManager 字段为准（当前 10.12.1）。
+      # 两处都写会报 "Multiple versions of pnpm specified"
       - uses: pnpm/action-setup@v4
-        with:
-          # 锁死 pnpm 版本（与原 Dockerfile 一致），避免上游发新版导致构建行为变化
-          version: 10.12.1
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          # 合仓后 lockfile 在仓库根
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      - name: pnpm build
-        run: pnpm build
+      # Dockerfile 只拷 apps/web/.output/（构建阶段已移出镜像）：
+      # 每个平台 job 先构建，产物落在工作区即进入 buildx 构建上下文
+      - name: pnpm build（仅 web）
+        run: pnpm --filter forever build
         env:
           NODE_ENV: production
 
@@ -65,11 +79,13 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
+          # 构建上下文是仓库根，Dockerfile 里带 apps/web/ 前缀
           context: .
+          file: apps/web/Dockerfile
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=build-${{ matrix.short }}
-          cache-to: type=gha,scope=build-${{ matrix.short }},mode=max
+          cache-from: type=gha,scope=web-build-${{ matrix.short }}
+          cache-to: type=gha,scope=web-build-${{ matrix.short }},mode=max
 
       - name: 导出摘要
         run: |
@@ -79,7 +95,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.short }} # 产物名不能带斜杠，用短名
+          name: web-digests-${{ matrix.short }} # 产物名不能带斜杠，用短名
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -95,7 +111,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: web-digests-*
           merge-multiple: true
 
       - uses: docker/setup-buildx-action@v3
@@ -140,7 +156,9 @@ jobs:
 
       - name: 复制镜像到 Docker Hub
         env:
-          DH_IMAGE: ${{ vars.DOCKERHUB_IMAGE }}
+          # ⚠️ 合仓后 web/server 共用一个仓库，变量名必须区分开，
+          #    否则两个 workflow 会读到同一个值
+          DH_IMAGE: ${{ vars.DOCKERHUB_IMAGE_WEB }}
           DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
           DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           # GITHUB_TOKEN 不是默认环境变量（默认只有 GITHUB_ACTOR/GITHUB_REF 等），

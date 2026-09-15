@@ -1,96 +1,65 @@
-English | [简体中文](./README-zh_CN.md)
-<p style="display:flex; justify-content: center">
+# forever-admin
 
-</p>
-<p align="center">
-  <a href="https://tdesign.tencent.com/starter/vue-next/#/dashboard/base" target="_blank">
-    <img alt="TDesign Logo" width="300" src="https://tdesign.gtimg.com/starter/brand-logo.svg">
-  </a>
-</p>
+`forever-server` 的后台管理前端。Vue 3 + Vite + TypeScript，UI 用 [TDesign Vue Next](https://tdesign.tencent.com/vue-next/)，
+脚手架源自 TDesign Vue Next Starter（见 `LICENSE`）。
 
-<p align="center">
-  <a href="https://nodejs.org/en/about/releases/"><img src="https://img.shields.io/node/v/vite.svg" alt="node compatibility"></a>
-  <a href="https://github.com/Tencent/tdesign-vue-next-starter/releases"><img src="https://img.shields.io/github/v/release/Tencent/tdesign-vue-next-starter" alt="Version"></a>
-  <a href="https://github.com/Tencent/tdesign-vue-next/blob/develop/LICENSE"><img src="https://img.shields.io/npm/l/tdesign-vue-next.svg?sanitize=true" alt="License"></a>
-</p>
+## 定位
 
-<p align="center">
-  💻 <a href="http://tdesign.tencent.com/starter/vue-next/"><b>实时预览</b></a>
-  &nbsp|&nbsp
-  📃 <a href="https://tdesign.tencent.com/starter/"><b>使用文档</b></a>
-  &nbsp|&nbsp
-  <img src="https://cnb.cool/images/favicon.png" width="21" align="top" alt="CNB Logo">
-  &nbsp<a href="https://cnb.cool/tencent/tdesign/tdesign-vue-next-starter/"><b>cnb.cool</b></a>
-</p>
+Monorepo 中 **后台唯一入口**。原先内嵌在 `apps/web`（Nuxt）里的 `/admin/**` 页面已下线，
+后台功能全部收拢到这里，前台只保留 SSR 展示。
 
-### Introduction
-
-TDesign Vue Next Starter is a TDesign-based developed with `Vue 3`, `Vite`, `Pinia`, `TypeScript`. It can be customized theme configuration, and aims to provide project out-of-the-box, configuration-style middle and background projects.
-
-<img src="docs/starter.png">
-
-### Features
-
-- Various provided pages for develop
-- Complete directory structure for develop
-- Code specification configuration
-- Support dark mode
-- Custom theme colors
-- Various space layouts
-- Mock data scheme
-
-### Usage
-
-> Initialize project with our CLI tool `tdesign-starter-cli` 
+## 开发
 
 ```bash
-## install tdesign-starter-cli
-npm i tdesign-starter-cli@latest -g
-
-## create project
-td-starter init
+# 在仓库根执行，会自动带上 workspace 依赖
+pnpm install
+pnpm --filter forever-admin dev      # http://localhost:3002
 ```
 
-### Develop
+开发期 `/api` 由 Vite 代理转发到 `VITE_PROXY_TARGET`（见 `.env.development`，默认 `http://127.0.0.1:8080`），
+不经过浏览器跨域。
+
+## 构建
 
 ```bash
-## install dependencies
-npm install
-
-## set up
-npm run dev
+pnpm --filter forever-admin build    # 先 vue-tsc 类型检查，产物在 dist/
 ```
 
-### Build
+生产环境为纯静态站点，由 nginx 托管并反代 `/api` 到后端；镜像见 `infra/Dockerfile.admin`。
 
-```bash
-## build
-npm run build
+## 配置
 
-## build for test
-npm run build:test
+环境变量全部走 Vite 的 `VITE_` 前缀，构建期注入：
+
+| 变量 | 说明 |
+|---|---|
+| `VITE_BASE_URL` | 静态资源基础路径，默认 `/` |
+| `VITE_API_URL` | 后端地址。**留空 = 同源**，生产由 nginx 反代，一般不需要改 |
+| `VITE_PROXY_TARGET` | 仅开发期使用，Vite devServer 的 `/api` 代理目标 |
+
+> 真实配置在 `.env`（已 gitignore），模板见 `.env.development`。
+
+## 目录
+
+```
+src/
+├─ api/          # 按模块拆分的接口层（auth / content / interaction / site / system / upload）
+├─ pages/        # 业务页面，按后台菜单分组
+├─ router/       # 路由，业务路由集中在 modules/blog.ts
+├─ store/        # Pinia：user（登录态+权限）、permission（静态路由）
+├─ utils/request # axios 封装：Bearer 双 token、401 单飞刷新重放
+└─ layouts/      # TDesign Starter 的布局体系
 ```
 
+## 与后端的约定
 
-### Contributing Guide
+- 响应统一 `ApiResponse<T>`，`code === 0` 为成功；分页统一 `PageResult<T>`，参数是 `page` / `size`（不是 `pageSize`）
+- 认证走 Bearer 双 token（access + refresh），**不是 JWT**
+- 权限是后端下发的 RBAC 权限码，前端用 `userStore.hasPermission(code)` 做按钮级控制
+- 上传是内容寻址直传 RustFS：md5 秒传校验 + 8MB 分片，见 `src/api/upload.ts`
 
-We welcome contributions to our project. Create your [Issue](https://github.com/tencent/tdesign-vue-next-starter/issues/new/choose) or Submit your [Pull Request](https://github.com/Tencent/tdesign-vue-next-starter/pulls).
+## 已知事项
 
-#### Commit Specification
-
-- [Angular Convention](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular)
-- [Vue Style Guide](https://v3.vuejs.org/style-guide/#rule-categories)
-
-### Browser Support
-
-| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="IE / Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br> IE / Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Edge >=84                                                                                                                                                                                                        | Firefox >=83                                                                                                                                                                                                      | Chrome >=84                                                                                                                                                                                                   | Safari >=14.1                                                                                                                                                                                                 |
-
-### Community Versions
-
-There are kinds of community versions of starter-kit based on TDesign Vue Next, visit [community-link](https://tdesign.tencent.com/starter/docs/vue-next/community-link) for more detail. If you developed a community versions of tdesign starter, please create a issue or submit a pull request to let us know 😊.
-
-### License
-
-The MIT License. Please see [the license file](LICENSE) for more information.
+- `pinia` 固定在 v3（`apps/web` 用 v4）。两套版本各自装在自己的 `node_modules` 里，互不影响；
+  升级到 v4 需单独验证，别顺手改。
+- `vue-i18n` 语言包仍是 TDesign Starter 那套，中文页面基本用不到多语言，暂不维护。

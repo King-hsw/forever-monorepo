@@ -1,16 +1,26 @@
-name: Build and Push Docker Image
+name: 构建镜像 · server
 
 # push main/release 分支、打 v* 标签，或手动触发
+#
+# ⚠️ paths 只留 servers/forever-server/** —— workspace 里的 packages/ 变化要触发
+#    **前端**镜像重建，跟后端无关，别把依赖图写反。
 on:
   push:
     branches: [main, release]
     tags: ['v*']
+    paths:
+      - 'servers/forever-server/**'
+      - '.github/workflows/build-server.yml'
   workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  # 合仓后 GITHUB_REPOSITORY 变成 monorepo 的名字，这里必须写死，
+  # 否则镜像地址会变、老部署拉不到
+  IMAGE: ghcr.io/king-hsw/forever-server
 
 jobs:
   build:
-    # 每个平台一个 job 并行构建；单平台镜像先按「摘要」推送，
-    # 不打 tag，避免与另一个 job 互相覆盖
     strategy:
       matrix:
         include:
@@ -22,14 +32,14 @@ jobs:
             runner: ubuntu-24.04-arm # 公开仓库免费
             short: arm64
     runs-on: ${{ matrix.runner }}
+    # 后端是独立 Maven 工程，所有 shell 步骤都在它自己的目录里跑
+    defaults:
+      run:
+        working-directory: servers/forever-server
     permissions:
       contents: read
       packages: write
     steps:
-      # ghcr 要求镜像名全小写（owner King-hsw 含大写），统一转换后再用
-      - name: 镜像名转小写
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
-
       - uses: actions/checkout@v4
 
       # Dockerfile 只拷分层产物（构建阶段已移出镜像）：每个平台 job 先 mvn 打包
@@ -52,7 +62,7 @@ jobs:
 
       - uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,11 +70,13 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: .
+          # 后端的构建上下文就是它自己的目录（Dockerfile 拷的是同目录下的 extracted/）
+          context: servers/forever-server
+          file: servers/forever-server/Dockerfile
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=build-${{ matrix.short }}
-          cache-to: type=gha,scope=build-${{ matrix.short }},mode=max
+          cache-from: type=gha,scope=server-build-${{ matrix.short }}
+          cache-to: type=gha,scope=server-build-${{ matrix.short }},mode=max
 
       - name: 导出摘要
         run: |
@@ -74,7 +86,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ matrix.short }} # 产物名不能带斜杠，用短名
+          name: server-digests-${{ matrix.short }} # 产物名不能带斜杠，用短名
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -87,21 +99,17 @@ jobs:
       contents: read
       packages: write
     steps:
-      # ghcr 要求镜像名全小写（owner King-hsw 含大写），统一转换后再用
-      - name: 镜像名转小写
-        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
-
       - uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: server-digests-*
           merge-multiple: true
 
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -139,14 +147,15 @@ jobs:
 
       - name: 复制镜像到 Docker Hub
         env:
-          DH_IMAGE: ${{ vars.DOCKERHUB_IMAGE }}
+          # ⚠️ 合仓后变量名必须区分开（原先是 DOCKERHUB_IMAGE），
+          #    否则 web/server 两个 workflow 会读到同一个值
+          DH_IMAGE: ${{ vars.DOCKERHUB_IMAGE_SERVER }}
           DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
           DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           # GITHUB_TOKEN 不是默认环境变量（默认只有 GITHUB_ACTOR/GITHUB_REF 等），
           # 必须显式从 secrets 注入；且不能用 GITHUB_ 前缀命名，故取名 GH_TOKEN
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
           # 凭据为空时 skopeo 不报错，而是回退成交互式输入（CI 无 tty，最终报
           # "inappropriate ioctl for device"），所以先体检：只报「有没有值」，不打印值
           missing=0
@@ -209,7 +218,6 @@ jobs:
           done
           [[ $missing == 0 ]] || exit 1
 
-          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}"
           TAGS=(latest)
           [[ "$GITHUB_REF" == refs/tags/v* ]] && TAGS+=("${GITHUB_REF#refs/tags/}")
           for TAG in "${TAGS[@]}"; do

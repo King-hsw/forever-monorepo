@@ -1,0 +1,130 @@
+name: 构建镜像 · admin
+
+# admin 之前从未被容器化（没有生产 Dockerfile、也没有任何发布链路）。
+# 这一版先做到「构建多架构镜像并推 GHCR」，不复制到 Docker Hub / CCR——
+# 那两个 job 直接照 build-web.yml 里的 dockerhub / tencent 抄过来即可，
+# 记得把 vars.DOCKERHUB_IMAGE_ADMIN 与 CCR_IMAGE 换成 admin 自己的地址。
+on:
+  push:
+    branches: [main, release]
+    tags: ['v*']
+    paths:
+      - 'apps/admin/**'
+      - 'packages/**'
+      - 'infra/Dockerfile.admin'
+      - 'infra/nginx/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'package.json'
+      - '.github/workflows/build-admin.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE: ghcr.io/king-hsw/forever-admin
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+            short: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            short: arm64
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      # 产物落在 apps/admin/dist，由 infra/Dockerfile.admin 拷进 nginx 镜像
+      - name: pnpm build（仅 admin）
+        run: pnpm --filter forever-admin build
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 构建并按摘要推送
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          # admin 镜像需要 infra/nginx/ 里的模板，所以上下文必须是仓库根
+          context: .
+          file: infra/Dockerfile.admin
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=admin-build-${{ matrix.short }}
+          cache-to: type=gha,scope=admin-build-${{ matrix.short }},mode=max
+
+      - name: 导出摘要
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: admin-digests-${{ matrix.short }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: admin-digests-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 创建多架构清单并推送
+        working-directory: /tmp/digests
+        run: |
+          TAGS="-t $IMAGE:latest"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAGS="$TAGS -t $IMAGE:${GITHUB_REF#refs/tags/}"
+          fi
+          # GHCR 最终一致性延迟，带重试
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if docker buildx imagetools create $TAGS $(printf "$IMAGE@sha256:%s " *); then ok=1; break; fi
+            echo "::warning::摘要暂不可读（GHCR 一致性延迟），15s 后重试（$i/6）"
+            sleep 15
+          done
+          [[ $ok == 1 ]] || exit 1
+
+      - name: 检查清单
+        run: docker buildx imagetools inspect $IMAGE:latest
