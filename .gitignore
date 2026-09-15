@@ -1,0 +1,40 @@
+# ============================================================
+# Monorepo 根级忽略规则
+# 各子项目的 .gitignore 仍然生效，这里只补充根级与通用规则
+# ============================================================
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 构建产物
+dist/
+.nuxt/
+.output/
+_site/
+target/
+extracted/
+
+# 日志与缓存
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.eslintcache
+.stylelintcache
+
+# 编辑器
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# 本地环境变量（真实配置不入库，模板见各项目的 .env.example）
+.env.local
+.env.*.local
+
+# WorkBuddy 本地状态
+.workbuddy/
