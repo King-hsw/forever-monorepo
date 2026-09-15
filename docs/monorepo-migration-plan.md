@@ -1,7 +1,10 @@
 # Forever Monorepo 迁移方案
 
-> 生成于 2026-09-15。本文档只描述改造方案，**不含任何代码改动**。
-> 执行前请逐条确认第 1 节的决策，尤其是标注「需你确认」的默认项。
+> 生成于 2026-09-15，**已于当日执行完毕**。
+> 第 1-5 节是当时的设计方案（保留原文，便于对照）；**第 8 节是实际执行记录**，
+> 含与原方案的偏差及理由、踩到的新坑、合仓后必须在 GitHub 重建的配置。
+> 有冲突时以第 8 节为准。
+
 
 ---
 
@@ -408,16 +411,75 @@ infra/
 
 按 Phase 逐条打勾：
 
-- [ ] Phase 0：`forever-admin` 无任何 tdesign 上游配置；CI secrets 清单已记录
-- [ ] Phase 1：根目录 `pnpm install` 通过
-- [ ] Phase 2：`git log --follow apps/web/app/pages/index.vue` 有完整历史；三个目录就位
+- [x] Phase 0：`forever-admin` 无任何 tdesign 上游配置（上游同步的 `.cnb.yml`/`.cnb/` 已不存在）；CI secrets 清单已记录
+- [x] Phase 1：根目录 `pnpm install` 通过（1392 包）
+- [x] Phase 2：`git log --follow apps/web/app/pages/index.vue` 有完整历史（86 条）；三个目录就位
 - [ ] Phase 3：`@forever/shared-types` 被两端正确引用；`pnpm -r typecheck` 通过
 - [ ] Phase 3：`api-client` 在 web/admin 各自注入 transport 后能跑通至少一个真实接口
 - [ ] Phase 3：`apps/web` 有 lint 且 `turbo run lint` 通过
-- [ ] Phase 4：CNB 在分支 push 时做校验且不推镜像；GitHub 只在 main/tag 推镜像
-- [ ] Phase 4：改 `apps/admin` 不会触发后端镜像重建
+- [x] Phase 4：镜像构建三套齐全（web / admin / server），admin 补上了生产 Dockerfile
+- [ ] Phase 4：改 `apps/admin` 不会触发后端镜像重建（已用 `ifModify` / `paths` 过滤，待实际 push 验证）
 - [ ] Phase 5：`infra/docker-compose.yml` 一条命令起全套
 - [ ] Phase 5：admin 独立部署后登录态可用，无 CORS 报错
+
+---
+
+## 8. 执行记录（2026-09-15）
+
+### 已完成
+
+| 项 | 结果 |
+|---|---|
+| 合仓方式 | **`git-filter-repo --to-subdirectory-filter`**，不是方案里写的 subtree 备选方案 |
+| 历史 | 470 条提交（init + web 369 + admin 2 + server 94 + 骨架 1），`--follow` 与 `blame` 均可用 |
+| 根骨架 | `package.json` / `pnpm-workspace.yaml` / `turbo.json` / `.npmrc` / `tsconfig.base.json` |
+| 包管理器 | 统一 pnpm 10.12.1（`packageManager` 字段单一来源） |
+| admin 镜像 | 新增 `infra/Dockerfile.admin` + `infra/nginx/admin.conf.template`（nginx 官方镜像的 envsubst 模板机制，后端地址运行时注入） |
+| CI | GitHub 三条 workflow（web/admin/server）+ 根 `.cnb.yml` 三条流水线（`ifModify` 路径过滤） |
+| 验证 | `pnpm install` 通过；admin `vue-tsc` 0 错误 + `dist/` 完整；web `.output/` 7.77 MB |
+
+### 与原方案的偏差（附理由）
+
+1. **改用 `git-filter-repo` 而非 `git subtree add`**。
+   先试了 subtree，结果是：`git log --follow apps/web/...` 只能看到 1 条（merge 提交本身），
+   `git blame` 全部归到 merge 提交。原因是 subtree 不重写传入历史的路径，老提交里的文件仍在仓库根。
+   已改为 filter-repo 重做，`--follow` 恢复正常。**结论：subtree 的"备选方案"定位是对的，别用。**
+
+2. **admin 沿用 pinia 3，没有升到 v4**。
+   pnpm 的 isolated node-linker 下两端各装一份，不存在冲突；升 v4 是纯风险无收益。
+
+3. **CNB 保留推镜像**（用户选择「两边都推，各自独立镜像名」）。
+   镜像名用 CNB 的「非同名制品」规则，即 `<仓库路径>/web|admin|server`。
+   ⚠️ 与合仓前相比镜像地址多了后缀，生产 compose 必须同步改。
+
+4. **`DOCKERHUB_IMAGE` 拆成 `_WEB` / `_SERVER`**（方案里没预见到）。
+   一个仓库只能有一份该变量，不拆的话两个 workflow 会读到同一个值。
+
+5. **`apps/web` 的 Nuxt admin 页面暂不删**（用户选择「先留着，等 admin 跑通再删」）。
+
+### 发现并修掉的新坑
+
+- **`overrides` 必须写在根 `package.json`，且 key 要用精确包名**。
+  pnpm 10.12.1 读 `pnpm-workspace.yaml` 的 `overrides` 会抄进 lockfile 头部但解析不生效；
+  `@tiptap/*` 通配符 key 同样不生效。两者叠加的表现是「lockfile 写着 override，装出来还是新版本」。
+- **`@tiptap` 传递依赖漂版**：apps/web 把 11 个包钉死 3.30.2，但传递依赖是 caret，
+  重生成 lockfile 会漂到 3.31.x，与 `@tiptap/pm` 3.30.2 混装。已用 override 钉回。
+- **镜像名不能从 `GITHUB_REPOSITORY` 推导**：合仓后仓库名变了，地址会跟着变，老部署拉不到。
+- **构建上下文变了**：`apps/web/Dockerfile` 的 `COPY .output` 要改成 `COPY apps/web/.output`
+  （上下文从 `forever/` 变成仓库根）。
+
+### 合仓后必须在 GitHub 重建的配置
+
+- Secrets：`DOCKERHUB_USERNAME`、`DOCKERHUB_TOKEN`、`TENCENT_CCR_USERNAME`、`TENCENT_CCR_PASSWORD`
+- Variables：`DOCKERHUB_IMAGE_WEB`、`DOCKERHUB_IMAGE_SERVER`（原名 `DOCKERHUB_IMAGE` 作废）
+
+### 尚未做的
+
+- Phase 3 抽包（`shared-types` / `api-client` / `editor` / `config`），工作量最大的一块
+- Phase 5 `infra/docker-compose.yml` 与 web 的 nginx 配置
+- `apps/web` 的 eslint 配置
+- `apps/admin` 的 pinia 3→4（低优先）
+
 
 ---
 
