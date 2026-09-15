@@ -1,0 +1,47 @@
+{
+  "name": "forever",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@iconify-json/lucide": "^1.2.126",
+    "@nuxt/icon": "^2.5.1",
+    "@pinia/nuxt": "^1.0.2",
+    "@tiptap/core": "3.30.2",
+    "@tiptap/extension-code": "3.30.2",
+    "@tiptap/extension-code-block-lowlight": "3.30.2",
+    "@tiptap/extension-image": "3.30.2",
+    "@tiptap/extension-table": "3.30.2",
+    "@tiptap/markdown": "3.30.2",
+    "@tiptap/pm": "3.30.2",
+    "@tiptap/starter-kit": "3.30.2",
+    "@tiptap/vue-3": "3.30.2",
+    "highlight.js": "^11.12.0",
+    "lowlight": "^3.3.0",
+    "marked": "^17.0.6",
+    "marked-highlight": "^2.2.4",
+    "nuxt": "^4.5.2",
+    "photoswipe": "^5.4.4",
+    "pinia": "^4.0.3",
+    "spark-md5": "^3.0.2",
+    "vue": "^3.5.41"
+  },
+  "devDependencies": {
+    "@types/spark-md5": "^3.0.5",
+    "@vite-pwa/nuxt": "^1.1.1",
+    "typescript": "^5.9.2",
+    "vue-tsc": "^3.3.11",
+    "workbox-core": "^7.4.1",
+    "workbox-expiration": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
+  }
+}

@@ -1,0 +1,201 @@
+<template>
+  <!-- 桌面端左侧竖排导航：头像标在上、图标菜单居中、工具收在底部（≥901px 显示） -->
+  <aside class="site-rail">
+    <nav class="site-rail__nav" aria-label="主导航">
+      <Tooltip
+        v-for="item in navItems"
+        :key="item.to"
+        :label="item.label"
+      >
+        <NuxtLink
+          :to="item.to"
+          class="site-rail__btn"
+          :aria-label="item.label"
+        >
+          <Icon :name="item.icon" mode="svg" :size="19" />
+        </NuxtLink>
+      </Tooltip>
+    </nav>
+
+    <div class="site-rail__foot">
+      <!-- 登录账号后评论/聊天均用账号身份，游客身份隐藏避免两个身份并存 -->
+      <Tooltip
+        v-if="guest.isRegistered && !auth.isAuthenticated"
+        :label="`游客身份：${guest.nickname}`"
+      >
+        <NuxtLink
+          to="/guest"
+          class="site-rail__btn site-rail__guest"
+          aria-label="游客身份"
+        >
+          {{ guest.nickname.slice(0, 1) }}
+        </NuxtLink>
+      </Tooltip>
+      <Tooltip
+        v-if="auth.isAuthenticated"
+        :label="unread > 0 ? `消息（${unread} 条未读）` : '消息'"
+      >
+        <NuxtLink to="/messages" class="site-rail__btn site-rail__bell" aria-label="消息">
+          <Icon name="lucide:bell" mode="svg" :size="19" />
+          <span v-if="unread > 0" class="site-rail__badge">{{ unread > 99 ? '99+' : unread }}</span>
+        </NuxtLink>
+      </Tooltip>
+      <Tooltip label="搜索">
+        <button type="button" class="site-rail__btn" aria-label="搜索" @click="searchOpen = true">
+          <Icon name="lucide:search" mode="svg" :size="19" />
+        </button>
+      </Tooltip>
+      <!-- 移动端主题切换按钮在 SiteHeader，两侧按断点互斥，DOM 中只存在一个实例 -->
+      <Tooltip v-if="isDesktop" :label="nextLabel">
+        <ThemeToggle class="site-rail__btn" :size="19" :stroke-width="1.8" />
+      </Tooltip>
+      <Tooltip v-if="auth.isAuthenticated" label="管理后台">
+        <NuxtLink to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
+          <img src="/icons/avatar.png" alt="" width="22" height="22" />
+        </NuxtLink>
+      </Tooltip>
+      <!-- guest 已注册时登录入口消失，游客徽标是唯一身份入口（与 guest 徽标的 v-if 互斥） -->
+      <div v-else-if="!guest.isRegistered">
+        <button type="button" class="site-rail__btn" aria-label="登录" @click="loginOpen = true">
+          <Icon name="lucide:user" mode="svg" :size="19" />
+        </button>
+        <!-- 弹窗式登录：成功留在当前页；Esc/遮罩点击/路由变化由弹窗自行处理 -->
+        <LoginDialog :open="loginOpen" @close="loginOpen = false" />
+      </div>
+    </div>
+  </aside>
+</template>
+
+<script setup lang="ts">
+const auth = useAuthStore()
+const guest = useGuestStore()
+const { count: unread } = useUnread()
+const searchOpen = useState('global-search-open', () => false)
+const { nextLabel } = useTheme()
+const isDesktop = useIsDesktop()
+
+
+/** 后续加菜单只改这里 */
+const navItems = [
+  { label: '首页', to: '/', icon: 'lucide:home' },
+  { label: '文章', to: '/posts', icon: 'lucide:list' },
+  { label: '归档', to: '/archive', icon: 'lucide:book-open' },
+  { label: '动态', to: '/moments', icon: 'lucide:heart' },
+  { label: '聊天', to: '/chat', icon: 'lucide:message-circle' },
+]
+
+/* 弹窗式登录：局部开关，Esc/遮罩点击/路由变化由 LoginDialog 自行处理 */
+const loginOpen = ref(false)
+
+onMounted(() => {
+  // 延到挂载后恢复登录态/游客态，让水合渲染与 SSR 输出一致（避免 hydration mismatch）
+  auth.hydrate()
+  guest.hydrate()
+})
+</script>
+
+<style scoped>
+.site-rail {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  width: 88px;
+  padding: 22px 0;
+  background: var(--c-rail-bg); /* 比纸底亮半档的侧栏面（深色为玉墨面） */
+  border-right: 1px solid var(--c-border);
+}
+
+@media (min-width: 901px) {
+  .site-rail {
+    display: flex;
+  }
+}
+
+.site-rail__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  margin-top: 34px;
+}
+
+.site-rail__btn {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  font: inherit;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-radius: var(--radius-control);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.site-rail__avatar img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* 消息铃铛：未读数小徽标 */
+.site-rail__bell {
+  position: relative;
+}
+
+.site-rail__badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 15px;
+  color: #fff;
+  background: var(--c-danger);
+  border-radius: 999px;
+  text-align: center;
+}
+
+/* 游客身份：昵称首字，点击进入 /guest 管理 */
+.site-rail__guest {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-rail__btn:hover {
+    color: var(--c-text);
+    background: var(--c-bg-soft);
+  }
+}
+
+.site-rail__btn.router-link-active {
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+}
+
+/* 按下即时反馈 */
+.site-rail__btn:active {
+  transition-duration: 80ms;
+  transform: scale(0.92);
+}
+
+.site-rail__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-top: auto;
+}
+</style>
