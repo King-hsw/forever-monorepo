@@ -422,7 +422,7 @@ export interface SensitiveWordResponse {
 export interface SensitiveWordRequest {
   /** 必填，≤100 */
   word: string;
-  /** ≤100，默认 *** */
+  /** ≤100，默认 */
   replacement?: string;
 }
 

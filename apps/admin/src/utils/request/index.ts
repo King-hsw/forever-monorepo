@@ -7,8 +7,8 @@
  * - 401 先用 refreshToken 静默续期并重放一次请求，刷新失败才跳登录页
  * - 后端 CORS 未开启 allowCredentials，故不携带 Cookie，令牌只走请求头
  */
-import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import isString from 'lodash/isString';
 import merge from 'lodash/merge';
 

@@ -55,7 +55,7 @@ export interface UploadOptions {
 
 /** 校验 MIME 是否在白名单内 */
 export function isAllowedMime(contentType: string): boolean {
-  return Object.prototype.hasOwnProperty.call(UPLOAD_MIME_WHITELIST, contentType);
+  return Object.hasOwn(UPLOAD_MIME_WHITELIST, contentType);
 }
 
 /** 判断该 MIME 属于哪一类资源，便于调用方限制选择器 accept */
@@ -159,13 +159,11 @@ export async function uploadFile(file: File, options: UploadOptions = {}): Promi
   // md5 占进度前 10%，剩余 90% 留给实际传输，避免大文件长时间停在 0%
   const md5 = await computeMd5(file, (percent) => onProgress?.(Math.round(percent * 0.1)));
 
-  const transfer = (fraction: (uploaded: number, total: number) => number) => (event: {
-    loaded: number;
-    total?: number;
-  }) => {
-    const total = event.total || file.size;
-    onProgress?.(10 + Math.round(fraction(event.loaded, total) * 90));
-  };
+  const transfer =
+    (fraction: (uploaded: number, total: number) => number) => (event: { loaded: number; total?: number }) => {
+      const total = event.total || file.size;
+      onProgress?.(10 + Math.round(fraction(event.loaded, total) * 90));
+    };
 
   // 1) 秒传：服务端已有同内容对象
   const check = await checkUpload({ contentType, md5 });
@@ -177,7 +175,12 @@ export async function uploadFile(file: File, options: UploadOptions = {}): Promi
   // 2) 小文件：单次直传
   if (file.size <= MULTIPART_THRESHOLD) {
     const presign = await presignUpload({ contentType, md5 });
-    await putToStorage(presign.uploadUrl, file, contentType, transfer((loaded, total) => loaded / total));
+    await putToStorage(
+      presign.uploadUrl,
+      file,
+      contentType,
+      transfer((loaded, total) => loaded / total),
+    );
     onProgress?.(100);
     return { key: presign.key, accessUrl: presign.accessUrl, sizeBytes: file.size };
   }
@@ -190,7 +193,12 @@ export async function uploadFile(file: File, options: UploadOptions = {}): Promi
     const start = i * partSize;
     const end = Math.min(start + partSize, file.size);
     const blob = file.slice(start, end);
-    await putToStorage(partUrls[i], blob, contentType, transfer((loaded) => (i + loaded / (end - start)) / partCount));
+    await putToStorage(
+      partUrls[i],
+      blob,
+      contentType,
+      transfer((loaded) => (i + loaded / (end - start)) / partCount),
+    );
   }
 
   const completed = await completeMultipart({ key: init.key, uploadId: init.uploadId });

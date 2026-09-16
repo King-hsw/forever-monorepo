@@ -98,11 +98,10 @@
     </t-card>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -256,7 +255,6 @@ onMounted(() => {
   fetchCategories();
 });
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

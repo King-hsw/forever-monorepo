@@ -30,12 +30,7 @@
 
         <template #op="{ row }">
           <t-space size="small">
-            <t-link
-              v-if="userStore.hasPermission('tag:update')"
-              theme="primary"
-              hover="color"
-              @click="handleEdit(row)"
-            >
+            <t-link v-if="userStore.hasPermission('tag:update')" theme="primary" hover="color" @click="handleEdit(row)">
               编辑
             </t-link>
             <t-link
@@ -66,7 +61,6 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
@@ -111,7 +105,6 @@ const pagination = computed(() => ({
 }));
 
 const currentPage = ref(1);
-const pageSize = 10;
 
 function onPageChange(pageInfo: { current: number; pageSize: number }) {
   currentPage.value = pageInfo.current;
@@ -174,9 +167,7 @@ function handleDelete(row: TagResponse) {
   const dialog = DialogPlugin.confirm({
     header: '删除标签',
     body: `确定删除标签「${row.name}」吗？${
-      row.articleCount > 0
-        ? `该标签关联 ${row.articleCount} 篇文章，删除后这些文章的标签将一并移除。`
-        : ''
+      row.articleCount > 0 ? `该标签关联 ${row.articleCount} 篇文章，删除后这些文章的标签将一并移除。` : ''
     }`,
     theme: 'warning',
     confirmBtn: { theme: 'danger', content: '删除' },
@@ -195,7 +186,6 @@ function handleDelete(row: TagResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

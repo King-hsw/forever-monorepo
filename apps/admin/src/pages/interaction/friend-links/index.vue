@@ -42,12 +42,7 @@
         </template>
 
         <template #siteUrl="{ row }">
-          <t-link
-            v-if="row.siteUrl"
-            theme="primary"
-            hover="color"
-            @click="openSite(row.siteUrl)"
-          >
+          <t-link v-if="row.siteUrl" theme="primary" hover="color" @click="openSite(row.siteUrl)">
             {{ row.siteUrl }}
           </t-link>
           <span v-else class="text-muted">—</span>
@@ -131,7 +126,12 @@
           <t-input v-model="formData.iconUrl" placeholder="可选，站点 favicon 地址" :maxlength="500" />
         </t-form-item>
         <t-form-item label="描述" name="description">
-          <t-textarea v-model="formData.description" placeholder="可选，站点简介" :maxlength="200" :autosize="{ minRows: 2, maxRows: 4 }" />
+          <t-textarea
+            v-model="formData.description"
+            placeholder="可选，站点简介"
+            :maxlength="200"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+          />
         </t-form-item>
         <t-form-item v-if="!isEdit" label="联系方式" name="contact">
           <t-input v-model="formData.contact" placeholder="可选，申请人邮箱或网址" :maxlength="200" />
@@ -140,7 +140,12 @@
           <t-select v-model="formData.status" :options="STATUS_OPTIONS" />
         </t-form-item>
         <t-form-item v-if="isEdit && formData.status === 'REJECTED'" label="驳回原因" name="rejectReason">
-          <t-textarea v-model="formData.rejectReason" placeholder="可选，驳回理由" :maxlength="200" :autosize="{ minRows: 2, maxRows: 4 }" />
+          <t-textarea
+            v-model="formData.rejectReason"
+            placeholder="可选，驳回理由"
+            :maxlength="200"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+          />
         </t-form-item>
       </t-form>
     </t-dialog>
@@ -154,17 +159,22 @@
       @confirm="handleRejectConfirm"
     >
       <p class="reject-tip">即将驳回「{{ rejectingName }}」，可填写驳回原因（也可留空）：</p>
-      <t-textarea v-model="rejectReason" placeholder="可选，驳回原因" :maxlength="200" :autosize="{ minRows: 2, maxRows: 4 }" />
+      <t-textarea
+        v-model="rejectReason"
+        placeholder="可选，驳回原因"
+        :maxlength="200"
+        :autosize="{ minRows: 2, maxRows: 4 }"
+      />
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol, SelectOption } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 
+import type { FriendLinkResponse, FriendLinkStatus } from '@/api/model/types';
 import {
   approveFriendLink,
   createFriendLink,
@@ -173,7 +183,6 @@ import {
   rejectFriendLink,
   updateFriendLink,
 } from '@/api/site';
-import type { FriendLinkResponse, FriendLinkStatus } from '@/api/model/types';
 import { useUserStore } from '@/store';
 
 defineOptions({ name: 'FriendLinkList' });
@@ -243,7 +252,6 @@ const pagination = computed(() => ({
 }));
 
 const currentPage = ref(1);
-const pageSize = 10;
 
 function onFilterChange() {
   currentPage.value = 1;
@@ -335,7 +343,8 @@ async function handleSubmit() {
         iconUrl,
         description,
         status: formData.value.status,
-        rejectReason: formData.value.status === 'REJECTED' ? formData.value.rejectReason.trim() || undefined : undefined,
+        rejectReason:
+          formData.value.status === 'REJECTED' ? formData.value.rejectReason.trim() || undefined : undefined,
       };
       await updateFriendLink(editingId.value, payload);
       MessagePlugin.success('友链已更新');
@@ -427,7 +436,6 @@ function handleDelete(row: FriendLinkResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

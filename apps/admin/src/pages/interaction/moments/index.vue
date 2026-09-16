@@ -22,12 +22,7 @@
 
         <!-- 卡片流 -->
         <div v-else class="moment-list">
-          <t-card
-            v-for="item in list"
-            :key="item.id"
-            :bordered="false"
-            class="moment-item"
-          >
+          <t-card v-for="item in list" :key="item.id" :bordered="false" class="moment-item">
             <div class="moment-header">
               <t-avatar :image="item.avatarUrl" size="40px">
                 {{ item.username.slice(0, 1) }}
@@ -76,13 +71,7 @@
 
       <!-- 服务端分页 -->
       <div v-if="total > pageSize" class="moment-pagination">
-        <t-pagination
-          :current="currentPage"
-          :page-size="pageSize"
-          :total="total"
-          show-jumper
-          @change="onPageChange"
-        />
+        <t-pagination :current="currentPage" :page-size="pageSize" :total="total" show-jumper @change="onPageChange" />
       </div>
     </t-card>
 
@@ -120,11 +109,10 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 
 import { createMoment, deleteMoment, getPublicMoments } from '@/api/interaction';
@@ -249,7 +237,6 @@ function handleDelete(row: MomentResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

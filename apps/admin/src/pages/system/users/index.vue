@@ -113,15 +113,14 @@
       width="480px"
       @confirm="handleResetSubmit"
     >
-      <t-form
-        ref="resetFormRef"
-        :data="resetForm"
-        :rules="RESET_RULES"
-        label-width="80px"
-        @submit="handleResetSubmit"
-      >
+      <t-form ref="resetFormRef" :data="resetForm" :rules="RESET_RULES" label-width="80px" @submit="handleResetSubmit">
         <t-form-item label="新密码" name="password">
-          <t-input v-model="resetForm.password" type="password" placeholder="请输入新密码，6–100 字符" :maxlength="100" />
+          <t-input
+            v-model="resetForm.password"
+            type="password"
+            placeholder="请输入新密码，6–100 字符"
+            :maxlength="100"
+          />
         </t-form-item>
       </t-form>
     </t-dialog>
@@ -138,13 +137,13 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 
+import type { SysRole, UserView } from '@/api/model/types';
 import {
   createUser,
   getRoleList,
@@ -153,7 +152,6 @@ import {
   updateUserRoles,
   updateUserStatus,
 } from '@/api/system';
-import type { SysRole, UserView } from '@/api/model/types';
 import { useUserStore } from '@/store';
 
 defineOptions({ name: 'UserList' });
@@ -368,7 +366,6 @@ onMounted(() => {
   fetchRoles();
 });
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

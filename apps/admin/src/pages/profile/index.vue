@@ -84,7 +84,6 @@
     </t-row>
   </div>
 </template>
-
 <script setup lang="ts">
 import type { FormInstanceFunctions, FormRule, SubmitContext } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
@@ -236,7 +235,6 @@ async function fetchProfile() {
 
 onMounted(fetchProfile);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

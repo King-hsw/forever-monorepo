@@ -104,20 +104,13 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
-import {
-  createRole,
-  deleteRole,
-  getPermissionList,
-  getRoleList,
-  updateRolePermissions,
-} from '@/api/system';
 import type { RoleView, SysPermission } from '@/api/model/types';
+import { createRole, deleteRole, getPermissionList, getRoleList, updateRolePermissions } from '@/api/system';
 import { useUserStore } from '@/store';
 
 defineOptions({ name: 'RoleList' });
@@ -291,7 +284,6 @@ function handleDelete(row: RoleView) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

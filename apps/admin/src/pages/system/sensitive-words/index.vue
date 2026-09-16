@@ -69,20 +69,14 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 
-import {
-  createSensitiveWord,
-  deleteSensitiveWord,
-  getSensitiveWordList,
-  updateSensitiveWord,
-} from '@/api/site';
 import type { SensitiveWordResponse } from '@/api/model/types';
+import { createSensitiveWord, deleteSensitiveWord, getSensitiveWordList, updateSensitiveWord } from '@/api/site';
 import { useUserStore } from '@/store';
 
 defineOptions({ name: 'SensitiveWordList' });
@@ -122,7 +116,6 @@ const pagination = computed(() => ({
 }));
 
 const currentPage = ref(1);
-const pageSize = 10;
 
 function onPageChange(pageInfo: { current: number; pageSize: number }) {
   currentPage.value = pageInfo.current;
@@ -206,7 +199,6 @@ function handleDelete(row: SensitiveWordResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

@@ -9,7 +9,7 @@
               <t-icon :name="card.icon" />
             </div>
             <div class="stat-card__value">
-              {{ loading ? '' : (stats[card.key] === null ? '-' : stats[card.key]) }}
+              {{ loading ? '' : stats[card.key] === null ? '-' : stats[card.key] }}
             </div>
             <div class="stat-card__label">{{ card.label }}</div>
           </t-loading>
@@ -34,14 +34,19 @@
     </t-card>
   </div>
 </template>
-
 <script setup lang="ts">
-import type { PageResult, ArticleResponse, CommentAdminResponse, FriendLinkResponse, MomentResponse } from '@/api/model/types';
-import { useRouter } from 'vue-router';
 import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { getArticleList } from '@/api/content';
 import { getCommentList, getPublicMoments, getUnreadCount } from '@/api/interaction';
+import type {
+  ArticleResponse,
+  CommentAdminResponse,
+  FriendLinkResponse,
+  MomentResponse,
+  PageResult,
+} from '@/api/model/types';
 import { getFriendLinkList } from '@/api/site';
 
 defineOptions({ name: 'DashboardIndex' });
@@ -88,7 +93,11 @@ function handleNavigate(path: string) {
 }
 
 /** 把 Promise.allSettled 的结果安全地写入统计值，失败项保持 null 并在控制台报错 */
-function applyResult(result: PromiseSettledResult<unknown>, key: keyof typeof stats, extractor: (v: unknown) => number) {
+function applyResult(
+  result: PromiseSettledResult<unknown>,
+  key: keyof typeof stats,
+  extractor: (v: unknown) => number,
+) {
   if (result.status === 'fulfilled') {
     try {
       stats[key] = extractor(result.value);
@@ -119,7 +128,11 @@ async function fetchStats() {
     applyResult(draft, 'draft', (v) => (v as PageResult<ArticleResponse>).total);
     applyResult(pendingComments, 'pendingComments', (v) => (v as PageResult<CommentAdminResponse>).total);
     // 友链接口返回全量数组，前端统计待申请（PENDING）数量
-    applyResult(links, 'pendingLinks', (v) => (v as FriendLinkResponse[]).filter((item) => item.status === 'PENDING').length);
+    applyResult(
+      links,
+      'pendingLinks',
+      (v) => (v as FriendLinkResponse[]).filter((item) => item.status === 'PENDING').length,
+    );
     applyResult(unread, 'unread', (v) => (v as { count: number }).count);
     applyResult(moments, 'moments', (v) => (v as PageResult<MomentResponse>).total);
   } finally {
@@ -129,7 +142,6 @@ async function fetchStats() {
 
 onMounted(fetchStats);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

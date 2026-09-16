@@ -13,7 +13,9 @@
 
       <template #actions>
         <t-space>
-          <t-button theme="default" variant="outline" :loading="submitting" @click="handleSubmit(false)">保存草稿</t-button>
+          <t-button theme="default" variant="outline" :loading="submitting" @click="handleSubmit(false)"
+            >保存草稿</t-button
+          >
           <t-button theme="primary" :loading="submitting" @click="handleSubmit(true)">
             {{ isEdit ? '保存并返回' : '创建文章' }}
           </t-button>
@@ -37,7 +39,9 @@
                 />
                 <div class="content-editor__meta">
                   <span>{{ formData.content.length }} 字</span>
-                  <span class="text-muted">格式：{{ formData.contentFormat === 'MARKDOWN' ? 'Markdown' : 'HTML' }}</span>
+                  <span class="text-muted"
+                    >格式：{{ formData.contentFormat === 'MARKDOWN' ? 'Markdown' : 'HTML' }}</span
+                  >
                 </div>
               </div>
             </t-form-item>
@@ -48,12 +52,7 @@
           <t-card title="发布设置" :bordered="true" class="side-card">
             <t-form :data="formData" label-align="top">
               <t-form-item label="分类">
-                <t-select
-                  v-model="formData.categoryId"
-                  :options="categoryOptions"
-                  placeholder="选择分类"
-                  clearable
-                />
+                <t-select v-model="formData.categoryId" :options="categoryOptions" placeholder="选择分类" clearable />
               </t-form-item>
 
               <t-form-item label="标签">
@@ -108,7 +107,6 @@
     </t-card>
   </div>
 </template>
-
 <script setup lang="ts">
 import type { FormInstanceFunctions, FormRule } from 'tdesign-vue-next';
 import { MessagePlugin } from 'tdesign-vue-next';
@@ -144,7 +142,11 @@ const articleStatus = ref<ArticleStatus>('DRAFT');
 const formRef = ref<FormInstanceFunctions>();
 
 const formData = ref<
-  Omit<ArticleSaveRequest, 'categoryId'> & { categoryId: number | undefined; contentFormat: ContentFormat; type: ArticleType }
+  Omit<ArticleSaveRequest, 'categoryId'> & {
+    categoryId: number | undefined;
+    contentFormat: ContentFormat;
+    type: ArticleType;
+  }
 >({
   title: '',
   content: '',
@@ -257,7 +259,6 @@ onMounted(async () => {
   await fetchArticle();
 });
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

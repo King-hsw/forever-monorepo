@@ -11,12 +11,7 @@
       <!-- 筛选区 -->
       <template #actions>
         <t-space size="small">
-          <t-input
-            v-model="queryForm.username"
-            placeholder="用户名（精确匹配）"
-            clearable
-            style="width: 200px"
-          />
+          <t-input v-model="queryForm.username" placeholder="用户名（精确匹配）" clearable style="width: 200px" />
           <t-input v-model="queryForm.path" placeholder="请求路径（模糊匹配）" clearable style="width: 220px" />
           <t-button theme="primary" :loading="loading" @click="handleSearch">
             <template #icon><t-icon name="search" /></template>
@@ -58,20 +53,16 @@
     </t-card>
   </div>
 </template>
-
 <script setup lang="ts">
-import type { PrimaryTableCol, PaginationConfig } from 'tdesign-vue-next';
-import { MessagePlugin } from 'tdesign-vue-next';
 import dayjs from 'dayjs';
+import type { PrimaryTableCol } from 'tdesign-vue-next';
+import { MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, reactive, ref } from 'vue';
 
-import { getActionLogList } from '@/api/system';
 import type { ActionLogResponse } from '@/api/model/types';
-import { useUserStore } from '@/store';
+import { getActionLogList } from '@/api/system';
 
 defineOptions({ name: 'ActionLogList' });
-
-const userStore = useUserStore();
 
 const list = ref<ActionLogResponse[]>([]);
 const loading = ref(false);
@@ -163,7 +154,6 @@ function handleReset() {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

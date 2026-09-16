@@ -49,13 +49,12 @@
     </t-card>
   </div>
 </template>
-
 <script setup lang="ts">
 import { MessagePlugin } from 'tdesign-vue-next';
 import { onMounted, ref } from 'vue';
 
-import { getSettingList, updateSetting } from '@/api/site';
 import type { SettingResponse } from '@/api/model/types';
+import { getSettingList, updateSetting } from '@/api/site';
 
 defineOptions({ name: 'SiteSettings' });
 
@@ -103,7 +102,6 @@ async function handleSave(item: SettingResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

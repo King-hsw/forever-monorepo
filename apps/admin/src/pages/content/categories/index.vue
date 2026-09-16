@@ -77,7 +77,6 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
@@ -126,7 +125,6 @@ const pagination = computed(() => ({
 }));
 
 const currentPage = ref(1);
-const pageSize = 10;
 
 function onPageChange(pageInfo: { current: number; pageSize: number }) {
   currentPage.value = pageInfo.current;
@@ -212,7 +210,6 @@ function handleDelete(row: CategoryResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

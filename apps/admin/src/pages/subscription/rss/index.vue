@@ -37,24 +37,14 @@
         </template>
 
         <template #siteUrl="{ row }">
-          <t-link
-            v-if="row.siteUrl"
-            theme="primary"
-            hover="color"
-            @click="openSite(row.siteUrl)"
-          >
+          <t-link v-if="row.siteUrl" theme="primary" hover="color" @click="openSite(row.siteUrl)">
             {{ row.siteUrl }}
           </t-link>
           <span v-else class="text-muted">—</span>
         </template>
 
         <template #feedUrl="{ row }">
-          <t-link
-            v-if="row.feedUrl"
-            theme="primary"
-            hover="color"
-            @click="openSite(row.feedUrl)"
-          >
+          <t-link v-if="row.feedUrl" theme="primary" hover="color" @click="openSite(row.feedUrl)">
             {{ row.feedUrl }}
           </t-link>
           <span v-else class="text-muted">—</span>
@@ -92,12 +82,7 @@
             >
               刷新
             </t-link>
-            <t-link
-              v-if="userStore.hasPermission('rss:update')"
-              theme="primary"
-              hover="color"
-              @click="handleEdit(row)"
-            >
+            <t-link v-if="userStore.hasPermission('rss:update')" theme="primary" hover="color" @click="handleEdit(row)">
               编辑
             </t-link>
             <t-link
@@ -131,7 +116,12 @@
           <t-input v-model="formData.feedUrl" placeholder="https://example.com/feed.xml" />
         </t-form-item>
         <t-form-item label="描述" name="description">
-          <t-textarea v-model="formData.description" placeholder="可选，订阅源简介" :maxlength="500" :autosize="{ minRows: 2, maxRows: 4 }" />
+          <t-textarea
+            v-model="formData.description"
+            placeholder="可选，订阅源简介"
+            :maxlength="500"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+          />
         </t-form-item>
         <t-form-item label="是否启用" name="enabled">
           <t-switch v-model="formData.enabled" />
@@ -140,15 +130,14 @@
     </t-dialog>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { FormInstanceFunctions, FormRule, PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 
-import { createRssFeed, deleteRssFeed, getRssFeedList, refreshRssFeed, updateRssFeed } from '@/api/site';
 import type { RssFeedResponse } from '@/api/model/types';
+import { createRssFeed, deleteRssFeed, getRssFeedList, refreshRssFeed, updateRssFeed } from '@/api/site';
 import { useUserStore } from '@/store';
 
 defineOptions({ name: 'RssFeedList' });
@@ -202,7 +191,6 @@ const pagination = computed(() => ({
 }));
 
 const currentPage = ref(1);
-const pageSize = 10;
 
 function onPageChange(pageInfo: { current: number; pageSize: number }) {
   currentPage.value = pageInfo.current;
@@ -329,7 +317,6 @@ function handleDelete(row: RssFeedResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

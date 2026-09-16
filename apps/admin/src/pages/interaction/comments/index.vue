@@ -92,19 +92,13 @@
     </t-card>
   </div>
 </template>
-
 <script setup lang="ts">
+import dayjs from 'dayjs';
 import type { PrimaryTableCol } from 'tdesign-vue-next';
 import { DialogPlugin, MessagePlugin } from 'tdesign-vue-next';
-import dayjs from 'dayjs';
 import { computed, onMounted, ref } from 'vue';
 
-import {
-  approveComment,
-  deleteComment,
-  getCommentList,
-  rejectComment,
-} from '@/api/interaction';
+import { approveComment, deleteComment, getCommentList, rejectComment } from '@/api/interaction';
 import type { CommentAdminResponse, CommentStatus, CommentTargetType } from '@/api/model/types';
 import { useUserStore } from '@/store';
 
@@ -251,7 +245,6 @@ function handleDelete(row: CommentAdminResponse) {
 
 onMounted(fetchList);
 </script>
-
 <style lang="less" scoped>
 .page-container {
   padding: 16px;

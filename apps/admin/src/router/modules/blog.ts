@@ -20,8 +20,8 @@ import {
   RssIcon,
   SecuredIcon,
   SettingIcon,
-  UserIcon,
   UsergroupIcon,
+  UserIcon,
 } from 'tdesign-icons-vue-next';
 import { shallowRef } from 'vue';
 import type { RouteRecordRaw } from 'vue-router';
