@@ -15,7 +15,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE: ghcr.io/king-hsw/forever-admin
+  # 异名制品：包名带仓库名做命名空间（与 .cnb.yml 的非同名制品规则对齐）；
+  # 旧包挂在老仓库上，本仓库的 GITHUB_TOKEN 没有写权限，新包首推自动建在本仓库下
+  # ⚠️ 镜像地址变了，生产 compose 的 image: 要同步改
+  IMAGE: ghcr.io/king-hsw/forever-monorepo/admin
 
 jobs:
   build:

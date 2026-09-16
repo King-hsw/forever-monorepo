@@ -15,9 +15,11 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # 合仓后 GITHUB_REPOSITORY 变成 monorepo 的名字，这里必须写死，
-  # 否则镜像地址会变、老部署拉不到
-  IMAGE: ghcr.io/king-hsw/forever-server
+  # 异名制品：包名带仓库名做命名空间（与 .cnb.yml 的非同名制品规则对齐）。
+  # 旧包 ghcr.io/king-hsw/forever-server 挂在老仓库上，本仓库的 GITHUB_TOKEN 没有写权限；
+  # 新包首次推送会自动创建在本仓库下，token 天然可写。
+  # ⚠️ 镜像地址变了，生产 compose 的 image: 要同步改
+  IMAGE: ghcr.io/king-hsw/forever-monorepo/server
 
 jobs:
   build:
