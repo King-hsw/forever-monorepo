@@ -1,0 +1,446 @@
+/* ===== Tiptap 编辑器 UI 样式 =====
+ * 只管编辑器特有的部分：容器、工具栏、代码块 NodeView、表格编辑态、弹窗。
+ * 正文排版（标题/段落/列表/引用/行内代码/表格观感等）由 prose.less 提供，
+ * 与渲染端完全一致，这里不重复定义。
+ *
+ * 配色全部走 TDesign 令牌，跟随后台主题。
+ * 注意：代码块与表格的 DOM 由 NodeView 动态生成（不是模板节点），
+ * 因此本文件必须作为全局样式引入，不能使用 scoped。
+ */
+
+/* ---- 容器 ---- */
+.tiptap-editor {
+  --tt-accent: var(--td-brand-color);
+  --tt-border: var(--td-component-border);
+  --tt-bg-hover: var(--td-bg-color-container-hover);
+
+  overflow: hidden;
+  background: var(--td-bg-color-container);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--td-radius-medium);
+}
+
+/* 撑满父容器（分栏布局） */
+.tiptap-editor--fluid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* fluid 时 body（header 插槽 + 正文）撑满剩余高度，正文区自身滚动 */
+.tiptap-editor--fluid .tiptap-editor__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tiptap-editor--fluid .tiptap-editor__content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tiptap-editor--fluid .tiptap {
+  min-height: 100%;
+}
+
+/* ---- 工具栏 ---- */
+.tiptap-editor__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  background: var(--td-bg-color-secondarycontainer);
+  border-bottom: 1px solid var(--tt-border);
+}
+
+.tiptap-editor__group {
+  display: flex;
+  gap: 2px;
+  padding: 0 4px;
+
+  & + & {
+    border-left: 1px solid var(--tt-border);
+  }
+}
+
+.tiptap-editor__group button {
+  min-width: 28px;
+  padding: 4px 8px;
+  font-family: var(--td-font-family);
+  font-size: 13px;
+  line-height: 1;
+  color: var(--td-text-color-primary);
+  text-align: center;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: var(--td-radius-default);
+
+  &:hover:not(:disabled) {
+    background: var(--tt-bg-hover);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  &.is-active {
+    color: var(--td-text-color-anti);
+    background: var(--tt-accent);
+  }
+}
+
+/* 工具栏按钮里的线条图标：随文字色、与字号对齐 */
+.tiptap-editor__group button svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+  margin: 0 auto;
+}
+
+/* ---- 插入表格：行列网格选择器（挂在工具栏按钮下方） ---- */
+.tiptap-editor__picker {
+  position: relative;
+}
+
+.tiptap-editor__table-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  padding: 10px;
+  background: var(--td-bg-color-container);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--td-radius-medium);
+  box-shadow: var(--td-shadow-2, 0 4px 16px rgb(0 0 0 / 12%));
+}
+
+.tiptap-editor__table-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 15px);
+  gap: 2px;
+}
+
+.tiptap-editor__table-picker-cell {
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  cursor: pointer;
+  background: var(--td-bg-color-container);
+  border: 1px solid var(--tt-border);
+  border-radius: 2px;
+
+  &.is-on {
+    background: var(--tt-accent);
+    border-color: var(--tt-accent);
+  }
+}
+
+.tiptap-editor__table-picker-label {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--td-text-color-primary);
+  text-align: center;
+}
+
+.tiptap-editor__table-picker-hint {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--td-text-color-placeholder);
+  text-align: center;
+}
+
+/* ---- 编辑区（.tiptap 是 Tiptap 的根元素） ---- */
+.tiptap-editor__content {
+  .tiptap {
+    min-height: 200px;
+    padding: 16px 20px;
+    outline: none;
+  }
+
+  /* 代码块（NodeView 渲染为 顶栏 + 行号栏 + pre 的组合，见 CodeBlockLineNumbers.ts）
+   * 结构与配色对齐渲染端的 .md-code-block：Mac 三圆点顶栏、字号 0.9em / 行高 1.5 /
+   * 底色 secondarycontainer / 圆角 8px */
+  .tiptap .tiptap-code-block {
+    display: block;
+    margin: 0.8em 0;
+    font-size: 0.9em;
+    line-height: 1.5;
+    background: var(--td-bg-color-secondarycontainer);
+    border-radius: 8px;
+  }
+
+  /* 顶栏：三圆点 + 语言选择 + 复制按钮，同 .md-code-block__bar */
+  .tiptap .tiptap-code-block__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 4px;
+  }
+
+  .tiptap .tiptap-code-block__dots {
+    display: inline-flex;
+    gap: 6px;
+    margin-right: auto;
+  }
+
+  .tiptap .tiptap-code-block__dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .tiptap .tiptap-code-block__dots i:nth-child(1) { background: #ff5f57; }
+  .tiptap .tiptap-code-block__dots i:nth-child(2) { background: #febc2e; }
+  .tiptap .tiptap-code-block__dots i:nth-child(3) { background: #28c840; }
+
+  /* 语言选择 / 复制按钮：胶囊样式，同 .md-code-block__lang / __copy */
+  .tiptap .tiptap-code-block__language-select {
+    max-width: 130px;
+    padding: 1px 8px;
+    font-family: var(--td-font-family);
+    font-size: 11.5px;
+    line-height: 1.5;
+    /* 同渲染端顶栏：用 secondary，placeholder 对代码块底对比度不足 */
+    color: var(--td-text-color-secondary);
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+
+    &:hover,
+    &:focus {
+      border-color: color-mix(in srgb, var(--tt-accent) 45%, transparent);
+      outline: none;
+    }
+  }
+
+  .tiptap .tiptap-code-block__copy-button {
+    padding: 1px 8px;
+    font-family: var(--td-font-family);
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: var(--td-text-color-secondary);
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
+
+    &:hover {
+      color: var(--tt-accent);
+      border-color: color-mix(in srgb, var(--tt-accent) 45%, transparent);
+    }
+
+    &.is-copied {
+      color: var(--td-success-color);
+      border-color: var(--td-success-color);
+    }
+  }
+
+  /* 外挂行号栏：字号/行高随 .tiptap-code-block；颜色与宽度与渲染端的
+     pre code .line::before 对齐（placeholder / 3ch / 1em 间距）；
+     上下内边距与 pre 一致，保证行号和首行代码在同一水平线上 */
+  .tiptap .tiptap-code-block__body {
+    display: flex;
+  }
+
+  .tiptap .tiptap-code-block__gutter {
+    flex-shrink: 0;
+    padding: 4px 0 12px 14px;
+    color: var(--td-text-color-placeholder);
+    text-align: right;
+    cursor: default;
+    user-select: none;
+  }
+
+  .tiptap .tiptap-code-block__gutter span {
+    display: block;
+    min-width: 3ch;
+    padding-right: 1em;
+  }
+
+  .tiptap .tiptap-code-block pre {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    /* 同渲染端 .md-code-block pre：顶栏已占一行，上下留白收紧 */
+    padding: 4px 16px 12px 12px;
+    overflow-x: auto;
+    /* 字号/行高继承 .tiptap-code-block，与行号栏及渲染端代码块完全一致，
+       避免叠乘共享样式导致错位 */
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* 表格：编辑态必须有可见的单元格框线——渲染态那套「无框线 + 斑马纹」在编辑时
+   * 看不出格子边界，光标落在哪个单元格全靠猜。配色沿用 TDesign 描边令牌，
+   * 保证与渲染端同主题下的观感一致。
+   *
+   * table-layout: fixed 是列宽拖拽生效的前提：官方 NodeView 把每列宽度写进
+   * colgroup，布局算法若为 auto，列宽会被内容撑开而忽略 colgroup。 */
+  .tiptap .tableWrapper {
+    margin: 0.8em 0;
+    overflow-x: auto;
+  }
+
+  .tiptap table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .tiptap th,
+  .tiptap td {
+    position: relative;
+    min-width: 1em;
+    padding: 6px 10px;
+    vertical-align: top;
+    border: 1px solid color-mix(in srgb, var(--td-component-stroke) 75%, transparent);
+  }
+
+  /* 编辑态没有 thead（ProseMirror 把所有行都渲染进 tbody），表头靠 th 标签区分 */
+  .tiptap th {
+    font-weight: 600;
+    background: var(--td-bg-color-secondarycontainer);
+  }
+
+  /* 单元格内的段落收紧，避免每格都被默认段距撑高；多段之间留出小间距 */
+  .tiptap th > p,
+  .tiptap td > p {
+    margin: 0;
+  }
+
+  .tiptap th > p + p,
+  .tiptap td > p + p {
+    margin-top: 0.4em;
+  }
+
+  /* 斑马纹：渲染端的 tbody 不含表头行，编辑端 tbody 的首行就是表头（占第 1 位），
+   * 因此这里要用 odd 才能与渲染端着色在同一批数据行上。prose.less 里的 even 规则
+   * 会作用到编辑端的另一批行，必须显式清掉，否则每个数据行都会带上底色。 */
+  .tiptap tbody tr:nth-child(even) {
+    background: transparent;
+  }
+
+  .tiptap tbody tr:nth-child(odd):not(:first-child) {
+    background: color-mix(in srgb, var(--td-bg-color-secondarycontainer) 45%, transparent);
+  }
+
+  /* 跨格拖选时的单元格选区高亮 */
+  .tiptap .selectedCell::after {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    content: '';
+    background: color-mix(in srgb, var(--tt-accent) 14%, transparent);
+  }
+
+  /* 列宽拖拽手柄与拖拽中的光标（由表格 NodeView 在拖拽时挂上） */
+  .tiptap .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    z-index: 20;
+    width: 4px;
+    pointer-events: none;
+    background: var(--tt-accent);
+  }
+
+  .tiptap.resize-cursor {
+    cursor: col-resize;
+  }
+
+  /* 图片节点被选中时的描边 */
+  .tiptap img.ProseMirror-selectednode {
+    outline: 2px solid var(--tt-accent);
+  }
+
+  /* 选中高亮 */
+  .tiptap ::selection {
+    background: color-mix(in srgb, var(--tt-accent) 25%, transparent);
+  }
+}
+
+/* ---- 弹窗（原生的 link / Markdown 粘贴确认框） ---- */
+.tiptap-editor__dialog {
+  margin: 0;
+  padding: 20px;
+  background: var(--td-bg-color-container);
+  border: none;
+  border-radius: var(--td-radius-large);
+  box-shadow: var(--td-shadow-3, 0 8px 30px rgb(0 0 0 / 15%));
+
+  &::backdrop {
+    background: rgb(0 0 0 / 30%);
+  }
+
+  h3 {
+    margin: 0 0 12px;
+    font-family: var(--td-font-family);
+    font-size: 15px;
+    color: var(--td-text-color-primary);
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--td-text-color-secondary);
+  }
+
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    font-family: var(--td-font-family);
+    font-size: 14px;
+    color: var(--td-text-color-primary);
+    background: var(--td-bg-color-container);
+    border: 1px solid var(--td-component-border);
+    border-radius: var(--td-radius-default);
+    outline: none;
+
+    &:focus {
+      border-color: var(--tt-accent);
+    }
+  }
+}
+
+.tiptap-editor__dialog-error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--td-error-color);
+}
+
+.tiptap-editor__dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+
+  button {
+    padding: 6px 14px;
+    font-family: var(--td-font-family);
+    font-size: 13px;
+    color: var(--td-text-color-primary);
+    cursor: pointer;
+    background: var(--td-bg-color-container);
+    border: 1px solid var(--td-component-border);
+    border-radius: var(--td-radius-default);
+
+    &.primary {
+      color: var(--td-text-color-anti);
+      background: var(--tt-accent);
+      border-color: var(--tt-accent);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+}
