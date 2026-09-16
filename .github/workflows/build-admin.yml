@@ -2,8 +2,8 @@ name: 构建镜像 · admin
 
 # admin 之前从未被容器化（没有生产 Dockerfile、也没有任何发布链路）。
 # 这一版先做到「构建多架构镜像并推 GHCR」，不复制到 Docker Hub / CCR——
-# 那两个 job 直接照 build-web.yml 里的 dockerhub / tencent 抄过来即可，
-# 记得把 vars.DOCKERHUB_IMAGE_ADMIN 与 CCR_IMAGE 换成 admin 自己的地址。
+# 以后需要时加 skopeo 复制 job 即可（参考 git 历史里 web 的 dockerhub / tencent job），
+# 目标镜像地址记得换成 admin 自己的。
 on:
   push:
     branches: [main, release]
