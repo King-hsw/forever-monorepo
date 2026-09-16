@@ -432,7 +432,7 @@ infra/
 |---|---|
 | 合仓方式 | **`git-filter-repo --to-subdirectory-filter`**，不是方案里写的 subtree 备选方案 |
 | 历史 | 470 条提交（init + web 369 + admin 2 + server 94 + 骨架 1），`--follow` 与 `blame` 均可用 |
-| 根骨架 | `package.json` / `pnpm-workspace.yaml` / `turbo.json` / `.npmrc` / `tsconfig.base.json` |
+| 根骨架 | `package.json` / `pnpm-workspace.yaml` / `.npmrc` / `tsconfig.base.json` |
 | 包管理器 | 统一 pnpm 10.12.1（`packageManager` 字段单一来源） |
 | admin 镜像 | 新增 `infra/Dockerfile.admin` + `infra/nginx/admin.conf.template`（nginx 官方镜像的 envsubst 模板机制，后端地址运行时注入） |
 | CI | GitHub 三条 workflow（web/admin/server）+ 根 `.cnb.yml` 三条流水线（`ifModify` 路径过滤） |
@@ -456,6 +456,49 @@ infra/
    一个仓库只能有一份该变量，不拆的话两个 workflow 会读到同一个值。
 
 5. **`apps/web` 的 Nuxt admin 页面暂不删**（用户选择「先留着，等 admin 跑通再删」）。
+
+6. **移除了 turbo**（原方案 1.2 定的是 turbo，见下方反思）。
+
+### 反思：turbo 是我误用的
+
+原方案写 turbo 的理由是「配置量小，只需缓存与依赖图」——**这个理由本身就是错的**：
+这个仓库里没有依赖图。三个项目（Nuxt 前台 / Vue 后台 / Maven 后端）互不依赖，也没有 `packages/*`，
+所以 `dependsOn: ["^build"]` 是空转。任务编排器唯一能提供的就是依赖图和基于依赖图的缓存，
+图是空的，它的核心能力就没有施力点。
+
+剩下能兑现的只有「并行跑脚本 + 结果缓存」，而 `pnpm -r --parallel` 前者免费给，
+后者（"内容没变还重新构建"）日常几乎不会发生。代价却多了一个 devDependency、一个 `turbo.json`，
+以及一个会咬人的坑（见下）。**这是选型错误，不是配置问题——工具用在了它不匹配的仓库形态上。**
+
+实测（移除前）：
+
+| 场景 | 结果 |
+|---|---|
+| 首次 `pnpm build` | 14.3s，2 个 cache miss |
+| 内容未变再 build | 14ms，FULL TURBO |
+| 改 `apps/web/.env` 后 build | **仍是 cache hit** ← 坑 |
+| 改被追踪的 `main.ts` 后 build | cache miss，正确重建 |
+
+`.env` 不参与缓存 key：它被 gitignore，turbo 默认不纳入 hash，而 `turbo.json` 里也没声明
+`env` / `globalEnv`。后果是改了 `NUXT_PUBLIC_SITE_URL` 重新构建，拿到的是旧环境变量的产物且无任何提示。
+
+移除后根脚本改为：
+
+```jsonc
+"dev":       "pnpm -r --parallel run dev",
+"build":     "pnpm -r --parallel run build",
+"typecheck": "pnpm -r --parallel run typecheck",
+"lint":      "pnpm -r --parallel run lint",
+"build:web": "pnpm --filter forever run build"
+```
+
+已验证：`pnpm -r` **默认排除根包**（`--include-workspace-root` 默认 false），
+所以根脚本写 `pnpm -r run build` 不会自我递归；没有该脚本的包自动跳过。
+CI 本来就没走 turbo（一直是 `pnpm --filter`），移除对三条 workflow 无影响。
+
+**什么时候该重新考虑**：真的抽出 `packages/*`、出现内部依赖关系时。届时的收益点是
+`--filter='...[HEAD^1]'` 的变更检测——一个前端 workflow 覆盖两个 app，还能绕开
+「paths 不匹配 → 必需检查永远 pending → PR 卡死」那个坑。
 
 ### 发现并修掉的新坑
 

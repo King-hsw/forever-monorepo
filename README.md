@@ -39,7 +39,17 @@ pnpm lint                          # 目前只有 admin 配了 eslint
 cd servers/forever-server && mvn -B verify
 ```
 
-> turbo 只在 `apps/` 上编排。别把 Maven 塞进 turbo 的任务图——收益为零，还多一层调试面。
+**没有引入 turbo / Nx 之类的任务编排器，是刻意的。**
+
+这个仓库的形态是「三个互不相干的项目共用一个文件夹」：Nuxt 前台、Vue 后台、Maven 后端，
+它们之间**没有任何内部依赖关系**，也不存在共享包。任务编排器能提供的是依赖图和基于依赖图的缓存——
+这里没有图，所以它的核心能力是空的，剩下的"并行跑脚本"和"缓存"用 pnpm 本身就够：
+
+- `pnpm -r` 递归跑各包同名脚本，**默认排除根包**（`--include-workspace-root` 默认 false），
+  所以根脚本写 `pnpm -r run build` 不会自我递归；没有该脚本的包自动跳过。
+- `--parallel` 并发执行；`--filter <包名>` 只跑某一个。
+
+等哪天真的抽出了 `packages/*`（改动 A 会连带影响 B），再上任务编排器不迟。
 
 ## 工具链版本
 
