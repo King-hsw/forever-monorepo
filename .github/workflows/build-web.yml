@@ -12,10 +12,6 @@ on:
     tags: ['v*']
     paths:
       - 'apps/web/**'
-      - 'packages/**'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'package.json'
       - '.github/workflows/build-web.yml'
   workflow_dispatch:
 
@@ -40,30 +36,34 @@ jobs:
             runner: ubuntu-24.04-arm # 公开仓库免费
             short: arm64
     runs-on: ${{ matrix.runner }}
+    # web 是独立工程：所有 shell 步骤都在它自己的目录里跑
+    defaults:
+      run:
+        working-directory: apps/web
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
 
-      # 不写 version：pnpm 版本以根 package.json 的 packageManager 字段为准（当前 10.12.1）。
-      # 两处都写会报 "Multiple versions of pnpm specified"
+      # 锁版本，与 .cnb.yml 和 apps/web/package.json 的 packageManager 保持一致
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          # 合仓后 lockfile 在仓库根
-          cache-dependency-path: pnpm-lock.yaml
+          cache-dependency-path: apps/web/pnpm-lock.yaml
 
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      # Dockerfile 只拷 apps/web/.output/（构建阶段已移出镜像）：
+      # Dockerfile 只拷 .output/（构建阶段已移出镜像）：
       # 每个平台 job 先构建，产物落在工作区即进入 buildx 构建上下文
-      - name: pnpm build（仅 web）
-        run: pnpm --filter forever build
+      - name: pnpm build
+        run: pnpm build
         env:
           NODE_ENV: production
 
@@ -79,8 +79,8 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          # 构建上下文是仓库根，Dockerfile 里带 apps/web/ 前缀
-          context: .
+          # 构建上下文是 apps/web 自身（Dockerfile 拷的是它里面的 .output/）
+          context: apps/web
           file: apps/web/Dockerfile
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true

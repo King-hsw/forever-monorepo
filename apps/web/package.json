@@ -2,6 +2,7 @@
   "name": "forever",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@10.12.1",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -43,5 +44,11 @@
     "workbox-precaching": "^7.4.1",
     "workbox-routing": "^7.4.1",
     "workbox-strategies": "^7.4.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "@tiptap/extension-bubble-menu": "3.30.2",
+      "@tiptap/extension-floating-menu": "3.30.2"
+    }
   }
 }

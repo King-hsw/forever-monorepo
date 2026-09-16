@@ -1,0 +1,11 @@
+# pnpm 10+ 配置文件（单工程也用，不是多包 workspace）
+#
+# pnpm 10 默认拦截依赖的 postinstall；这几个必须放行，否则二进制不会被下载：
+#   esbuild        —— vite/rolldown 依赖它，被拦则构建直接失败
+#   core-js-pure   —— postinstall 只是打印捐赠提示，放行只为消掉告警
+#   @parcel/watcher / unrs-resolver —— 构建与文件监听相关二进制
+onlyBuiltDependencies:
+  - esbuild
+  - core-js-pure
+  - '@parcel/watcher'
+  - unrs-resolver

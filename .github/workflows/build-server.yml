@@ -2,7 +2,7 @@ name: 构建镜像 · server
 
 # push main/release 分支、打 v* 标签，或手动触发
 #
-# ⚠️ paths 只留 servers/forever-server/** —— workspace 里的 packages/ 变化要触发
+# ⚠️ paths 只留 servers/forever-server/** —— apps/ 前端目录变化要触发
 #    **前端**镜像重建，跟后端无关，别把依赖图写反。
 on:
   push:

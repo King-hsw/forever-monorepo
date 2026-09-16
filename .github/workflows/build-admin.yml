@@ -10,12 +10,6 @@ on:
     tags: ['v*']
     paths:
       - 'apps/admin/**'
-      - 'packages/**'
-      - 'infra/Dockerfile.admin'
-      - 'infra/nginx/**'
-      - 'pnpm-lock.yaml'
-      - 'pnpm-workspace.yaml'
-      - 'package.json'
       - '.github/workflows/build-admin.yml'
   workflow_dispatch:
 
@@ -35,26 +29,33 @@ jobs:
             runner: ubuntu-24.04-arm
             short: arm64
     runs-on: ${{ matrix.runner }}
+    # admin 是独立工程：所有 shell 步骤都在它自己的目录里跑
+    defaults:
+      run:
+        working-directory: apps/admin
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
 
+      # 锁版本，与 .cnb.yml 和 apps/admin/package.json 的 packageManager 保持一致
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          cache-dependency-path: apps/admin/pnpm-lock.yaml
 
       - name: pnpm install
         run: pnpm install --frozen-lockfile
 
-      # 产物落在 apps/admin/dist，由 infra/Dockerfile.admin 拷进 nginx 镜像
-      - name: pnpm build（仅 admin）
-        run: pnpm --filter forever-admin build
+      # 产物落在 dist/，由本目录的 Dockerfile 拷进 nginx 镜像
+      - name: pnpm build
+        run: pnpm build
 
       - uses: docker/setup-buildx-action@v3
 
@@ -68,9 +69,9 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          # admin 镜像需要 infra/nginx/ 里的模板，所以上下文必须是仓库根
-          context: .
-          file: infra/Dockerfile.admin
+          # 构建上下文是 apps/admin 自身（nginx 模板已移到 apps/admin/nginx/）
+          context: apps/admin
+          file: apps/admin/Dockerfile
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=admin-build-${{ matrix.short }}

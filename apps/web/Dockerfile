@@ -2,11 +2,11 @@
 FROM node:22-alpine
 WORKDIR /app
 
-# 构建上下文是「仓库根」，所以产物路径要带 apps/web/ 前缀。
-# 构建命令（在仓库根执行）：
-#   pnpm --filter forever build
-#   docker build -f apps/web/Dockerfile -t forever-web .
-COPY --chown=node:node apps/web/.output ./.output
+# 构建上下文是 apps/web/ 自身；产物由 CI 先构建好：
+#   cd apps/web
+#   pnpm build
+#   docker build -t forever-web apps/web
+COPY --chown=node:node .output ./.output
 
 # 非 root 用户运行，容器被攻破时影响面更小（node 用户镜像自带）
 USER node

@@ -1,0 +1,13 @@
+# 构建上下文 = apps/admin；Dockerfile 只 COPY dist/ 与 nginx/，这两样千万别排除
+node_modules
+.nuxt
+.data
+.cache
+.DS_Store
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+.env
+.env.*

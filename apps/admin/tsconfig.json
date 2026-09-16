@@ -1,6 +1,19 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    // 原先继承根 tsconfig.base.json 的环境无关选项，去 workspace 化后内联到这里
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "alwaysStrict": true,
     "ignoreDeprecations": "6.0",
     "jsx": "preserve",
     "jsxImportSource": "vue",

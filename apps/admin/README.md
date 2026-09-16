@@ -11,9 +11,9 @@ Monorepo 中 **后台唯一入口**。原先内嵌在 `apps/web`（Nuxt）里的
 ## 开发
 
 ```bash
-# 在仓库根执行，会自动带上 workspace 依赖
+# 在 apps/admin 里执行
 pnpm install
-pnpm --filter forever-admin dev      # http://localhost:3002
+pnpm dev                             # http://localhost:3002
 ```
 
 开发期 `/api` 由 Vite 代理转发到 `VITE_PROXY_TARGET`（见 `.env.development`，默认 `http://127.0.0.1:8080`），
@@ -22,10 +22,10 @@ pnpm --filter forever-admin dev      # http://localhost:3002
 ## 构建
 
 ```bash
-pnpm --filter forever-admin build    # 先 vue-tsc 类型检查，产物在 dist/
+pnpm build                           # 先 vue-tsc 类型检查，产物在 dist/
 ```
 
-生产环境为纯静态站点，由 nginx 托管并反代 `/api` 到后端；镜像见 `infra/Dockerfile.admin`。
+生产环境为纯静态站点，由 nginx 托管并反代 `/api` 到后端；镜像见本目录 `Dockerfile`（nginx 模板在 `nginx/`）。
 
 ## 配置
 

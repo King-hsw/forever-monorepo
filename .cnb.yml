@@ -11,10 +11,10 @@
 # ⚠️ 与合仓前相比镜像地址**变了**（多了 /web、/server 两段），
 #    生产 compose 里的 image: 要同步改。
 #
-# 三个 Dockerfile 的构建上下文都不同，注意看各自 docker build 的参数：
-#   web    → 上下文是仓库根，产物 apps/web/.output
-#   admin  → 上下文是仓库根，产物 apps/admin/dist + infra/nginx 模板
-#   server → 上下文是 servers/forever-server，产物 extracted/
+# 三个 Dockerfile 都以自己所在目录为构建上下文，注意看各自 docker build 的参数：
+#   web    → 上下文 apps/web，产物 .output/
+#   admin  → 上下文 apps/admin，产物 dist/ + nginx/ 模板
+#   server → 上下文 servers/forever-server，产物 extracted/
 # ============================================================
 
 main:
@@ -25,10 +25,6 @@ main:
     web:
       ifModify:
         - apps/web/**
-        - packages/**
-        - pnpm-lock.yaml
-        - pnpm-workspace.yaml
-        - package.json
       docker:
         # 构建环境：node 22（与 Dockerfile 运行阶段基础镜像一致）
         image: node:22-alpine
@@ -42,11 +38,11 @@ main:
         - name: install pnpm
           script: npm install -g pnpm@10.12.1
         - name: pnpm install
-          script: pnpm install --frozen-lockfile
+          script: cd apps/web && pnpm install --frozen-lockfile
         - name: pnpm build
-          script: NODE_ENV=production pnpm --filter forever build
+          script: cd apps/web && NODE_ENV=production pnpm build
         - name: docker build
-          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/web:latest -f apps/web/Dockerfile .
+          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/web:latest -f apps/web/Dockerfile apps/web
         - name: docker push
           script: |
             # 生产 compose 拉 :latest；只推 latest（不再留 commit 标签占仓库），
@@ -56,17 +52,11 @@ main:
             fi
 
     # ---------------------------------------------------------
-    # 后台（Vue SPA + nginx）：产物是静态站，镜像由 infra/Dockerfile.admin 托管
+    # 后台（Vue SPA + nginx）：产物是静态站，镜像由 apps/admin/Dockerfile 托管
     # ---------------------------------------------------------
     admin:
       ifModify:
         - apps/admin/**
-        - packages/**
-        - infra/Dockerfile.admin
-        - infra/nginx/**
-        - pnpm-lock.yaml
-        - pnpm-workspace.yaml
-        - package.json
       docker:
         image: node:22-alpine
         volumes:
@@ -77,12 +67,12 @@ main:
         - name: install pnpm
           script: npm install -g pnpm@10.12.1
         - name: pnpm install
-          script: pnpm install --frozen-lockfile
+          script: cd apps/admin && pnpm install --frozen-lockfile
         # build 脚本里已含 vue-tsc --noEmit，类型不过就不会出镜像
         - name: pnpm build
-          script: pnpm --filter forever-admin build
+          script: cd apps/admin && pnpm build
         - name: docker build
-          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/admin:latest -f infra/Dockerfile.admin .
+          script: docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}/admin:latest -f apps/admin/Dockerfile apps/admin
         - name: docker push
           script: |
             if [ "${CNB_BRANCH}" = "main" ]; then
