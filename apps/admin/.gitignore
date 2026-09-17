@@ -32,6 +32,7 @@ yarn-error.log
 .env.local
 .env.*.local
 
-# lock文件 请根据自身项目或团队需求选择具体的包管理工具 并移除具体的ignore的lock文件
+# lockfile 必须入库：CI（.github/workflows/build-admin.yml）用 pnpm install --frozen-lockfile，
+# 且 actions/setup-node 的 pnpm 缓存按 apps/admin/pnpm-lock.yaml 定位，缺文件会直接报错。
+# 与 apps/web 的做法保持一致（那边也是入库的）。
 yarn.lock
-pnpm-lock.yaml
