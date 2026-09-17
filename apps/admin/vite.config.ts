@@ -2,6 +2,8 @@ import path from 'node:path';
 
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
+import { TDesignResolver } from 'unplugin-vue-components/resolvers';
+import Components from 'unplugin-vue-components/vite';
 import type { ConfigEnv, UserConfig } from 'vite';
 import { loadEnv } from 'vite';
 import svgLoader from 'vite-svg-loader';
@@ -31,7 +33,19 @@ export default ({ mode }: ConfigEnv): UserConfig => {
       },
     },
 
-    plugins: [vue(), vueJsx(), svgLoader()],
+    plugins: [
+      vue(),
+      vueJsx(),
+      svgLoader(),
+      // TDesign 按需引入：模板里的 <t-xxx> 自动转成 import { Xxx } from 'tdesign-vue-next'。
+      // 每个组件的 JS 自带 `import './style/css.mjs'`，样式会随之按需带入，
+      // 所以只有全量的基础样式（es/style/index.css）需要在 main.ts 里手动引。
+      // 注意：JSX 里的 <t-xxx> 不会被本插件重写，需要显式 import（见 MenuContent.vue）。
+      Components({
+        dts: 'src/types/components.d.ts',
+        resolvers: [TDesignResolver({ library: 'vue-next' })],
+      }),
+    ],
 
     server: {
       port: 3002,

@@ -9,9 +9,5 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
-    <!-- Vite 产物里部分依赖（echarts / lodash 的 CJS 分支）会读 window.global -->
-    <script>
-      window.global = window;
-    </script>
   </body>
 </html>

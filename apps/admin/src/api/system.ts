@@ -1,12 +1,9 @@
 /**
- * 系统管理：RBAC（用户 / 角色 / 权限）与审计日志
+ * 系统管理：RBAC（用户 / 角色 / 权限）
  */
 import { request } from '@/utils/request';
 
 import type {
-  ActionLogQuery,
-  ActionLogResponse,
-  PageResult,
   RoleCreateRequest,
   RolePermissionsRequest,
   RoleView,
@@ -23,7 +20,6 @@ const Api = {
   Users: '/api/admin/users',
   Roles: '/api/admin/roles',
   Permissions: '/api/admin/permissions',
-  Logs: '/api/admin/logs',
 } as const;
 
 /* ---------------- 用户 ---------------- */
@@ -73,10 +69,4 @@ export function updateRolePermissions(id: number, data: RolePermissionsRequest) 
 /** 权限码由后端启动时自动注册入库 */
 export function getPermissionList() {
   return request.get<SysPermission[]>({ url: Api.Permissions });
-}
-
-/* ---------------- 审计日志 ---------------- */
-
-export function getActionLogList(params: ActionLogQuery) {
-  return request.get<PageResult<ActionLogResponse>>({ url: Api.Logs, params });
 }

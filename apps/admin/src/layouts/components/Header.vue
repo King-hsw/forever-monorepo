@@ -17,10 +17,6 @@
           <!-- 搜索框 -->
           <search v-if="layout !== 'side'" :layout="layout" />
 
-          <!-- 全局通知 -->
-          <notice />
-
-          <language-switcher />
           <t-dropdown :min-column-width="120" trigger="click">
             <template #dropdown>
               <t-dropdown-item class="operations-dropdown-container-item" @click="handleNav('/profile/index')">
@@ -39,7 +35,7 @@
               <template #suffix><chevron-down-icon /></template>
             </t-button>
           </t-dropdown>
-          <t-tooltip placement="bottom" :content="t('layout.header.setting')">
+          <t-tooltip placement="bottom" content="系统设置">
             <t-button theme="default" shape="square" variant="text" @click="toggleSettingPanel">
               <setting-icon />
             </t-button>
@@ -56,15 +52,12 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import LogoFull from '@/assets/assets-logo-full.svg?component';
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { prefix } from '@/config/global';
-import { t } from '@/locales';
 import { getActive } from '@/router';
 import { useSettingStore, useUserStore } from '@/store';
 import type { MenuRoute, ModeType } from '@/types/interface';
 
 import MenuContent from './MenuContent.vue';
-import Notice from './Notice.vue';
 import Search from './Search.vue';
 
 const { theme, layout, showLogo, menu, isFixed, isCompact } = defineProps({

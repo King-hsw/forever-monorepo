@@ -3,9 +3,7 @@ import { defineStore } from 'pinia';
 import { Color } from 'tvision-color';
 
 import type { TColorSeries } from '@/config/color';
-import { DARK_CHART_COLORS, LIGHT_CHART_COLORS } from '@/config/color';
 import STYLE_CONFIG from '@/config/style';
-import { store } from '@/store';
 import type { ModeType } from '@/types/interface';
 import { generateColorMap, insertThemeStylesheet } from '@/utils/color';
 
@@ -13,7 +11,6 @@ const state: Record<string, any> = {
   ...STYLE_CONFIG,
   showSettingPanel: false,
   colorList: {} as TColorSeries,
-  chartColors: LIGHT_CHART_COLORS,
 };
 
 export type TState = typeof state;
@@ -49,8 +46,6 @@ export const useSettingStore = defineStore('setting', {
       const isDarkMode = theme === 'dark';
 
       document.documentElement.setAttribute('theme-mode', isDarkMode ? 'dark' : '');
-
-      this.chartColors = isDarkMode ? DARK_CHART_COLORS : LIGHT_CHART_COLORS;
     },
     async changeSideMode(mode: ModeType) {
       const isDarkMode = mode === 'dark';
@@ -102,10 +97,6 @@ export const useSettingStore = defineStore('setting', {
     },
   },
   persist: {
-    pick: [...keys(STYLE_CONFIG), 'colorList', 'chartColors'],
+    pick: [...keys(STYLE_CONFIG), 'colorList'],
   },
 });
-
-export function getSettingStore() {
-  return useSettingStore(store);
-}

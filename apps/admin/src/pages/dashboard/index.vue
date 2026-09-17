@@ -2,7 +2,7 @@
   <div class="page-container">
     <!-- 统计卡片：响应式栅格，所有统计并发加载，单个失败不影响整页 -->
     <t-row :gutter="[16, 16]">
-      <t-col v-for="card in cards" :key="card.key" :xs="12" :sm="8" :md="4">
+      <t-col v-for="card in cards" :key="card.key" :xs="12" :sm="8" :md="6">
         <t-card :bordered="false" class="stat-card" :style="{ '--accent': card.accent }">
           <t-loading :loading="loading" :show-overlay="false" size="small">
             <div class="stat-card__icon">
@@ -38,16 +38,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { getArticleList } from '@/api/content';
-import { getCommentList, getPublicMoments, getUnreadCount } from '@/api/interaction';
-import type {
-  ArticleResponse,
-  CommentAdminResponse,
-  FriendLinkResponse,
-  MomentResponse,
-  PageResult,
-} from '@/api/model/types';
-import { getFriendLinkList } from '@/api/site';
+import { getPermissionList, getRoleList, getUserList } from '@/api/system';
 
 defineOptions({ name: 'DashboardIndex' });
 
@@ -63,29 +54,22 @@ const loading = ref(true);
  * - 加载失败保持 null（卡片显示 `-`，并在控制台报错，不弹窗打扰）
  */
 const stats = reactive<Record<string, number | null>>({
-  published: null,
-  draft: null,
-  pendingComments: null,
-  pendingLinks: null,
-  unread: null,
-  moments: null,
+  users: null,
+  roles: null,
+  permissions: null,
 });
 
 const cards = [
-  { key: 'published', label: '已发布文章', icon: 'article', accent: 'var(--td-brand-color)' },
-  { key: 'draft', label: '草稿', icon: 'file-paste', accent: 'var(--td-warning-color)' },
-  { key: 'pendingComments', label: '待审核评论', icon: 'chat', accent: 'var(--td-error-color)' },
-  { key: 'pendingLinks', label: '待申请友链', icon: 'link', accent: 'var(--td-success-color)' },
-  { key: 'unread', label: '未读消息', icon: 'notification', accent: 'var(--td-brand-color)' },
-  { key: 'moments', label: '动态数', icon: 'usergroup', accent: 'var(--td-warning-color)' },
+  { key: 'users', label: '用户总数', icon: 'usergroup', accent: 'var(--td-brand-color)' },
+  { key: 'roles', label: '角色数', icon: 'secured', accent: 'var(--td-warning-color)' },
+  { key: 'permissions', label: '权限点', icon: 'lock-on', accent: 'var(--td-success-color)' },
 ] as const;
 
 const actions = [
-  { path: '/content/articles/new', label: '写文章', icon: 'edit' },
-  { path: '/interaction/comments', label: '审核评论', icon: 'check-double' },
-  { path: '/interaction/friend-links', label: '友情链接', icon: 'link' },
-  { path: '/system/settings', label: '站点设置', icon: 'setting' },
-  { path: '/subscription/rss', label: 'RSS 订阅源', icon: 'rss' },
+  { path: '/system/users', label: '用户管理', icon: 'usergroup' },
+  { path: '/system/roles', label: '角色权限', icon: 'secured' },
+  { path: '/profile/index', label: '个人资料', icon: 'user-circle' },
+  { path: '/example/index', label: '脚手架说明', icon: 'help-circle' },
 ] as const;
 
 function handleNavigate(path: string) {
@@ -115,26 +99,11 @@ async function fetchStats() {
   loading.value = true;
   try {
     // 所有统计并发发起，单个接口失败不导致整页空白
-    const [published, draft, pendingComments, links, unread, moments] = await Promise.allSettled([
-      getArticleList({ page: 1, size: 1, status: 'PUBLISHED' }),
-      getArticleList({ page: 1, size: 1, status: 'DRAFT' }),
-      getCommentList({ page: 1, size: 1, status: 'PENDING' }),
-      getFriendLinkList(),
-      getUnreadCount(),
-      getPublicMoments({ page: 1, size: 1 }),
-    ]);
+    const [users, roles, permissions] = await Promise.allSettled([getUserList(), getRoleList(), getPermissionList()]);
 
-    applyResult(published, 'published', (v) => (v as PageResult<ArticleResponse>).total);
-    applyResult(draft, 'draft', (v) => (v as PageResult<ArticleResponse>).total);
-    applyResult(pendingComments, 'pendingComments', (v) => (v as PageResult<CommentAdminResponse>).total);
-    // 友链接口返回全量数组，前端统计待申请（PENDING）数量
-    applyResult(
-      links,
-      'pendingLinks',
-      (v) => (v as FriendLinkResponse[]).filter((item) => item.status === 'PENDING').length,
-    );
-    applyResult(unread, 'unread', (v) => (v as { count: number }).count);
-    applyResult(moments, 'moments', (v) => (v as PageResult<MomentResponse>).total);
+    applyResult(users, 'users', (v) => (v as unknown[]).length);
+    applyResult(roles, 'roles', (v) => (v as unknown[]).length);
+    applyResult(permissions, 'permissions', (v) => (v as unknown[]).length);
   } finally {
     loading.value = false;
   }

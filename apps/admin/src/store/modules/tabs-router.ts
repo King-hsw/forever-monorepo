@@ -1,14 +1,13 @@
 import { defineStore } from 'pinia';
 
-import { store } from '@/store';
 import type { TRouterInfo, TTabRouterType } from '@/types/interface';
 
 const homeRoute: Array<TRouterInfo> = [
   {
-    path: '/dashboard/base',
+    path: '/dashboard/index',
     routeIdx: 0,
-    title: { zh_CN: '仪表盘', en_US: 'Dashboard' },
-    name: 'DashboardBase',
+    title: '概览',
+    name: 'DashboardIndex',
     isHome: true,
   },
 ];
@@ -86,7 +85,3 @@ export const useTabsRouterStore = defineStore('tabsRouter', {
   },
   persist: true,
 });
-
-export function getTabsRouterStore() {
-  return useTabsRouterStore(store);
-}

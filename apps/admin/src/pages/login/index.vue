@@ -7,7 +7,7 @@
         <h1 class="title margin-no">登录到</h1>
         <h1 class="title">Forever 管理后台</h1>
         <div class="sub-title">
-          <p class="tip">管理文章、分类、评论、友链与站点配置</p>
+          <p class="tip">用户、角色与权限管理</p>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ 'layout--editor-fullscreen': editorFullscreen }">
+  <div>
     <template v-if="setting.layout.value === 'side'">
       <t-layout key="side" :class="mainLayoutCls">
         <t-aside><layout-side-nav /></t-aside>
@@ -29,7 +29,6 @@ import { storeToRefs } from 'pinia';
 import { computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import { editorFullscreen } from '@/components/editor/useEditorFullscreen';
 import { prefix } from '@/config/global';
 import { useSettingStore, useTabsRouterStore } from '@/store';
 
@@ -56,8 +55,7 @@ const appendNewRoute = () => {
     meta: { title },
     name,
   } = route;
-  const titleObj = typeof title === 'string' ? { zh_CN: title, en_US: title } : title;
-  tabsRouterStore.appendTabRouterList({ path, query, title: titleObj, name, isAlive: true, meta: route.meta });
+  tabsRouterStore.appendTabRouterList({ path, query, title, name, isAlive: true, meta: route.meta });
 };
 
 onMounted(() => {
@@ -72,21 +70,3 @@ watch(
   },
 );
 </script>
-<style lang="less" scoped>
-/* 文章编辑器全屏专注模式：隐藏侧边栏与顶栏，把整个视口让给正文；
- * 内容区滚动容器原本扣掉了顶栏高度，这里补回来 */
-.layout--editor-fullscreen {
-  :deep(.t-aside),
-  :deep(.t-header) {
-    display: none;
-  }
-
-  :deep(.@{starter-prefix}-layout) {
-    height: 100vh;
-  }
-
-  :deep(.@{starter-prefix}-content-layout) {
-    padding-bottom: var(--td-comp-paddingTB-m);
-  }
-}
-</style>
