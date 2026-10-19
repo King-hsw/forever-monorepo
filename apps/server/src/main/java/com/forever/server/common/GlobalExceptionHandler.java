@@ -8,6 +8,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +56,15 @@ public class GlobalExceptionHandler {
         log.warn("access denied: {}", e.getMessage());
         return ResponseEntity.status(ErrorCode.FORBIDDEN.httpStatus())
                 .body(ApiResponse.error(ErrorCode.FORBIDDEN));
+    }
+
+    /**
+     * 路径不存在：返回 404，不当作服务端错误
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoResourceFoundException e) {
+        return ResponseEntity.status(ErrorCode.NOT_FOUND.httpStatus())
+                .body(ApiResponse.error(ErrorCode.NOT_FOUND));
     }
 
     /**

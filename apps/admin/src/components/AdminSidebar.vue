@@ -48,6 +48,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { apiFetch } from '../api'
 import type { ProfileInfo } from '../types'
 
 defineProps<{ open: boolean }>()
@@ -59,11 +60,12 @@ const auth = useAuthStore()
 // 当前用户资料(含头像)
 const profile = ref<ProfileInfo | null>(null)
 onMounted(() => {
-  import('../api').then(({ apiFetch }) => {
-    apiFetch('/api/admin/profile')
-      .then((p: unknown) => { profile.value = p as ProfileInfo })
-      .catch(() => {})
-  })
+  apiFetch<ProfileInfo>('/api/admin/profile')
+    .then((p) => {
+      profile.value = p.data
+      auth.username = p.data.username ?? auth.username
+    })
+    .catch(() => {})
 })
 
 // 折叠状态持久化

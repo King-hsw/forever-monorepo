@@ -28,7 +28,7 @@
       </header>
 
       <main class="admin-shell__content">
-        <slot />
+        <router-view />
       </main>
     </div>
   </div>
@@ -52,8 +52,11 @@ const auth = useAuthStore()
 onMounted(() => {
   document.title = '后台管理 - 补陋阁'
   document.querySelector('meta[name="robots"]')?.setAttribute('content', 'noindex, nofollow')
-  apiFetch('/api/admin/profile')
-    .then((p: unknown) => { profile.value = p as ProfileInfo })
+  apiFetch<ProfileInfo>('/api/admin/profile')
+    .then((p) => {
+      profile.value = p.data
+      auth.username = p.data.username ?? auth.username
+    })
     .catch(() => {})
 })
 

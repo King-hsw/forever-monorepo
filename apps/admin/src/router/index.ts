@@ -18,6 +18,12 @@ const routes = [
       { path: 'comments', name: 'comments', component: () => import('../views/Comments.vue') },
       { path: 'categories', name: 'categories', component: () => import('../views/Categories.vue') },
       { path: 'settings', name: 'settings', component: () => import('../views/Settings.vue') },
+      { path: 'permissions', name: 'permissions', component: () => import('../views/Placeholder.vue'), meta: { title: '用户权限' } },
+      { path: 'rss', name: 'rss', component: () => import('../views/Placeholder.vue'), meta: { title: 'RSS 订阅' } },
+      { path: 'friends', name: 'friends', component: () => import('../views/Placeholder.vue'), meta: { title: '友链管理' } },
+      { path: 'logs', name: 'logs', component: () => import('../views/Placeholder.vue'), meta: { title: '日志审计' } },
+      // catch-all:未知路径回仪表盘,避免白屏
+      { path: '/:pathMatch(.*)*', redirect: '/' },
     ],
   },
 ]
