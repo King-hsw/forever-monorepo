@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: 构建 server 镜像
 
 # push main/release 分支（paths 分侧：只构建改动侧）、打 v* 标签（不受 paths 拦截，双侧全量发版），或手动触发
 on:
