@@ -8,7 +8,7 @@
 
       <p v-if="!auth.isAuthenticated" class="messages-state">
         请先
-        <NuxtLink to="/admin/login" class="messages-link">登录</NuxtLink>
+        <a href="/admin/login" class="messages-link">登录</a>
         查看消息
       </p>
       <template v-else>

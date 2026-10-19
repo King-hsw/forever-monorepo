@@ -28,7 +28,7 @@
           </span>
           <span class="composer__name">
             <template v-if="auth.isAuthenticated">{{ auth.username }}</template>
-            <template v-else>未登录 · <NuxtLink to="/admin/login?redirect=/moments/new">去登录</NuxtLink></template>
+            <template v-else>未登录 · <a href="/admin/login?redirect=/moments/new">去登录</a></template>
           </span>
         </div>
 
@@ -400,7 +400,7 @@ const error = ref('')
 async function submit() {
   if (submitting.value || uploading.value) return
   if (!auth.isAuthenticated) {
-    await navigateTo('/admin/login?redirect=/moments/new')
+    window.location.href = '/admin/login?redirect=/moments/new'
     return
   }
   const text = content.value.trim()

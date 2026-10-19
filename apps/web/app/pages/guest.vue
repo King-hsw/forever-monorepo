@@ -58,7 +58,7 @@
     </form>
 
     <p class="guest__hint">身份仅保存在当前浏览器，清除浏览器数据后需重新填写</p>
-    <NuxtLink to="/admin/login" class="guest__switch">{{ guest.isRegistered ? '切换账号登录' : '已有账号？切换账号登录' }}</NuxtLink>
+    <a href="/admin/login" class="guest__switch">{{ guest.isRegistered ? '切换账号登录' : '已有账号？切换账号登录' }}</a>
   </div>
 </template>
 

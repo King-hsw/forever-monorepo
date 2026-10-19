@@ -5,12 +5,12 @@
  *   http://localhost:8080，生产环境可用 NUXT_PUBLIC_API_BASE 覆盖。
  * - 统一解包后端 ApiResponse<T>：code === 0 返回 data，否则抛 ApiError。
  * - 自动携带登录令牌（Authorization: Bearer）。
+ * - 认证机制:HttpOnly `forever_refresh` cookie 由浏览器自动携带;
+ *   access token 存 localStorage 仅供 Bearer 头使用。
  */
 import type { ApiResponse } from '#shared/types'
 
 const AUTH_KEY = 'forever-admin-auth'
-/** 镜像 cookie 有效期（秒）；token 本身以后端的过期时间为准，这里只需足够长 */
-const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
 /** 业务错误（后端返回 code !== 0 或 HTTP 层错误） */
 export class ApiError extends Error {
@@ -23,36 +23,30 @@ export class ApiError extends Error {
   }
 }
 
-/** 登录信息的镜像 cookie 名；SSR 端据此判断登录态（值与 localStorage 相同的 JSON） */
-export const AUTH_COOKIE = 'forever-admin-auth'
-
-/** 后端 /api/auth/login 与 /api/auth/refresh 的响应体 */
+/** 后端 /api/auth/login 的响应体 */
 export interface TokenPair {
   accessToken: string
-  refreshToken: string
-  expiresIn: number
-  refreshExpiresIn: number
 }
 
+/** localStorage 中存储的登录信息 */
 export interface AuthStorage {
   accessToken: string
-  refreshToken: string
   username: string
 }
 
-/** 解析登录信息 JSON，缺字段（如旧版单 token 格式）视为未登录 */
+/** 解析登录信息 JSON,缺字段视为未登录 */
 function parseAuth(raw: string | undefined | null): AuthStorage | null {
   if (!raw) return null
   try {
     const value = JSON.parse(raw) as Partial<AuthStorage>
-    if (!value.accessToken || !value.refreshToken || !value.username) return null
+    if (!value.accessToken || !value.username) return null
     return value as AuthStorage
   } catch {
     return null
   }
 }
 
-/** 从 localStorage 读取登录信息（SSR 阶段返回 null） */
+/** 从 localStorage 读取登录信息(SSR 阶段返回 null) */
 export function loadAuth(): AuthStorage | null {
   if (!import.meta.client) return null
   try {
@@ -63,73 +57,55 @@ export function loadAuth(): AuthStorage | null {
   }
 }
 
-/** 从镜像 cookie 读取登录信息（SSR 端可用；值与 localStorage 相同） */
-export function loadAuthFromCookie(): AuthStorage | null {
-  // Nuxt 的 useCookie 默认用 destr 解析，JSON 字符串会直接得到对象
-  const value = useCookie<AuthStorage | string | null>(AUTH_COOKIE).value
-  if (!value) return null
-  if (typeof value === 'object') return value
-  try {
-    return parseAuth(value)
-  }
-  catch {
-    return null
-  }
-}
-
+/** 保存登录信息到 localStorage(不再写 mirror cookie) */
 export function saveAuth(auth: AuthStorage) {
   if (!import.meta.client) return
-  const raw = JSON.stringify(auth)
-  localStorage.setItem(AUTH_KEY, raw)
-  // 镜像一份到 cookie，让 Nuxt SSR 渲染时能感知登录态
-  document.cookie = `${AUTH_COOKIE}=${encodeURIComponent(raw)}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; samesite=lax`
+  localStorage.setItem(AUTH_KEY, JSON.stringify(auth))
 }
 
+/** 清除本地登录态(不再删 mirror cookie;HttpOnly cookie 由后端管) */
 export function clearAuth() {
   if (!import.meta.client) return
   localStorage.removeItem(AUTH_KEY)
-  document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0; samesite=lax`
 }
 
 export interface ApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  /** 普通对象序列化为 JSON；FormData（如头像上传）原样透传 */
+  /** 普通对象序列化为 JSON;FormData(如头像上传)原样透传 */
   body?: Record<string, unknown> | FormData
   query?: Record<string, unknown>
-  /** 额外请求头（如登录时令牌尚未落盘，需要显式传入） */
+  /** 额外请求头(如登录时令牌尚未落盘,需要显式传入) */
   headers?: Record<string, string>
 }
 
-/** 请求失败时清除本地登录态并跳转登录页（仅客户端执行一次） */
+/** 请求失败时清除本地登录态(不再跳转 /admin/login,该页面已删除) */
 function handleUnauthorized() {
   if (!import.meta.client) return
   clearAuth()
-  window.location.href = '/admin/login'
 }
 
-/** 单飞刷新：并发多个 401 只发一次 /api/auth/refresh，成功返回 true */
+/**
+ * 单飞刷新:并发多个 401 只发一次 /api/auth/refresh。
+ * body 为空,浏览器自动携带 HttpOnly `forever_refresh` cookie。
+ */
 let refreshing: Promise<boolean> | null = null
 function refreshToken(): Promise<boolean> {
   if (!import.meta.client) return Promise.resolve(false)
   refreshing ??= (async () => {
     try {
-      const current = loadAuth()
-      if (!current) return false
       const config = useRuntimeConfig()
       const base = config.public.apiBase as string
-      // 直接 $fetch 而非 apiFetch，避免递归触发刷新
-      const res = await $fetch<ApiResponse<Pick<TokenPair, 'accessToken' | 'refreshToken'>>>(
+      const res = await $fetch<ApiResponse<TokenPair>>(
         `${base}/api/auth/refresh`,
-        { method: 'POST', body: { refreshToken: current.refreshToken } },
+        { method: 'POST', body: {} },
       )
       if (res.code !== 0) return false
-      saveAuth({ ...current, accessToken: res.data.accessToken, refreshToken: res.data.refreshToken })
+      const current = loadAuth()
+      saveAuth({ accessToken: res.data.accessToken, username: current?.username ?? '' })
       return true
     } catch (err) {
-      // base 是 try 内的块级作用域，这里拿不到，重新取一次运行时配置
       const status = (err as { statusCode?: number })?.statusCode
-      const refreshUrl = `${useRuntimeConfig().public.apiBase}/api/auth/refresh`
-      console.error(`[api] POST ${refreshUrl} 失败 → HTTP ${status ?? '网络错误'}: ${errMsg(err)}`)
+      console.error(`[api] POST /api/auth/refresh 失败 → HTTP ${status ?? '网络错误'}`)
       return false
     } finally {
       refreshing = null
@@ -139,9 +115,7 @@ function refreshToken(): Promise<boolean> {
 }
 
 /**
- * 拼出实际发往后端的完整 URL（含 query 串）。
- * 日志里只打 path 的话，SSR 直连后端 / 浏览器走代理两种情况混在一起，
- * 根本看不清请求到底打到哪台机器上，所以这里还原成可直接复制 curl 复现的完整地址。
+ * 拼出实际发往后端的完整 URL(含 query 串)。
  */
 function buildUrl(base: string, path: string, query?: Record<string, unknown>): string {
   const url = `${base}${path}`
@@ -149,7 +123,6 @@ function buildUrl(base: string, path: string, query?: Record<string, unknown>): 
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
     if (value === null || value === undefined || value === '') continue
-    // 数组按 ofetch 的行为展开成重复参数（?tag=a&tag=b），而不是逗号串
     if (Array.isArray(value)) value.forEach(item => params.append(key, String(item)))
     else params.append(key, String(value))
   }
@@ -158,9 +131,7 @@ function buildUrl(base: string, path: string, query?: Record<string, unknown>): 
 }
 
 /**
- * 取失败响应的响应体摘要，用于区分「后端拒的」和「网关拒的」。
- * ofetch 会把 JSON 解析进 err.data、把非 JSON 放进 err.data 或 err.body，
- * 这里统一取一段文本，截断到 300 字符防止刷屏。
+ * 取失败响应的响应体摘要,用于区分「后端拒的」和「网关拒的」。
  */
 function describeBody(err: unknown): string {
   const raw = (err as { data?: unknown; body?: unknown })?.data
@@ -172,14 +143,13 @@ function describeBody(err: unknown): string {
 
 /**
  * 发起 API 请求并解包统一响应体。
- * 失败时抛出 ApiError；业务请求 401 时先用 refreshToken 静默续期重试一次，
- * 刷新失败才清除本地登录态并跳转登录页。
+ * 失败时抛出 ApiError;业务请求 401 时先用 refreshToken 静默续期重试一次,
+ * 刷新失败才清除本地登录态。
  *
- * 服务端请求统一留痕：SSR 阶段 useAsyncData 会吞掉失败（页面静默空白），
- * 每个请求打一行概要（方法/路径/耗时/业务码）加一行响应结果，失败打一行错误。
+ * SSR 阶段:若 localStorage 无 token,先尝试 refresh(浏览器带 cookie),
+ * 拿到 token 后再发业务请求。
  */
 export async function apiFetch<T>(path: string, options: ApiOptions = {}, retried = false): Promise<T> {
-  // devProxy 只对浏览器请求生效；SSR 内部 $fetch 必须直连后端地址
   const config = useRuntimeConfig()
   const base = import.meta.server ? (config.apiBase as string) : (config.public.apiBase as string)
   const url = buildUrl(base, path, options.query)
@@ -187,10 +157,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   const startedAt = Date.now()
   const headers: Record<string, string> = { ...options.headers }
 
-  // 登录接口不附加旧令牌，避免后端优先校验过期 token 导致永远 401；
-  // 显式传入 Authorization 头时不覆盖，供特殊会话场景使用。
-  // SSR 阶段 localStorage 不可用，改从镜像 cookie 取令牌（需 Nuxt 请求上下文）
-  const auth = import.meta.server ? loadAuthFromCookie() : loadAuth()
+  // 登录接口不附加旧令牌
+  const auth = loadAuth()
   if (auth?.accessToken && !headers.Authorization && path !== '/api/auth/login') {
     headers.Authorization = `Bearer ${auth.accessToken}`
   }
@@ -206,22 +174,16 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   } catch (err) {
     const status = (err as { statusCode?: number; status?: number })?.statusCode
       ?? (err as { status?: number })?.status
-    // 401 大多是令牌问题，带上「有没有令牌」这一位信息，一眼就能区分
-    // 是「没登录/SSR 拿不到 cookie」还是「令牌本身被后端拒了」
     const authFlag = `auth=${headers.Authorization ? '已带 Bearer' : '无令牌'}`
     const detail = `(${Date.now() - startedAt}ms) ${authFlag}`
     if (status === 401) {
-      // 登录接口自身的 401 是“账号或密码错误”，不能触发刷新/跳转，
-      // 否则登录页会被整页刷新，错误提示根本来不及显示
+      // 登录接口自身的 401 是"账号或密码错误",不能触发刷新
       if (!retried && !path.startsWith('/api/auth/')) {
         if (await refreshToken()) return apiFetch<T>(path, options, true)
         handleUnauthorized()
       }
-      // 响应体截断附上：后端 Spring 拒的会返回 {"code":40101,...}，
-      // 被 nginx/CDN/网关拦的会返回 HTML 或 401 Unauthorized 纯文本，
-      // 不打出来就只能靠猜到底是哪一层在拒绝
       console.error(`[api] ${method} ${url} 失败 → HTTP 401 ${detail} ${describeBody(err)}`)
-      throw new ApiError('登录已过期，请重新登录', 401)
+      throw new ApiError('登录已过期,请重新登录', 401)
     }
     const message
       = (err as { data?: { message?: string } })?.data?.message
@@ -230,12 +192,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
     throw new ApiError(message, status ?? -1)
   }
 
-  // 服务端把每次请求与响应结果落到日志（终端 / docker logs 可见）；
-  // 响应体截断到 2000 字符——首页一次拉 1000 篇文章，完整 JSON 可达数 MB，会刷爆日志
   if (import.meta.server) {
-    console.log(`[api] ${method} ${url} → ${Date.now() - startedAt}ms code=${res.code}${res.code === 0 ? '' : ` 业务失败: ${res.message}`}`)
-    const result = JSON.stringify(res.data) || 'null'
-    console.log(`[api] ${method} ${path} 响应: ${result.length > 2000 ? `${result.slice(0, 2000)}…(已截断)` : result}`)
+    console.log(`[api] ${method} ${url} → ${Date.now() - startedAt}ms code=${res.code}`)
   }
 
   if (res.code !== 0) {
@@ -244,14 +202,13 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}, retrie
   return res.data
 }
 
-/** 统一错误提示：取 err 的 message，非 Error 抛出时用回退文案 */
+/** 统一错误提示:取 err 的 message,非 Error 抛出时用回退文案 */
 export function errMsg(err: unknown, fallback = '操作失败'): string {
   return err instanceof Error ? err.message : fallback
 }
 
 /**
  * 过滤掉 null / undefined / 空字符串的查询参数。
- * 入参用 object 而非 Record<string, unknown>，接口定义的查询类型（如 AdminArticleQuery）可直接传入。
  */
 export function cleanQuery(query: object): Record<string, unknown> {
   const result: Record<string, unknown> = {}

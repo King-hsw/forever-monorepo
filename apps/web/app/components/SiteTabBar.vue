@@ -34,10 +34,10 @@
           <Icon name="lucide:message-circle" mode="svg" :size="22" />
           <span>聊天</span>
         </NuxtLink>
-        <NuxtLink v-if="auth.isAuthenticated" to="/admin" @click="moreOpen = false">
+        <a v-if="auth.isAuthenticated" href="/admin" @click="moreOpen = false">
           <Icon name="lucide:user" mode="svg" :size="22" />
           <span>管理后台</span>
-        </NuxtLink>
+        </a>
         <button v-else type="button" @click="openLogin">
           <Icon name="lucide:user" mode="svg" :size="22" />
           <span>登录</span>

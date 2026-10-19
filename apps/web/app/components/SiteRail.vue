@@ -50,9 +50,9 @@
         <ThemeToggle class="site-rail__btn" :size="19" :stroke-width="1.8" />
       </Tooltip>
       <Tooltip v-if="auth.isAuthenticated" label="管理后台">
-        <NuxtLink to="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
+        <a href="/admin" class="site-rail__btn site-rail__avatar" aria-label="管理后台">
           <img src="/icons/avatar.png" alt="" width="22" height="22" />
-        </NuxtLink>
+        </a>
       </Tooltip>
       <!-- guest 已注册时登录入口消失，游客徽标是唯一身份入口（与 guest 徽标的 v-if 互斥） -->
       <div v-else-if="!guest.isRegistered">
