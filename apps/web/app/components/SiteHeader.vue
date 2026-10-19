@@ -41,17 +41,8 @@
         >
           {{ guest.nickname.slice(0, 1) }}
         </NuxtLink>
-        <a
-          v-if="auth.isAuthenticated"
-          class="site-header__icon-btn"
-          href="/admin"
-          aria-label="管理后台"
-          title="管理后台"
-        >
-          <Icon name="lucide:user" mode="svg" :size="16" />
-        </a>
         <!-- guest 已注册时登录入口消失，游客徽标是唯一身份入口（与 guest 徽标的 v-if 互斥） -->
-        <div v-else-if="!guest.isRegistered">
+        <div v-if="!guest.isRegistered">
           <button
             type="button"
             class="site-header__icon-btn"

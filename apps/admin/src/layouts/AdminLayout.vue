@@ -28,34 +28,51 @@
       </header>
 
       <main class="admin-shell__content">
-        <router-view />
+        <!--
+          页面从 Nuxt 迁来，setup 里有 `await useAsyncData(...)`，
+          异步 setup 必须挂在 Suspense 下，否则组件永远不渲染（空白页）。
+        -->
+        <RouterView v-slot="{ Component }">
+          <Suspense>
+            <component :is="Component" />
+            <template #fallback>
+              <div class="admin-loading">加载中…</div>
+            </template>
+          </Suspense>
+        </RouterView>
       </main>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AdminSidebar from '../components/AdminSidebar.vue'
 import { useAuthStore } from '../stores/auth'
+import { useState } from '../composables/nuxt-compat'
 import { apiFetch } from '../api'
 import type { ProfileInfo } from '../types'
 
 const sidebarOpen = ref(false)
-const profile = ref<ProfileInfo | null>(null)
-const pageTitle = ref('')
+// 与「个人资料」页共享同一份 state：布局拉一次，页面读写同一个 ref
+const profile = useState<ProfileInfo | null>('admin-profile', () => null)
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 
+// 顶栏标题跟随路由 meta(迁移前由 useAdminPage 写入,现在统一由 router 维护)
+const pageTitle = computed(() => (route.meta.title as string) || '后台管理')
+
 onMounted(() => {
   document.title = '后台管理 - 补陋阁'
   document.querySelector('meta[name="robots"]')?.setAttribute('content', 'noindex, nofollow')
+  // 权限码必须先拉到,侧栏/页面门禁都依赖它
+  void auth.ensureMe()
   apiFetch<ProfileInfo>('/api/admin/profile')
     .then((p) => {
-      profile.value = p.data
-      auth.username = p.data.username ?? auth.username
+      profile.value = p
+      auth.username = p.username ?? auth.username
     })
     .catch(() => {})
 })
@@ -203,6 +220,14 @@ function initialOf(name?: string | null) {
 
 .admin-shell__content {
   padding: 24px 28px 48px;
+}
+
+/* 异步 setup 页面的 Suspense 占位 */
+.admin-loading {
+  padding: 64px 0;
+  text-align: center;
+  color: var(--c-text-3, #8a8a8a);
+  font-size: 14px;
 }
 
 @media (max-width: 900px) {

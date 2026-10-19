@@ -3,17 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>补陋阁 后台</title>
   <script>
-    // 主题防闪烁:在 Vue 挂载前读取 localStorage 主题并设到 <html>
+    // 主题防闪烁:与 apps/web 同一套语义 —— data-theme 是实际生效主题,
+    // data-theme-mode 是用户选择(light/dark/system),main.css 两者都读
     (function () {
       try {
-        var t = localStorage.getItem('theme')
-        if (t === 'dark') document.documentElement.classList.add('dark')
-        else if (t === 'light') document.documentElement.classList.remove('dark')
-        else if (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)
-          document.documentElement.classList.add('dark')
-      } catch (e) {}
+        var m = localStorage.getItem('theme')
+        if (m !== 'light' && m !== 'dark') m = 'system'
+        var d = m === 'system'
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          : m === 'dark'
+        var e = document.documentElement
+        e.dataset.theme = d ? 'dark' : 'light'
+        e.dataset.themeMode = m
+      } catch (x) {
+        document.documentElement.dataset.theme = 'light'
+        document.documentElement.dataset.themeMode = 'system'
+      }
     })()
   </script>
 </head>

@@ -8,7 +8,7 @@
 
       <p v-if="!auth.isAuthenticated" class="messages-state">
         请先
-        <a href="/admin/login" class="messages-link">登录</a>
+        <button type="button" class="messages-link" @click="loginOpen = true">登录</button>
         查看消息
       </p>
       <template v-else>
@@ -62,6 +62,8 @@
         </nav>
       </template>
     </main>
+
+    <LoginDialog :open="loginOpen" @close="loginOpen = false" />
   </div>
 </template>
 
@@ -71,6 +73,7 @@ import type { MessageItem, PageResult, UnreadCount } from '#shared/types'
 useSeoMeta({ title: '消息 · 补陋阁' })
 
 const auth = useAuthStore()
+const loginOpen = ref(false)
 const { count: unread, refresh: refreshUnread } = useUnread()
 
 const SIZE = 20

@@ -1,0 +1,14 @@
+# dist/ 由 CI 的 pnpm build 产出，必须进入构建上下文（镜像只拷它）
+node_modules
+.git
+.DS_Store
+*.local
+
+# 源码与构建配置不参与镜像构建
+src
+scripts
+index.html
+tsconfig.json
+vite.config.ts
+Dockerfile
+.dockerignore

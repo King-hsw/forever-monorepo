@@ -34,14 +34,21 @@ export interface AuthStorage {
   username: string
 }
 
-/** 解析登录信息 JSON,缺字段视为未登录 */
+/**
+ * 解析登录信息 JSON,缺 accessToken 视为未登录。
+ * username 允许为空:静默续期只拿得到 accessToken,用户名随后由 /api/admin/me 回填。
+ */
 function parseAuth(raw: string | undefined | null): AuthStorage | null {
   if (!raw) return null
   try {
     const value = JSON.parse(raw) as Partial<AuthStorage>
-    if (!value.accessToken || !value.username) return null
-    return value as AuthStorage
-  } catch {
+    if (!value.accessToken) return null
+    return {
+      accessToken: value.accessToken,
+      username: typeof value.username === 'string' ? value.username : '',
+    }
+  }
+  catch {
     return null
   }
 }

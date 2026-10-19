@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AdminComment, CommentInput, CommentNode, CommentStatus, CommentTarget, PageResult } from '#shared/types'
+import type { AdminComment, CommentInput, CommentNode, PageResult } from '#shared/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const useCommentsStore = defineStore('comments', () => {
@@ -41,27 +41,7 @@ export const useCommentsStore = defineStore('comments', () => {
     })
   }
 
-  /* ---------- 管理端 ---------- */
+  /* ---------- 管理端接口已随后台抽离到 apps/admin ---------- */
 
-  /** 管理端分页查询，status / targetType 不传查全部 */
-  async function fetchAdmin(status?: CommentStatus | '', page = 1, size = 20, targetType?: CommentTarget | '') {
-    return apiFetch<PageResult<AdminComment>>('/api/admin/comments', {
-      query: cleanQuery({ status, page, size, targetType }),
-    })
-  }
-
-  async function approve(id: number): Promise<void> {
-    await apiFetch<void>(`/api/admin/comments/${id}/approve`, { method: 'PUT' })
-  }
-
-  async function reject(id: number): Promise<void> {
-    await apiFetch<void>(`/api/admin/comments/${id}/reject`, { method: 'PUT' })
-  }
-
-  /** 删除评论（连同楼内所有回复） */
-  async function remove(id: number): Promise<void> {
-    await apiFetch<void>(`/api/admin/comments/${id}`, { method: 'DELETE' })
-  }
-
-  return { fetchByArticle, create, fetchBoardMessages, fetchAdmin, approve, reject, remove }
+  return { fetchByArticle, create, fetchBoardMessages }
 })

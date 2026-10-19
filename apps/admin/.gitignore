@@ -1,3 +1,4 @@
-node_modules
-dist
-*.local
+# 本 app 独有规则；通用规则（node_modules / dist / .env / IDE / 日志等）见根 .gitignore
+
+# 图标生成产物（scripts/build-icons.mjs 输出，构建时重建）
+src/icons.generated.json

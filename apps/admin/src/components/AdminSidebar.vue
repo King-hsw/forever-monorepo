@@ -18,7 +18,7 @@
         :class="{ 'is-active': isActive(item.to) }"
         :title="collapsed ? item.label : undefined"
       >
-        <span class="sidenav__icon" aria-hidden="true">{{ item.iconLabel }}</span>
+        <Icon :name="item.icon" class="sidenav__icon" :size="18" />
         <span class="sidenav__text">{{ item.label }}</span>
       </RouterLink>
     </nav>
@@ -62,8 +62,8 @@ const profile = ref<ProfileInfo | null>(null)
 onMounted(() => {
   apiFetch<ProfileInfo>('/api/admin/profile')
     .then((p) => {
-      profile.value = p.data
-      auth.username = p.data.username ?? auth.username
+      profile.value = p
+      auth.username = p.username ?? auth.username
     })
     .catch(() => {})
 })
@@ -83,19 +83,20 @@ function toggleCollapsed() {
 }
 
 const navItems = [
-  { label: '仪表盘', to: '/', iconLabel: '📊' },
-  { label: '文章管理', to: '/posts', iconLabel: '📄' },
-  { label: '评论管理', to: '/comments', iconLabel: '💬' },
-  { label: '分类标签', to: '/categories', iconLabel: '🏷️' },
-  { label: '用户权限', to: '/permissions', iconLabel: '🔒' },
-  { label: 'RSS 订阅', to: '/rss', iconLabel: '📡' },
-  { label: '友链管理', to: '/friends', iconLabel: '🔗' },
-  { label: '站点设置', to: '/settings', iconLabel: '⚙️' },
-  { label: '日志审计', to: '/logs', iconLabel: '📜' },
+  { label: '仪表盘', to: '/', icon: 'lucide:layout-dashboard' },
+  { label: '文章管理', to: '/posts', icon: 'lucide:file-text', perm: 'article:list' },
+  { label: '评论管理', to: '/comments', icon: 'lucide:message-circle', perm: 'comment:list' },
+  { label: '分类标签', to: '/categories', icon: 'lucide:tags', perm: 'category:list' },
+  { label: '用户权限', to: '/permissions', icon: 'lucide:lock-keyhole', perm: 'rbac:role:list' },
+  { label: 'RSS 订阅', to: '/rss', icon: 'lucide:rss', perm: 'rss:list' },
+  { label: '友链管理', to: '/friends', icon: 'lucide:link', perm: 'friend-link:list' },
+  { label: '站点设置', to: '/settings', icon: 'lucide:settings', perm: 'setting:list' },
+  { label: '日志审计', to: '/logs', icon: 'lucide:scroll-text', perm: 'log:list' },
 ]
 
+// fail-closed:权限码未拉到(空数组)时只露出无 perm 的仪表盘
 const visibleNavItems = computed(() =>
-  navItems.filter(i => true), // 权限过滤后续按需加
+  navItems.filter(i => !i.perm || auth.hasPermission(i.perm)),
 )
 
 function isActive(to: string): boolean {

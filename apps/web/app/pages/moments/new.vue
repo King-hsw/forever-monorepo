@@ -28,7 +28,7 @@
           </span>
           <span class="composer__name">
             <template v-if="auth.isAuthenticated">{{ auth.username }}</template>
-            <template v-else>未登录 · <a href="/admin/login?redirect=/moments/new">去登录</a></template>
+            <template v-else>未登录 · <button type="button" class="composer__login" @click="loginOpen = true">去登录</button></template>
           </span>
         </div>
 
@@ -189,6 +189,9 @@
     </main>
 
     <SiteFooter />
+
+    <!-- 前台不再有 /admin/login,登录统一走弹窗 -->
+    <LoginDialog :open="loginOpen" @close="loginOpen = false" />
   </div>
 </template>
 
@@ -206,6 +209,9 @@ usePageSeo({
 })
 
 const auth = useAuthStore()
+
+/** 未登录时的登录弹窗 */
+const loginOpen = ref(false)
 
 /** 直传请求缺省走共享 apiFetch 的主站登录会话，无需显式注入令牌 */
 const momentsStore = useMomentsStore()
@@ -400,7 +406,7 @@ const error = ref('')
 async function submit() {
   if (submitting.value || uploading.value) return
   if (!auth.isAuthenticated) {
-    window.location.href = '/admin/login?redirect=/moments/new'
+    loginOpen.value = true
     return
   }
   const text = content.value.trim()

@@ -4,7 +4,7 @@
 #
 # 端口:
 #   PostgreSQL  5432  (postgres/mysecretpassword, db=forever)
-#   MinIO       9000  (S3 API)  /  9001  (Web Console)
+#   RustFS      9000  (S3 API)  /  9001  (Web Console)
 #   Mailpit     1025  (SMTP)    /  8025  (Web UI)
 #
 # 与 apps/server/.env.example 中的默认值完全对齐,无需改 .env 即可启动。
@@ -27,9 +27,10 @@ services:
       timeout: 3s
       retries: 5
 
-  minio:
-    image: minio/minio:latest
-    container_name: forever-minio
+  # RustFS 是 MinIO 的 Rust 重写版,CLI/环境变量沿用 MinIO 约定
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: forever-rustfs
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: rustfsadmin
@@ -38,32 +39,19 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - miniodata:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      - rustfsdata:/data
 
-  # MinIO 初始化:创建 forever 桶并设公开读(首次启动时自动执行)
-  minio-init:
-    image: minio/mc:latest
-    container_name: forever-minio-init
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 rustfsadmin rustfsadmin &&
-      mc mb --exists local/forever &&
-      mc anonymous set download local/forever &&
-      echo 'Bucket forever created with public read.'
-      "
-    restart: "no"
+  # 注:桶 forever 不再自动创建，首次需在 RustFS Console (http://localhost:9001) 手动建桶并设公开读
 
   mailpit:
-    image: axels/mailer:latest
+    image: axllent/mailpit:latest
     container_name: forever-mailpit
+    # 应用侧 smtp.auth=true 但本地 1025 是明文连接，需允许不安全认证
+    command: --smtp-auth-allow-insecure
+    environment:
+      # 应用侧 smtp.auth=true，让 Mailpit 接受任意账密（本地开发专用）
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_NO_AUTH: 1
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI (查看收到的邮件)
@@ -72,5 +60,5 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
+  rustfsdata:
   mailpitdata:

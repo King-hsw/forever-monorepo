@@ -1,4 +1,4 @@
-import type { Category, CategoryInput } from '#shared/types'
+import type { Category, CategoryInput } from '~/types'
 import { createCrudStore } from './createCrudStore'
 
 /** 分类管理（接口含全部分类） */

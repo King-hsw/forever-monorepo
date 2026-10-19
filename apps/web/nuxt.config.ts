@@ -9,15 +9,14 @@ export default defineNuxtConfig({
     devServer: {
         host: '0.0.0.0',
     },
-    // 后台纯客户端渲染：服务器不输出 admin 页面 HTML，未登录访问只见空壳
-    routeRules: {
-        '/admin/**': {ssr: false},
-    },
+    // 后台已抽离为独立 SPA(admin.<域名>),前台不再有 /admin 路由
     devtools: {enabled: true},
     runtimeConfig: {
         // forever-server 后端地址：仅服务端 SSR 使用，直连后端不走代理，
         // 运行时可通过 NUXT_API_BASE 覆盖
         apiBase: 'http://localhost:8080',
+        // 父域 refresh cookie 的 Domain（生产 .<父域>，本地留空）
+        authCookieDomain: '',
         public: {
             // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
             siteUrl: 'https://forever.example.com',
@@ -73,13 +72,13 @@ export default defineNuxtConfig({
             runtimeCaching: [
                 {
                     // 页面导航 NetworkFirst（原 sw.ts 手写监听等价）
-                    urlPattern: ({ request, url }) => request.mode === 'navigate' && url.origin === self.location.origin,
+                    urlPattern: ({request, url}) => request.mode === 'navigate' && url.origin === self.location.origin,
                     handler: 'NetworkFirst',
                     options: {
                         cacheName: 'pages',
                         networkTimeoutSeconds: 5,
                         // workbox-build 7.x 的键是 expiration（单对象），非 expirationPlugins 数组
-                    expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 },
+                        expiration: {maxEntries: 32, maxAgeSeconds: 60 * 60 * 24},
                     },
                 },
             ],

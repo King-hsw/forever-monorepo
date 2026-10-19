@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ref, shallowRef } from 'vue'
 import { apiFetch } from '~/utils/api'
 
 interface CrudItem {

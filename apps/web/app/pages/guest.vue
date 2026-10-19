@@ -58,7 +58,9 @@
     </form>
 
     <p class="guest__hint">身份仅保存在当前浏览器，清除浏览器数据后需重新填写</p>
-    <a href="/admin/login" class="guest__switch">{{ guest.isRegistered ? '切换账号登录' : '已有账号？切换账号登录' }}</a>
+    <button type="button" class="guest__switch" @click="loginOpen = true">{{ guest.isRegistered ? '切换账号登录' : '已有账号？切换账号登录' }}</button>
+
+    <LoginDialog :open="loginOpen" @close="loginOpen = false" />
   </div>
 </template>
 
@@ -68,6 +70,7 @@ definePageMeta({ layout: 'auth' })
 useHead({ title: '游客身份 · 补陋阁' })
 
 const route = useRoute()
+const loginOpen = ref(false)
 const guest = useGuestStore()
 
 const form = reactive({

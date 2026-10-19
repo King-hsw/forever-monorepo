@@ -1,4 +1,4 @@
-# 运行阶段：构建产物（.output/）由 CI 产出（见 .github/workflows/build.yml），此处只 COPY
+# 运行阶段：构建产物（.output/）由 CI 产出（见 .github/workflows/web.yml），此处只 COPY
 FROM node:22-alpine
 WORKDIR /app
 

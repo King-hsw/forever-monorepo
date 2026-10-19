@@ -1,15 +1,60 @@
-# 全局
+# ============ 操作系统 / 编辑器 ============
 .DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+.fleet/
+*.swp
+*.swo
+*~
+
+# ============ 环境变量 / 私密配置 ============
+# .env 系列一律不入仓，只保留模板
 .env
 .env.*
 !.env.example
+*.local
 
-# 设计与计划文档仅本地保留，不入仓（沿用旧仓库惯例）
+# ============ Node / 前端 ============
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 构建产物与缓存（Nuxt / Vite / 通用）
+.output/
+.nuxt/
+.nitro/
+.data/
+.cache/
+dist/
+coverage/
+*.tsbuildinfo
+.eslintcache
+
+# ============ Java / Maven ============
+target/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
+!**/.mvn/wrapper/maven-wrapper.jar
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# ============ 日志 / 测试报告 ============
+*.log
+logs/
+test-results/
+playwright-report/
+
+# ============ 本地专属（沿用旧仓库惯例，不入仓）============
 docs/
-
-# worktree
 .worktrees/
 .wt/
-
-
 .workbuddy/
+.claude/
+.reference/

@@ -1,35 +1,15 @@
-export default defineNuxtRouteMiddleware(async (to) => {
-  // SSR：统一从镜像 cookie 恢复登录态（各页面不再各自 hydrate）；localStorage 仅客户端可用，客户端跳转由下方接管
+export default defineNuxtRouteMiddleware(async () => {
+  const auth = useAuthStore()
+
   if (import.meta.server) {
-    useAuthStore().hydrate()
-    // 游客身份同样服务端统一恢复（镜像 cookie），SSR 各页直接渲染正确形态
+    // 游客身份仍走镜像 cookie(SSR 需要立刻渲染出正确形态)
     useGuestStore().hydrate()
+    // 登录态:HttpOnly refresh cookie 只有服务端能读,换票失败按未登录渲染
+    await auth.ssrExchange()
     return
   }
 
-  const auth = useAuthStore()
+  // 客户端:先读 localStorage,没有再静默续期;后台相关分支已随 admin 抽离删除
   auth.hydrate()
-
-  const isAdminPath = to.path.startsWith('/admin')
-  const isLoginPage = to.path === '/admin/login'
-
-  if (!auth.isAuthenticated && isAdminPath && !isLoginPage) {
-    return navigateTo({ path: '/admin/login', query: { redirect: to.fullPath } })
-  }
-  if (auth.isAuthenticated && isLoginPage) {
-    return navigateTo('/admin')
-  }
-
-  // 权限门禁（仅客户端）：走到这里必然已登录（首段未登录访问后台已跳转）。
-  // 等权限码就绪后，按页面 meta.permission 判断能否展示
-  if (isAdminPath && !isLoginPage) {
-    await auth.ensureMe()
-    const need = to.meta.permission as string | string[] | undefined
-    if (need) {
-      const codes = Array.isArray(need) ? need : [need]
-      if (!codes.some(c => auth.hasPermission(c))) {
-        return navigateTo('/admin')
-      }
-    }
-  }
+  await auth.bootstrap()
 })

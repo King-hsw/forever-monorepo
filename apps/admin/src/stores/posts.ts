@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import type {
   AdminArticleQuery,
   Post,
@@ -6,7 +7,7 @@ import type {
   PostStatus,
   PublicArticleQuery,
   PageResult,
-} from '#shared/types'
+} from '~/types'
 import { apiFetch, cleanQuery } from '~/utils/api'
 
 export const usePostsStore = defineStore('admin-posts', () => {

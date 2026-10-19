@@ -15,7 +15,8 @@ spring:
         smtp:
           auth: true
           ssl:
-            enable: true
+            # 本地 Mailpit(1025 明文)设 BLOG_MAIL_SSL_ENABLE=false；生产 465 隐式 TLS 保持默认 true
+            enable: ${BLOG_MAIL_SSL_ENABLE:true}
           # 防止 SMTP 不可达时启动测试邮件/评论通知长时间挂起
           connectiontimeout: 15000
           timeout: 15000

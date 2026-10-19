@@ -1,36 +1,4 @@
-# Nuxt dev/build outputs
-.output
-.data
-.nuxt
-.nitro
-.cache
-dist
-
-# Node dependencies
-node_modules
-
-# Logs
-logs
-*.log
-
-# Tiptap reference repos
-.reference
-
-# Misc
-.DS_Store
-.fleet
-.idea
-
-# Local env files
-.env
-.env.*
-!.env.example
+# 本 app 独有规则；通用规则（.output / .nuxt / node_modules / .env / IDE / 日志等）见根 .gitignore
 
 # 部署本地配置（从 forever.yml.example 复制）
 deploy/forever.yml
-
-# Claude Code local files
-.claude/
-
-.worktrees/
-/docs
