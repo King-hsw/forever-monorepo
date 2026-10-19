@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.forever.server.moment.MomentMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO moment (uid, content, media, location, lat, lng, created_at)
+        VALUES (#{uid}, #{content}, #{media}, #{location}, #{lat}, #{lng}, #{createdAt})
+    </insert>
+
+    <select id="findById" resultType="com.forever.server.moment.Moment">
+        SELECT *
+        FROM moment
+        WHERE id = #{id}
+    </select>
+
+    <select id="page" resultType="com.forever.server.moment.Moment">
+        SELECT * FROM moment
+        <where>
+            <if test="uid != null">uid = #{uid}</if>
+        </where>
+        ORDER BY created_at DESC, id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM moment
+        <where>
+            <if test="uid != null">uid = #{uid}</if>
+        </where>
+    </select>
+
+    <delete id="deleteById">
+        DELETE
+        FROM moment
+        WHERE id = #{id}
+    </delete>
+
+    <!--  动态评论数（已过审，target_type = MOMENT）  -->
+
+    <select id="commentCountsByMomentIds" resultType="map">
+        SELECT target_id AS "momentId", COUNT(*) AS "commentCount" FROM comment
+        WHERE target_type = 'MOMENT' AND status = 'APPROVED' AND target_id IN
+        <foreach collection="momentIds" item="mid" open="(" separator="," close=")">#{mid}</foreach>
+        GROUP BY target_id
+    </select>
+</mapper>

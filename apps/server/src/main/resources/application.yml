@@ -1,0 +1,77 @@
+# 配置单一来源：全部 ${ENV:默认值}，默认值 = 本地开发可用；
+# 本地/测试/生产同一套变量名，值放各自 .env（本地：set -a; source .env 后启动；
+# 测试：systemd EnvironmentFile；生产：compose 自动读取 .env）
+spring:
+  application:
+    name: forever-server
+  # SMTP 发信（评论通知/启动测试邮件）：BLOG_MAIL_* 必填，.env 提供，缺失即启动失败（fail fast）
+  mail:
+    host: ${BLOG_MAIL_HOST}
+    port: ${BLOG_MAIL_PORT}
+    username: ${BLOG_MAIL_USERNAME}
+    password: ${BLOG_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          # 防止 SMTP 不可达时启动测试邮件/评论通知长时间挂起
+          connectiontimeout: 15000
+          timeout: 15000
+          writetimeout: 15000
+  # 动态媒体上传：单文件 120MB（视频 100MB 上限留余量）/ 单请求 130MB
+  servlet:
+    multipart:
+      max-file-size: 120MB
+      max-request-size: 130MB
+  # 数据源：默认本地 PostgreSQL，生产/测试用 SPRING_DATASOURCE_* 环境变量覆盖
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/forever}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:mysecretpassword}
+  # AI 概要：OpenAI 兼容接口（starter 自动装配 OpenAiChatModel Bean）；API Key 留空 = 功能关闭
+  ai:
+    openai:
+      # base-url 原样使用（请求路径 = {base-url}/chat/completions，2.0.1 不会自动补 /v1），兼容端点需自带
+      base-url: ${SPRING_AI_OPENAI_BASE_URL:https://api.openai.com/v1}
+      api-key: ${SPRING_AI_OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL:gpt-4o-mini}
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+blog:
+  site:
+    # 站点名称（邮件 From 显示名、RSS 标题等对外署名；必填）
+    name: ${BLOG_SITE_NAME}
+    # 站点对外地址（邮件绝对链接、RSS、文章 url 字段）；留空 = 邮件降级无链接、文章 url 为 null
+    url: ${BLOG_SITE_URL:}
+  mail:
+    # 启动测试邮件收件人（必填）：服务启动即发一封，验证 SMTP 链路，失败只记日志不阻塞启动
+    test-to: ${BLOG_MAIL_TO}
+    # 评论通知站长收件人（必填）
+    notify-to: ${BLOG_MAIL_NOTIFY_TO}
+  # 初始管理员：仅 sys_user 表为空时用于建号，password 必填（fail fast）
+  admin:
+    username: ${BLOG_ADMIN_USERNAME:admin}
+    password: ${BLOG_ADMIN_PASSWORD}
+  # 文件存储（RustFS，S3 兼容）：缺项启动即失败（fail fast）；应用不管理桶
+  storage:
+    # 浏览器可达的 S3 API 地址（预签名 URL 由浏览器直连）
+    endpoint: ${BLOG_STORAGE_ENDPOINT}
+    # 公开直链域名（CDN），留空用 endpoint
+    public-base-url: ${BLOG_STORAGE_PUBLIC_BASE_URL:}
+    access-key: ${BLOG_STORAGE_ACCESS_KEY}
+    secret-key: ${BLOG_STORAGE_SECRET_KEY}
+    bucket: ${BLOG_STORAGE_BUCKET}
+    # 预签名 URL 有效期（直传 PUT 与分片共用）
+    presign-ttl: ${BLOG_STORAGE_PRESIGN_TTL:15m}
+  # 高德 Web Service key（动态页「获取当前位置」逆地理）；留空 = 功能关闭
+  moments:
+    amap:
+      key: ${BLOG_MOMENTS_AMAP_KEY:}
+# 说明：评论策略等运行参数在后台「站点设置」（PUT /api/admin/settings）
+# 在线调整、即时生效，yml 不承载运行参数

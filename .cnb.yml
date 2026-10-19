@@ -1,0 +1,62 @@
+# CNB 云原生构建（monorepo 双流水线，只跟分支 push，不接 tag：
+# CNB 的 main: push 不匹配 refs/tags/*，发版由 GitHub Actions 负责）
+# 同一 CNB 仓库只剩一个 slug，web/server 用镜像 tag 区分侧，不用 paths/git-diff 分流
+main:
+  push:
+    # ── 前端：pnpm 构建 → 构建并推送 Docker 镜像（apps/web/Dockerfile 只拷 .output）──
+    - docker:
+        # 构建环境：node 22（与 Dockerfile 运行阶段基础镜像一致）
+        image: node:22-alpine
+
+        volumes:
+          # pnpm store 缓存：同节点二次构建免重复下载依赖
+          - /root/.local/share/pnpm:copy-on-write
+      services:
+        # 流水线中启用 docker 服务
+        - docker
+      stages:
+        # 锁死 pnpm 版本，避免上游发新版导致构建行为变化
+        - name: install pnpm
+          script: |
+            npm install -g pnpm@10.12.1
+        - name: pnpm install
+          script: |
+            cd apps/web && pnpm install --frozen-lockfile
+        - name: pnpm build
+          script: |
+            cd apps/web && NODE_ENV=production pnpm build
+        - name: docker build
+          script:
+            - docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:web apps/web
+        - name: docker push
+          script:
+            # 只推 :web（server 侧见下）；仅 main 推，其他分支不覆盖；
+            # 生产 compose 实际拉腾讯云 CCR，此处为 CNB 侧 latest 源
+            - if [ "${CNB_BRANCH}" = "main" ]; then docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:web; fi
+
+    # ── 后端：maven 打包 → 构建并推送 Docker 镜像（apps/server/Dockerfile 只拷分层产物）──
+    - docker:
+        # 构建环境：maven + JDK 25（与 pom java.version 一致）
+        image: maven:3.9-eclipse-temurin-25
+
+        volumes:
+          # maven 本地仓库缓存：同节点二次构建免重复下载依赖
+          - /root/.m2:copy-on-write
+      services:
+        # 流水线中启用 docker 服务
+        - docker
+      stages:
+        - name: mvn package
+          script: |
+            mvn -B -f apps/server/pom.xml package -DskipTests
+        - name: 分层展开（Dockerfile 按层 COPY extracted/，见其中注释）
+          script: |
+            cd apps/server && java -Djarmode=tools -jar target/forever-server-*.jar extract --layers --launcher --destination extracted
+        - name: docker build
+          script:
+            # 上下文必须是 apps/server（Dockerfile 相对路径拷 extracted/）
+            - cd apps/server && docker build -t ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:server .
+        - name: docker push
+          script:
+            # 只推 :server；仅 main 推，其他分支不覆盖
+            - if [ "${CNB_BRANCH}" = "main" ]; then docker push ${CNB_DOCKER_REGISTRY}/${CNB_REPO_SLUG_LOWERCASE}:server; fi

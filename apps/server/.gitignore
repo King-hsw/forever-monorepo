@@ -1,0 +1,22 @@
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+.DS_Store
+logs/
+
+# 设计文档仅本地保留，不入仓
+docs/
+
+# 本地私密配置（.env：数据库账密 / 管理员密码 / 存储密钥等），严禁提交
+.env
+
+# 运行时上传目录（本地生成，不入仓）
+data/uploads/
+
+# Local dev worktrees
+.worktrees/
+.wt/
+extracted/

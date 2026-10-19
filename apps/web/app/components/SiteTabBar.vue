@@ -1,0 +1,245 @@
+<template>
+  <!-- 移动端底部 Tab Bar（≤640px）：四格导航；搜索在移动端顶栏；「更多」上拉菜单收纳归档/聊天/登录 -->
+  <nav class="tabbar" aria-label="移动端底部导航">
+    <NuxtLink to="/" class="tabbar__item" aria-label="首页">
+      <Icon name="lucide:home" mode="svg" :size="19" />
+      <span>首页</span>
+    </NuxtLink>
+
+    <NuxtLink to="/posts" class="tabbar__item" aria-label="文章">
+      <Icon name="lucide:list" mode="svg" :size="19" />
+      <span>文章</span>
+    </NuxtLink>
+
+    <NuxtLink to="/moments" class="tabbar__item" aria-label="动态">
+      <Icon name="lucide:heart" mode="svg" :size="19" />
+      <span>动态</span>
+    </NuxtLink>
+
+    <div class="tabbar__more">
+      <button type="button" class="tabbar__item" :class="{ 'is-open': moreOpen }" :aria-expanded="moreOpen" aria-label="更多" @click="moreOpen = !moreOpen">
+        <Icon name="lucide:ellipsis" mode="svg" :size="19" />
+        <span>更多</span>
+      </button>
+    </div>
+
+    <!-- 「更多」上拉菜单：全宽卡片从底部升入，收纳归档/聊天/登录 -->
+    <Transition name="tabbar-panel">
+      <div v-if="moreOpen" class="tabbar__panel">
+        <NuxtLink to="/archive" @click="moreOpen = false">
+          <Icon name="lucide:book-open" mode="svg" :size="22" />
+          <span>归档</span>
+        </NuxtLink>
+        <NuxtLink to="/chat" @click="moreOpen = false">
+          <Icon name="lucide:message-circle" mode="svg" :size="22" />
+          <span>聊天</span>
+        </NuxtLink>
+        <NuxtLink v-if="auth.isAuthenticated" to="/admin" @click="moreOpen = false">
+          <Icon name="lucide:user" mode="svg" :size="22" />
+          <span>管理后台</span>
+        </NuxtLink>
+        <button v-else type="button" @click="openLogin">
+          <Icon name="lucide:user" mode="svg" :size="22" />
+          <span>登录</span>
+        </button>
+      </div>
+    </Transition>
+
+    <!-- 弹窗式登录：成功留在当前页；Esc/遮罩点击/路由变化由弹窗自行处理 -->
+    <LoginDialog :open="loginOpen" @close="loginOpen = false" />
+  </nav>
+</template>
+
+<script setup lang="ts">
+const route = useRoute()
+// 登录态由 SSR 中间件（auth.global）统一恢复，组件内不再各自 hydrate
+const auth = useAuthStore()
+
+const moreOpen = ref(false)
+
+/* 弹窗式登录：收起「更多」面板后打开登录弹窗 */
+const loginOpen = ref(false)
+
+function openLogin() {
+  moreOpen.value = false
+  loginOpen.value = true
+}
+
+function onDocMouseDown(e: MouseEvent) {
+  if (!moreOpen.value)
+    return
+  if (!(e.target as Element).closest('.tabbar__more, .tabbar__panel'))
+    moreOpen.value = false
+}
+
+useOnEscape(() => {
+  moreOpen.value = false
+})
+
+onMounted(() => {
+  document.addEventListener('mousedown', onDocMouseDown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', onDocMouseDown)
+})
+
+// 路由变化时收起更多面板
+watch(() => route.fullPath, () => {
+  moreOpen.value = false
+})
+</script>
+
+<style scoped>
+.tabbar {
+  position: fixed;
+  /* 悬浮卡片不贴死屏幕底边:bottom = 基础间隙 + 手势条安全区,整卡抬升 */
+  right: calc(12px + env(safe-area-inset-right));
+  bottom: calc(10px + var(--safe-area-inset-bottom));
+  /* 横屏时左右让出灵动岛/安全区 */
+  left: calc(12px + env(safe-area-inset-left));
+  z-index: 49;
+  display: none;
+  /* 四等分列:四个入口中心等距,左右镜像对称 */
+  grid-template-columns: repeat(4, 1fr);
+  align-items: end;
+  gap: 2px;
+  /* 上下留白严格相等(12px) */
+  padding: 12px 6px;
+  /* MoviePilot 式透明磨砂:卡片底色 80% 不透明 + 轻模糊,不提升饱和度 */
+  background: color-mix(in srgb, var(--c-bg-card) 80%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--c-border) 75%, transparent);
+  border-radius: 20px;
+  /* 顶部内侧一条高光是玻璃沿(令牌随深浅色切换),后面是柔和投影 */
+  box-shadow: inset 0 1px 0 var(--hl-line), 0 2px 6px rgb(28 25 23 / 6%), 0 12px 32px rgb(28 25 23 / 14%);
+}
+
+@media (max-width: 640px) {
+  .tabbar {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tabbar,
+  .tabbar__panel {
+    background: var(--c-bg-card);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.tabbar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 2px 0;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease;
+}
+
+.tabbar__item:hover,
+.tabbar__item.router-link-active,
+.tabbar__item.is-open {
+  color: var(--c-primary);
+}
+
+.tabbar__item:active {
+  opacity: 0.7;
+}
+
+.tabbar__more {
+  position: relative;
+}
+
+/* button 设 display:flex 后是 fit-content 收缩盒,不像 <a> 网格项那样撑满整列;
+   不撑满会缩在列左缘,「更多」整体偏左、和动态贴得更近 */
+.tabbar__more .tabbar__item {
+  width: 100%;
+}
+
+/* 「更多」上拉菜单：全宽卡片，从底部升入停于栏上方 */
+.tabbar__panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 6px;
+  padding: 14px 10px;
+  /* 与 Tab Bar 同一玻璃材质,但收起项是小字菜单,底色略提不透明度保可读性 */
+  background: color-mix(in srgb, var(--c-bg-card) 85%, transparent);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--c-border);
+  border-radius: 24px;
+  box-shadow: 0 -10px 30px rgb(0 0 0 / 14%);
+}
+
+/* 面板项：链接与「登录」按钮共用一套样式 */
+.tabbar__panel a,
+.tabbar__panel button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 4px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--c-text-secondary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.tabbar__panel a:hover,
+.tabbar__panel button:hover,
+.tabbar__panel a.router-link-active {
+  color: var(--c-primary);
+}
+
+.tabbar__panel a:hover,
+.tabbar__panel button:hover {
+  background: var(--c-primary-light);
+}
+
+.tabbar-panel-enter-active,
+.tabbar-panel-leave-active {
+  transition: transform 0.3s var(--ease-bounce), opacity 0.2s ease;
+}
+
+.tabbar-panel-enter-from,
+.tabbar-panel-leave-to {
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-panel-enter-active,
+  .tabbar-panel-leave-active {
+    transition: opacity 0.15s ease;
+  }
+
+  .tabbar-panel-enter-from,
+  .tabbar-panel-leave-to {
+    transform: none;
+  }
+}
+</style>

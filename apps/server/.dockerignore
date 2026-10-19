@@ -1,0 +1,17 @@
+# 版本控制与 IDE
+.git
+.gitignore
+.idea
+
+# 本地私密配置与运行时产物，严禁进镜像
+local
+logs
+
+# 文档与 CI 配置不参与构建
+docs
+README.md
+.dockerignore
+Dockerfile
+
+# jar 不进镜像（Dockerfile 拷的是 CI 分层展开的 extracted/）
+target

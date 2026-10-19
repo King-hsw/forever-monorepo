@@ -1,0 +1,15 @@
+# 全局
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# 设计与计划文档仅本地保留，不入仓（沿用旧仓库惯例）
+docs/
+
+# worktree
+.worktrees/
+.wt/
+
+
+.workbuddy/
