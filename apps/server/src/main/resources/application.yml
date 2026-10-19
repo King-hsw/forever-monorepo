@@ -75,3 +75,7 @@ blog:
       key: ${BLOG_MOMENTS_AMAP_KEY:}
 # 说明：评论策略等运行参数在后台「站点设置」（PUT /api/admin/settings）
 # 在线调整、即时生效，yml 不承载运行参数
+forever:
+  auth:
+    # 父域 cookie Domain 配置：生产设为 .<父域>（如 .example.com），本地留空（localhost 跨端口共享）
+    cookie-domain: ${AUTH_COOKIE_DOMAIN:}
