@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import AdminLayout from '../layouts/AdminLayout.vue'
 import { useAuthStore } from '../stores/auth'
 
 const routes = [
@@ -9,9 +10,15 @@ const routes = [
   },
   {
     path: '/',
-    name: 'dashboard',
-    component: () => import('../views/Dashboard.vue'),
+    component: AdminLayout,
     meta: { requiresAuth: true },
+    children: [
+      { path: '', name: 'dashboard', component: () => import('../views/Dashboard.vue') },
+      { path: 'posts', name: 'posts', component: () => import('../views/Posts.vue') },
+      { path: 'comments', name: 'comments', component: () => import('../views/Comments.vue') },
+      { path: 'categories', name: 'categories', component: () => import('../views/Categories.vue') },
+      { path: 'settings', name: 'settings', component: () => import('../views/Settings.vue') },
+    ],
   },
 ]
 
@@ -20,26 +27,13 @@ export const router = createRouter({
   routes,
 })
 
-// 全局守卫:未登录 → /login;已登录访问 /login → /
-// 权限门禁:meta.permission fail-closed
-router.beforeEach(async (to) => {
+router.beforeEach((to, _from, next) => {
   const auth = useAuthStore()
-
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
-    return { path: '/login', query: { redirect: to.fullPath } }
-  }
-
-  if (to.path === '/login' && auth.isAuthenticated) {
-    return { path: '/' }
-  }
-
-  // 权限门禁
-  if (to.meta.requiresAuth && to.meta.permission) {
-    await auth.ensureMe()
-    const need = to.meta.permission as string | string[]
-    const codes = Array.isArray(need) ? need : [need]
-    if (!codes.some(c => auth.hasPermission(c))) {
-      return { path: '/' }
-    }
+    next('/login')
+  } else if (to.path === '/login' && auth.isAuthenticated) {
+    next('/')
+  } else {
+    next()
   }
 })
