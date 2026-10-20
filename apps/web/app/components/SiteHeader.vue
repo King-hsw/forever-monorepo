@@ -41,8 +41,8 @@
         >
           {{ guest.nickname.slice(0, 1) }}
         </NuxtLink>
-        <!-- guest 已注册时登录入口消失，游客徽标是唯一身份入口（与 guest 徽标的 v-if 互斥） -->
-        <div v-if="!guest.isRegistered">
+        <!-- 登录态不显示登录入口；未登录且已注册游客身份时由游客徽标兼任入口（与 guest 徽标 v-if 互斥） -->
+        <div v-if="!auth.isAuthenticated && !guest.isRegistered">
           <button
             type="button"
             class="site-header__icon-btn"
