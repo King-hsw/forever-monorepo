@@ -43,33 +43,35 @@ export const useAuthStore = defineStore('auth', () => {
    * 任何失败都按未登录渲染 —— 后端重启/网络抖动不能让整页 500。
    */
   async function ssrExchange() {
-    const refresh = useCookie<string | null>('forever_refresh')
-    if (!refresh.value) return
+    // cookie ref 必须在任何 await 之前同步取好：await 之后再调 useCookie 会丢 Nuxt 上下文
+    // （NUXT_E1001）抛错被 catch 吞掉，导致轮换出的新票永远写不回浏览器，旧票已被后端消费，
+    // 整站登录态在一次 SSR 导航后必死
     const config = useRuntimeConfig()
+    const refreshCookie = useCookie<string | null>('forever_refresh', {
+      httpOnly: true,
+      // 本地 HTTP+局域网 IP 开发时后端 cookie 不带 Secure，回写保持一致，否则浏览器丢弃
+      secure: config.authCookieSecure !== false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+      // 生产写父域(两个子域共享);本地为空省略 Domain
+      domain: (config.authCookieDomain as string) || undefined,
+    })
+    if (!refreshCookie.value) return
     try {
       const res = await $fetch<{
         code: number
         data?: { accessToken?: string, refreshToken?: string | null }
       }>(`${config.apiBase}/api/auth/refresh`, {
         method: 'POST',
-        body: { token: refresh.value },
+        body: { token: refreshCookie.value },
       })
       const access = res?.data?.accessToken
       if (res?.code !== 0 || !access) return
       token.value = access
       const rotated = res.data?.refreshToken
-      if (rotated) {
-        useCookie<string | null>('forever_refresh', {
-          httpOnly: true,
-          // 本地 HTTP+局域网 IP 开发时后端 cookie 不带 Secure，回写保持一致，否则浏览器丢弃
-          secure: config.authCookieSecure !== false,
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7,
-          // 生产写父域(两个子域共享);本地为空省略 Domain
-          domain: (config.authCookieDomain as string) || undefined,
-        }).value = rotated
-      }
+      // 赋值不依赖 Nuxt 上下文，await 之后安全
+      if (rotated) refreshCookie.value = rotated
     } catch {
       // 换票失败:按未登录渲染
     }
