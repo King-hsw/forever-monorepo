@@ -10,10 +10,12 @@ desktop.ini
 *~
 
 # ============ 环境变量 / 私密配置 ============
-# .env 系列一律不入仓，只保留模板
+# .env 系列一律不入仓，只保留模板与「本地开发默认值」
+# .env.development 是入库的 dev 配置（只有本地 infra 值，真 key 严禁写入）；个人特化仍放 .env / shell 环境变量
 .env
 .env.*
 !.env.example
+!.env.development
 *.local
 
 # ============ Node / 前端 ============

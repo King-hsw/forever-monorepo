@@ -1,22 +1,28 @@
-# 配置单一来源：全部 ${ENV:默认值}，默认值 = 本地开发可用；
-# 本地/测试/生产同一套变量名，值放各自 .env（本地：set -a; source .env 后启动；
-# 测试：systemd EnvironmentFile；生产：compose 自动读取 .env）
+# 配置单一来源：全部 ${ENV:默认值}，**默认值 = 本地开发可用值**（对齐 docker-compose.dev.yml），
+# 本地 clone 后直接 `mvn spring-boot:run`，不需要 .env。
+#
+# 生产不是靠「记得设变量」保障，而是靠 application-prod.yml 把下方这些必填项重新声明为
+# 无默认值的 ${VAR}——少一个变量就启动失败（fail fast）。镜像内 SPRING_PROFILES_ACTIVE=prod
+# 已在 Dockerfile 里设死，本地 mvn 不带 profile 走的仍是下面的 dev 默认值。
+# 同一套变量名：测试机 systemd EnvironmentFile / 生产 compose 自动读取 .env
 spring:
   application:
     name: forever-server
-  # SMTP 发信（评论通知/启动测试邮件）：BLOG_MAIL_* 必填，.env 提供，缺失即启动失败（fail fast）
+  # SMTP 发信（评论通知/启动测试邮件）：本地默认指向 docker-compose.dev.yml 的 Mailpit
   mail:
-    host: ${BLOG_MAIL_HOST}
-    port: ${BLOG_MAIL_PORT}
-    username: ${BLOG_MAIL_USERNAME}
-    password: ${BLOG_MAIL_PASSWORD}
+    host: ${BLOG_MAIL_HOST:localhost}
+    port: ${BLOG_MAIL_PORT:1025}
+    # 本地账号名兼作发件人地址（MailService 用 mail.username 作 From），必须是合法 email，
+    # 否则 Mailpit 回 553 not a valid RFC 5321 address；生产为真实 SMTP 账号
+    username: ${BLOG_MAIL_USERNAME:dev@example.com}
+    password: ${BLOG_MAIL_PASSWORD:dev}
     properties:
       mail:
         smtp:
           auth: true
           ssl:
-            # 本地 Mailpit(1025 明文)设 BLOG_MAIL_SSL_ENABLE=false；生产 465 隐式 TLS 保持默认 true
-            enable: ${BLOG_MAIL_SSL_ENABLE:true}
+            # 本地 Mailpit(1025) 是明文连接，默认关；生产 465 隐式 TLS 由 application-prod.yml 打开
+            enable: ${BLOG_MAIL_SSL_ENABLE:false}
           # 防止 SMTP 不可达时启动测试邮件/评论通知长时间挂起
           connectiontimeout: 15000
           timeout: 15000
@@ -46,28 +52,29 @@ mybatis:
     map-underscore-to-camel-case: true
 blog:
   site:
-    # 站点名称（邮件 From 显示名、RSS 标题等对外署名；必填）
-    name: ${BLOG_SITE_NAME}
+    # 站点名称（邮件 From 显示名、RSS 标题等对外署名）；默认本地站点名，生产必须覆盖
+    name: ${BLOG_SITE_NAME:补陋阁}
     # 站点对外地址（邮件绝对链接、RSS、文章 url 字段）；留空 = 邮件降级无链接、文章 url 为 null
     url: ${BLOG_SITE_URL:}
   mail:
-    # 启动测试邮件收件人（必填）：服务启动即发一封，验证 SMTP 链路，失败只记日志不阻塞启动
-    test-to: ${BLOG_MAIL_TO}
-    # 评论通知站长收件人（必填）
-    notify-to: ${BLOG_MAIL_NOTIFY_TO}
-  # 初始管理员：仅 sys_user 表为空时用于建号，password 必填（fail fast）
+    # 启动测试邮件收件人：服务启动即发一封，验证 SMTP 链路，失败只记日志不阻塞启动（本地进 Mailpit :8025）
+    # 默认域用 example.com：Mailpit 会拒 `@localhost`（553 不是合法 RFC 5321 地址）
+    test-to: ${BLOG_MAIL_TO:dev@example.com}
+    # 评论通知站长收件人
+    notify-to: ${BLOG_MAIL_NOTIFY_TO:dev@example.com}
+  # 初始管理员：仅 sys_user 表为空时用于建号；默认 dev/dev，生产由 application-prod.yml 恢复为必填
   admin:
-    username: ${BLOG_ADMIN_USERNAME:admin}
-    password: ${BLOG_ADMIN_PASSWORD}
-  # 文件存储（RustFS，S3 兼容）：缺项启动即失败（fail fast）；应用不管理桶
+    username: ${BLOG_ADMIN_USERNAME:dev}
+    password: ${BLOG_ADMIN_PASSWORD:dev}
+  # 文件存储（RustFS，S3 兼容）：默认对齐 docker-compose.dev.yml；生产必填项见 application-prod.yml
   storage:
     # 浏览器可达的 S3 API 地址（预签名 URL 由浏览器直连）
-    endpoint: ${BLOG_STORAGE_ENDPOINT}
+    endpoint: ${BLOG_STORAGE_ENDPOINT:http://localhost:9000}
     # 公开直链域名（CDN），留空用 endpoint
     public-base-url: ${BLOG_STORAGE_PUBLIC_BASE_URL:}
-    access-key: ${BLOG_STORAGE_ACCESS_KEY}
-    secret-key: ${BLOG_STORAGE_SECRET_KEY}
-    bucket: ${BLOG_STORAGE_BUCKET}
+    access-key: ${BLOG_STORAGE_ACCESS_KEY:rustfsadmin}
+    secret-key: ${BLOG_STORAGE_SECRET_KEY:rustfsadmin}
+    bucket: ${BLOG_STORAGE_BUCKET:forever}
     # 预签名 URL 有效期（直传 PUT 与分片共用）
     presign-ttl: ${BLOG_STORAGE_PRESIGN_TTL:15m}
   # 高德 Web Service key（动态页「获取当前位置」逆地理）；留空 = 功能关闭
@@ -80,5 +87,6 @@ forever:
   auth:
     # 父域 cookie Domain 配置：生产设为 .<父域>（如 .example.com），本地留空（localhost 跨端口共享）
     cookie-domain: ${AUTH_COOKIE_DOMAIN:}
-    # refresh cookie 的 Secure 属性：默认 true（https 生产）；本地 HTTP + 局域网 IP 访问时设 AUTH_COOKIE_SECURE=false，否则浏览器丢弃 cookie
-    cookie-secure: ${AUTH_COOKIE_SECURE:true}
+    # refresh cookie 的 Secure 属性：本地是 HTTP（含局域网 IP），默认关，否则浏览器丢弃 cookie；
+    # 生产 https 由 application-prod.yml 恢复为 true
+    cookie-secure: ${AUTH_COOKIE_SECURE:false}

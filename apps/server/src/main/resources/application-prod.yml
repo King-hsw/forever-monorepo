@@ -1,6 +1,39 @@
-# 仅保留开发环境特性的生产关闭开关，其余配置与本地同一份 application.yml
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
+# 生产 profile：把 application.yml 里「本地开发可用」的默认值全部收回。
+# 规则：必填项在这里重新声明为**无默认值**的 ${VAR}——少一个环境变量就在启动时
+# 抛 IllegalArgumentException 直接失败，绝不带着 dev 默认值（admin/dev 账号、
+# localhost:9000 图床、明文 SMTP、非 Secure cookie）静默上线。
+# Dockerfile 已设 SPRING_PROFILES_ACTIVE=prod，镜像不会漏带 profile。
+#
+# 其余可选/无需覆盖的配置（BLOG_SITE_URL、AUTH_COOKIE_DOMAIN、AI key、高德 key 等）
+# 沿用 application.yml 的 ${VAR:空} 语义，不在此重复声明。
+spring:
+  mail:
+    host: ${BLOG_MAIL_HOST}
+    port: ${BLOG_MAIL_PORT}
+    username: ${BLOG_MAIL_USERNAME}
+    password: ${BLOG_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          ssl:
+            # 生产 https/465 隐式 TLS；本地 yml 为 false（Mailpit 明文）
+            enable: ${BLOG_MAIL_SSL_ENABLE:true}
+blog:
+  site:
+    name: ${BLOG_SITE_NAME}
+  mail:
+    test-to: ${BLOG_MAIL_TO}
+    notify-to: ${BLOG_MAIL_NOTIFY_TO}
+  admin:
+    # 初始管理员：仅 sys_user 表为空时建号，生产严禁用默认口令
+    username: ${BLOG_ADMIN_USERNAME}
+    password: ${BLOG_ADMIN_PASSWORD}
+  storage:
+    endpoint: ${BLOG_STORAGE_ENDPOINT}
+    access-key: ${BLOG_STORAGE_ACCESS_KEY}
+    secret-key: ${BLOG_STORAGE_SECRET_KEY}
+    bucket: ${BLOG_STORAGE_BUCKET}
+forever:
+  auth:
+    # 生产走 https，refresh cookie 必须 Secure；本地 yml 为 false
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}

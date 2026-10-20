@@ -84,21 +84,21 @@ pnpm dev
 
 ### 环境变量
 
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `NUXT_API_BASE` | `http://localhost:8080` | forever-server 地址（仅服务端使用） |
-| `NUXT_PUBLIC_SITE_URL` | `https://forever.example.com` | 站点地址，sitemap / RSS / OG 等绝对链接使用 |
-| `NUXT_PUBLIC_API_BASE` | 空（同源） | 浏览器端 API 地址，一般无需修改 |
+| 变量 | 默认值 | 本地 dev（`.env.development`） | 说明 |
+| --- | --- | --- | --- |
+| `NUXT_API_BASE` | `http://localhost:8080` | 同默认 | forever-server 地址（仅服务端使用） |
+| `NUXT_PUBLIC_SITE_URL` | `https://forever.example.com` | `http://localhost:3000` | 站点地址，sitemap / RSS / OG 等绝对链接使用 |
+| `NUXT_PUBLIC_API_BASE` | 空（同源） | 同默认 | 浏览器端 API 地址，一般无需修改 |
+| `NUXT_AUTH_COOKIE_SECURE` | `true` | `false` | refresh cookie 的 Secure；本地 HTTP / 局域网 IP 必须关，否则浏览器丢弃 cookie |
 
-环境参数通过 `.env` 文件管理，项目根目录提供模板 [.env.example](.env.example)：
+本地开发**零配置**：`pnpm dev` 已是 `nuxt dev --dotenv .env.development`，
+仓库里的 [.env.development](.env.development) 就带上了上表右列的值，不需要复制模板、不需要填值。
 
-```bash
-cp .env.example .env   # 本地开发用；生产可复制为 .env.production
-```
-
-- `nuxt dev` / `nuxt build` 会自动读取根目录的 `.env`；也可以用 `--dotenv` 指定其它文件，例如 `nuxt build --dotenv .env.production`
-- 真实的 `.env` / `.env.production` 已被 `.gitignore` 忽略，不会提交到仓库
-- **注意**：Nuxt 只在 dev / build 阶段读取 `.env`。生产「运行时」（`node .output/server/index.mjs`）请通过系统环境变量注入（systemd / Docker / PM2 等），或构建时把最终值写进 `.env.production` 后再打包
+- 优先级：shell 环境变量 > `.env.development` > `nuxt.config.ts` 里的 `runtimeConfig` 默认值
+- 临时覆盖用 `NUXT_X=... pnpm dev` 形式（变量名以上表为准），不要为此改 `.env.development`：它入库
+- `.env.example` 是变量清单与生产参考；`.env` / `.env.production` 不入库，供个人特化
+- **注意**：`--dotenv` 只接一个文件，传了 `.env.development` 后 dev 阶段就不再自动读 `.env`（这是 Nuxt CLI 的行为）
+- **注意**：Nuxt 只在 dev / build 阶段读取 env 文件。生产「运行时」（`node .output/server/index.mjs`）请通过系统环境变量注入（systemd / Docker / PM2 等），或构建时把最终值写进 `.env.production` 后再打包
 
 ### 生产构建
 

@@ -7,7 +7,8 @@
 #   RustFS      9000  (S3 API)  /  9001  (Web Console)
 #   Mailpit     1025  (SMTP)    /  8025  (Web UI)
 #
-# 与 apps/server/.env.example 中的默认值完全对齐,无需改 .env 即可启动。
+# 与 apps/server/src/main/resources/application.yml 的 ${VAR:默认值} 完全对齐，
+# 本地 clone 后零配置即可启动（无需 .env：数据库/存储/邮件的默认值就是下面这些）。
 
 services:
   postgres:

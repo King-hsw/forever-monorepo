@@ -8,7 +8,8 @@ import org.springframework.stereotype.Service;
  * 父域 HttpOnly refresh cookie 构造服务。
  * cookie 名 {@value #COOKIE_NAME},属性恒为 HttpOnly + SameSite=Lax + Path=/,Secure 由配置控制;
  * Domain 取配置 {@code forever.auth.cookie-domain}(空则省略,本地 localhost 跨端口天然共享);
- * Secure 取 {@code forever.auth.cookie-secure}(默认 true;本地 HTTP+局域网 IP 开发设 false,否则浏览器丢弃)。
+ * Secure 取 {@code forever.auth.cookie-secure}（本地 yml 默认 false，HTTP/局域网 IP 下 true 会被浏览器丢弃；
+ * 生产由 application-prod.yml 恢复 true；注解里的 {@code :true} 是 yml 缺失时的安全兜底）。
  */
 @Service
 public class AuthCookieService {

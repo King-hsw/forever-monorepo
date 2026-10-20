@@ -25,8 +25,11 @@ COPY --chown=spring:spring extracted/application/ /app/
 
 USER spring
 # 容器内存感知的堆配置，可用 -e JAVA_OPTS=... 覆盖追加
+# 镜像 = 生产产物：profile 默认 prod，application-prod.yml 会把本地默认值全部收回
+# （必填环境变量缺失即启动失败）；本地开发直接 mvn spring-boot:run，不带 profile
 ENV TZ=Asia/Shanghai \
-    JAVA_OPTS=""
+    JAVA_OPTS="" \
+    SPRING_PROFILES_ACTIVE=prod
 
 # 8080 = 服务端口；spring 启动 + Flyway 迁移较慢，放宽启动窗口
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
