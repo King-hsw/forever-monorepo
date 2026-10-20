@@ -24,7 +24,7 @@ class AuthControllerCookieTest {
     void setUp() {
         tokenService = mock(TokenService.class);
         authService = mock(AuthService.class);
-        cookieService = new AuthCookieService("");
+        cookieService = new AuthCookieService("", true);
         controller = new AuthController(authService, tokenService, cookieService);
     }
 

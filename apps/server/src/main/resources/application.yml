@@ -80,3 +80,5 @@ forever:
   auth:
     # 父域 cookie Domain 配置：生产设为 .<父域>（如 .example.com），本地留空（localhost 跨端口共享）
     cookie-domain: ${AUTH_COOKIE_DOMAIN:}
+    # refresh cookie 的 Secure 属性：默认 true（https 生产）；本地 HTTP + 局域网 IP 访问时设 AUTH_COOKIE_SECURE=false，否则浏览器丢弃 cookie
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}

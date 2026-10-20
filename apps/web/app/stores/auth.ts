@@ -52,7 +52,7 @@ export const useAuthStore = defineStore('auth', () => {
         data?: { accessToken?: string, refreshToken?: string | null }
       }>(`${config.apiBase}/api/auth/refresh`, {
         method: 'POST',
-        body: { refreshToken: refresh.value },
+        body: { token: refresh.value },
       })
       const access = res?.data?.accessToken
       if (res?.code !== 0 || !access) return
@@ -61,7 +61,8 @@ export const useAuthStore = defineStore('auth', () => {
       if (rotated) {
         useCookie<string | null>('forever_refresh', {
           httpOnly: true,
-          secure: true,
+          // 本地 HTTP+局域网 IP 开发时后端 cookie 不带 Secure，回写保持一致，否则浏览器丢弃
+          secure: config.authCookieSecure !== false,
           sameSite: 'lax',
           path: '/',
           maxAge: 60 * 60 * 24 * 7,

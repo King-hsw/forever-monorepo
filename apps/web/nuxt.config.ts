@@ -17,6 +17,8 @@ export default defineNuxtConfig({
         apiBase: 'http://localhost:8080',
         // 父域 refresh cookie 的 Domain（生产 .<父域>，本地留空）
         authCookieDomain: '',
+        // refresh cookie 的 Secure 属性：生产 https 保持 true；本地 HTTP/局域网 IP 开发设 NUXT_AUTH_COOKIE_SECURE=false
+        authCookieSecure: true,
         public: {
             // 站点地址（sitemap / RSS 等绝对链接使用），可通过 NUXT_PUBLIC_SITE_URL 覆盖
             siteUrl: 'https://forever.example.com',
