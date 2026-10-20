@@ -129,11 +129,11 @@ export const useAuthStore = defineStore('auth', () => {
    */
   function hydrate() {
     if (import.meta.server) return
-    if (token.value) return
     const stored = loadAuth()
-    if (!stored) return
-    token.value = stored.accessToken
-    username.value = stored.username || null
+    // token 可能已由 SSR 换票水合过来，但 username 只存在 localStorage，
+    // 不能因 token 已有就提前返回，否则 SSR 成功后用户名永远丢失
+    if (!token.value && stored) token.value = stored.accessToken
+    if (!username.value && stored?.username) username.value = stored.username
   }
 
   return {
